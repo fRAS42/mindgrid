@@ -75,6 +75,14 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
 .editbar button{font-size:14px;padding:6px 10px;min-width:38px}
 .node .txt{outline:none;min-height:1.35em}
 .node .txt[contenteditable="true"]{user-select:text;-webkit-user-select:text;caret-color:var(--g-hi)}
+.node .stamp{position:absolute;left:-1px;bottom:calc(100% + 5px);font-size:12px;line-height:1.3;color:var(--g-mid);
+  white-space:nowrap;pointer-events:none;text-shadow:none;letter-spacing:0;font-weight:normal;
+  background:var(--panel);padding:1px 6px;border:1px solid var(--g-dim)}
+.node.root .stamp{font-size:12px}
+.node.editing .stamp{display:none}
+.node.latest{box-shadow:0 0 0 1px var(--g),0 0 18px rgba(var(--rgb),.45)}
+.node.latest.sel{box-shadow:0 0 0 2px var(--g-hi),0 0 22px rgba(var(--rgb),.55)}
+#ctx .ttl small{display:block;margin-top:3px;font-size:11.5px;color:var(--g-dim)}
 .node .badge{position:absolute;right:-11px;top:-11px;min-width:22px;height:22px;padding:0 5px;
   background:var(--bg);border:1px solid var(--g);font-size:12px;line-height:20px;text-align:center;cursor:pointer;color:var(--g)}
 .node.new{animation:materialize .55s ease-out}
@@ -191,7 +199,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 2.4</p>
+  <p style="margin:-4px 0 8px">Version 2.6</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -233,6 +241,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
   <div id="swatches"></div>
   <div class="trow"><label for="customColor">Custom color</label><input type="color" id="customColor" value="#00ff41"></div>
   <div class="trow"><label for="rainLevel">Rain brightness</label><input type="range" id="rainLevel" min="5" max="80" value="32"></div>
+  <div class="trow"><label for="latestOn">Most recent update in matrix green</label><input type="checkbox" id="latestOn" checked></div>
   <div class="trow"><label for="bgTint">Background tint</label><input type="range" id="bgTint" min="0" max="30" value="0"></div>
   <div class="trow"><span></span><button data-theme-reset>reset to green</button></div>
 </div>
@@ -372,7 +381,7 @@ const halfW = id => (nodes.get(id)?.w || els.get(id)?.offsetWidth || 200) / 2;
 function setWidth(id, w) {
   const n = nodes.get(id); if (!n) return;
   pushUndo();
-  n.w = w == null ? null : clamp(Math.round(w), 80, 800);
+  n.w = w == null ? null : clamp(Math.round(w), 80, 800); n.updated = now();
   renderAll(); markDirty();
   log(n.w ? `Width ${n.w}px` : 'Width set to automatic');
 }
@@ -443,7 +452,24 @@ function tidy() {
 }
 
 /* ---------- rendering ---------- */
+/* ---------- most recently updated node shows in matrix green ---------- */
+const MATRIX = '#00ff41';
+let latestId = null;
+const effColor = n => (prefs.latest !== false && n.id === latestId) ? MATRIX : n.color;
+function findLatest() {
+  let best = null, bt = '';
+  for (const n of nodes.values()) { const t = n.updated || ''; if (t && t >= bt) { bt = t; best = n.id; } }
+  return best;
+}
+function refreshLatest(force = false) {
+  const id = findLatest();
+  if (id === latestId && !force) return;
+  const old = latestId; latestId = id;
+  for (const i of [old, id]) { const n = nodes.get(i), el = els.get(i); if (n && el) updateEl(n, el); }
+  drawEdges();
+}
 function renderAll() {
+  latestId = findLatest();
   for (const [id, el] of els) if (!nodes.has(id)) { el.remove(); els.delete(id); }
   const idx = childIndex();
   for (const n of nodes.values()) {
@@ -462,16 +488,19 @@ function updateEl(n, el = els.get(n.id), idx) {
   el.style.left = n.x + 'px'; el.style.top = n.y + 'px';
   el.style.width = n.w ? n.w + 'px' : '';
   el.classList.toggle('fixed', !!n.w);
-  if (el.dataset.color !== prefs.mode + (n.color || '')) {
-    el.dataset.color = prefs.mode + (n.color || '');
+  const ec = effColor(n);
+  el.classList.toggle('latest', n.id === latestId && prefs.latest !== false);
+  if (el.dataset.color !== prefs.mode + (ec || '')) {
+    el.dataset.color = prefs.mode + (ec || '');
     const vars = ['--g', '--g-hi', '--g-mid', '--g-dim', '--rgb', '--nodebg'];
-    if (n.color) {
-      const sh = shades(n.color);
+    if (ec) {
+      const sh = shades(ec);
       [sh.g, sh.hi, sh.mid, sh.dim, sh.rgb, sh.nodebg].forEach((v, i) => el.style.setProperty(vars[i], v));
     } else vars.forEach(v => el.style.removeProperty(v));
   }
   el.classList.toggle('root', n.parent == null || !nodes.has(n.parent));
   el.classList.toggle('sel', n.id === selectedId);
+  if (idx) updateStamp(n.id);
   el.style.display = isHidden(n) ? 'none' : '';
   const t = el.firstChild;
   if (editingId !== n.id && t.textContent !== n.text) t.textContent = n.text;
@@ -490,17 +519,43 @@ function drawEdges() {
     if (!p || isHidden(n)) continue;
     const dx = (n.x - p.x) * 0.5;
     const d = `M${p.x},${p.y} C${p.x + dx},${p.y} ${n.x - dx},${n.y} ${n.x},${n.y}`;
-    const st = n.color ? shades(n.color) : null;
+    const ec = effColor(n), st = ec ? shades(ec) : null;
     s += st ? `<path class="edge" d="${d}" style="stroke:${st.dim}"/><path class="flow" d="${d}" style="stroke:${st.g}"/>`
             : `<path class="edge" d="${d}"/><path class="flow" d="${d}"/>`;
   }
   edgesSvg.innerHTML = s;
   scheduleMini();
 }
+/* ---------- last-updated stamp above the selected node ---------- */
+function fmtTime(iso) {
+  const d = new Date(iso); if (!iso || isNaN(d)) return null;
+  return d.toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function ago(iso) {
+  const d = new Date(iso); if (!iso || isNaN(d)) return '';
+  const m = Math.round((Date.now() - d) / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + ' min ago';
+  const h = Math.round(m / 60); if (h < 24) return h + ' h ago';
+  const days = Math.round(h / 24); if (days === 1) return 'yesterday';
+  if (days < 30) return days + ' days ago';
+  return '';
+}
+function updateStamp(id) {
+  const el = els.get(id); if (!el) return;
+  let st = el.querySelector('.stamp');
+  if (id !== selectedId || !nodes.has(id)) { st?.remove(); return; }
+  if (!st) { st = document.createElement('div'); st.className = 'stamp'; el.appendChild(st); }
+  const n = nodes.get(id), when = fmtTime(n.updated || n.created), rel = ago(n.updated || n.created);
+  st.textContent = when ? `updated ${when}${rel ? ' (' + rel + ')' : ''}` : 'no update time recorded';
+}
+setInterval(() => updateStamp(selectedId), 30000);
 function select(id) {
-  const prev = els.get(selectedId); if (prev) prev.classList.remove('sel');
+  const prevId = selectedId, prev = els.get(prevId); if (prev) prev.classList.remove('sel');
   selectedId = id;
   const el = els.get(id); if (el) el.classList.add('sel');
+  if (prevId !== id) updateStamp(prevId);
+  updateStamp(id);
   updateStatus(); scheduleMini();
 }
 function updateStatus() {
@@ -584,7 +639,7 @@ function drawMini() {
   mctx.stroke();
   for (const n of vis) {
     const r = (n.parent == null || !nodes.has(n.parent)) ? 4 : 2.5;
-    mctx.fillStyle = n.id === selectedId ? theme.hi : (n.color || theme.g);
+    mctx.fillStyle = n.id === selectedId ? theme.hi : (effColor(n) || theme.g);
     mctx.fillRect(X(n.x) - r, Y(n.y) - r * 0.7, r * 2, r * 1.4);
   }
   mctx.strokeStyle = theme.hi; mctx.lineWidth = 1.2;
@@ -720,7 +775,7 @@ function commitEdit(cancel = false) {
   let txt = raw.replace(/\u00a0/g, ' ').replace(/^(\s*\n)+/, '').replace(/\s+$/, '').replace(/\n{3,}/g, '\n\n');
   if (cancel || txt === n.text) { t.textContent = n.text; return; }
   if (!txt.trim()) txt = '…';
-  pushUndo(); n.text = txt; n.updated = now(); t.textContent = txt; markDirty();
+  pushUndo(); n.text = txt; n.updated = now(); t.textContent = txt; markDirty(); updateStamp(id);
 }
 world.addEventListener('focusout', e => {
   if (editingId == null || !e.target.classList?.contains('ed')) return;
@@ -750,7 +805,9 @@ function openMenu(id, x, y) {
     '-',
     ['delete', count > 1 ? `Delete node + ${count - 1} below` : 'Delete node', 'danger']
   ].filter(Boolean);
-  ctx.innerHTML = `<div class="ttl">${escapeHtml(short(n.text))}</div>` + items.map(it => it === '-' ? '<hr>' :
+  const cr = fmtTime(n.created), up = fmtTime(n.updated);
+  ctx.innerHTML = `<div class="ttl">${escapeHtml(short(n.text))}` +
+    (cr ? `<small>created ${cr}</small>` : '') + (up ? `<small>updated ${up}</small>` : '') + `</div>` + items.map(it => it === '-' ? '<hr>' :
     `<button data-m="${it[0]}" class="${it[2] || ''}" role="menuitem">${it[1]}</button>`).join('');
   ctx.classList.add('show');
   const r = ctx.getBoundingClientRect();
@@ -943,7 +1000,11 @@ function endPointer(e) {
   clearTimeout(lpTimer);
   const d = drag; drag = null;
   if (d.link) return;   // panning while choosing a node to connect to
-  if (d.moved) { if (d.type !== 'pan') markDirty(); return; }
+  if (d.moved) {
+    if (d.type === 'resize') { const n = nodes.get(d.id); if (n) { n.updated = now(); updateStamp(d.id); } }
+    if (d.type !== 'pan') markDirty();
+    return;
+  }
   if (e.type === 'pointercancel') return;
   const t = performance.now();
   clearTimeout(diveTimer);
@@ -1160,7 +1221,7 @@ $('#fileIn').addEventListener('change', e => {
 });
 
 let cacheTimer = null;
-function markDirty() { dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
+function markDirty() { refreshLatest(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
 async function cacheSession() {
   if (!db) return;
   try {
@@ -1231,7 +1292,7 @@ const PRESETS = [
   ['magenta', '#ff2bd6'], ['red', '#ff3b3b'], ['violet', '#a77bff'], ['gold', '#ffe14d']
 ];
 const theme = { g: '#00ff41', hi: '#c8ffd6', mid: '#00b82e', dim: '#0a5c1c', rgb: '0,255,65' };
-const prefs = { color: '#00ff41', rain: 32, tint: 0, mode: 'night' };
+const prefs = { color: '#00ff41', rain: 32, tint: 0, mode: 'night', latest: true };
 const hexToRgb = h => { const v = parseInt(h.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; };
 const toHex = a => '#' + a.map(v => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0')).join('');
 const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
@@ -1276,7 +1337,7 @@ function applyTheme() {
   $('#rain').style.opacity = (prefs.rain / 100) * (day ? .55 : 1);
   $('#boot').style.background = bg; $('#boot').style.color = p.g;
   $('#customColor').value = prefs.color;
-  $('#rainLevel').value = prefs.rain; $('#bgTint').value = prefs.tint;
+  $('#rainLevel').value = prefs.rain; $('#bgTint').value = prefs.tint; $('#latestOn').checked = prefs.latest !== false;
   document.querySelectorAll('#swatches .sw').forEach(b => b.classList.toggle('on', b.dataset.color === prefs.color));
   document.querySelectorAll('.seg [data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === prefs.mode));
   $('#modeBtn').textContent = day ? '☾ night' : '☀ day';
@@ -1301,6 +1362,7 @@ function loadThemeFrom(json) {
   if (isFinite(t.rain)) prefs.rain = clamp(+t.rain, 5, 80);
   if (isFinite(t.tint)) prefs.tint = clamp(+t.tint, 0, 30);
   if (t.mode === 'day' || t.mode === 'night') prefs.mode = t.mode;
+  if (typeof t.latest === 'boolean') prefs.latest = t.latest;
   applyTheme(); savePrefs(false);
 }
 try { Object.assign(prefs, JSON.parse(localStorage.getItem('mindgrid-theme') || '{}')); } catch {}
@@ -1315,6 +1377,7 @@ $('#theme').addEventListener('click', e => {
 $('#customColor').addEventListener('input', e => { prefs.color = e.target.value; applyTheme(); });
 $('#customColor').addEventListener('change', savePrefs);
 $('#rainLevel').addEventListener('input', e => { prefs.rain = +e.target.value; applyTheme(); savePrefs(); });
+$('#latestOn').addEventListener('change', e => { prefs.latest = e.target.checked; savePrefs(); renderAll(); });
 $('#bgTint').addEventListener('input', e => { prefs.tint = +e.target.value; applyTheme(); savePrefs(); });
 applyTheme();
 
@@ -1361,7 +1424,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 2.4 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 2.6 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');

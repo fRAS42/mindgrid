@@ -4,7 +4,7 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 2.4
+**Current version:** 2.6
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -17,6 +17,8 @@ No install, no account, no server. Everything runs in your browser.
 - Hold a node (or right-click it) for a menu with color, connect, disconnect and delete
 - Per-node colors, interface color themes, and a night/day theme
 - Adjustable node widths
+- Last-updated time shown above the selected node; created and updated times in the node menu
+- The most recently updated node glows in matrix green, so you can always see where you left off
 - Fold and unfold branches
 - Undo and redo
 - Auto-arrange (tidy) layout
@@ -42,7 +44,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 
 | Action | What it does |
 |---|---|
-| Tap / click a node | Select it |
+| Tap / click a node | Select it and show when it was last updated |
 | Double-tap / double-click a node | Edit its text |
 | Triple-tap a node | Add a child node |
 | Double-tap / double-click empty space | Add a child of the selected node at that spot |
@@ -96,6 +98,8 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 
 ### Node menu (hold a node or right-click)
 
+The top of the menu shows when the node was created and last updated.
+
 | Item | What it does |
 |---|---|
 | Edit text | Start editing the node |
@@ -125,7 +129,7 @@ Every change can be undone with **undo**.
 | + / − | Zoom in / out |
 | radar | Show or hide the minimap |
 | ☀ day / ☾ night | Switch between the day and night theme |
-| colors | Interface color, rain brightness, background tint |
+| colors | Interface color, night/day, matrix-green highlight for the latest update, rain brightness, background tint |
 | rain | Turn the digital rain on or off |
 | ? | Controls panel (also **? controls** in the bottom-right corner) |
 
@@ -157,9 +161,12 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | collapsed | 1 if the branch is folded |
 | width | Fixed width in pixels (empty = automatic) |
 | color | The node's own color, such as `#ffb000` (empty = interface color) |
-| created_at, updated_at | Timestamps |
+| created_at | When the node was created (ISO 8601, UTC) |
+| updated_at | When the node's text, color, width or connection last changed (ISO 8601, UTC) |
 
-**`meta`** holds map settings: the view position and zoom, the selected node, and the interface theme (color, rain, tint, night/day).
+**`meta`** holds map settings: the view position and zoom, the selected node, and the interface theme (color, rain, tint, night/day, latest-update highlight).
+
+The matrix-green highlight is not stored on the node itself: the app picks the node with the newest `updated_at` each time, and the node keeps its own `color`.
 
 ---
 
@@ -191,6 +198,8 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 
 | Version | Changes |
 |---|---|
+| 2.6 | The most recently updated node shows in matrix green with a glow (can be turned off in **colors**) |
+| 2.5 | Selected node shows its last-updated time above it; node menu shows created and updated times; width changes now count as updates |
 | 2.4 | **? controls** in the bottom-right corner opens the controls panel; panel has a close button and closes when you tap the map |
 | 2.3 | Night/day theme toggle; nodes grow to fit their text before wrapping |
 | 2.2 | Opening `.sqlite` files works on iPhone; clear messages when a file can't be read |
