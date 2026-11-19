@@ -23,7 +23,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
 #scan{position:fixed;inset:0;z-index:5;pointer-events:none;
   background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.18) 2px 3px)}
 #stage{position:fixed;inset:0;z-index:1;cursor:grab;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-#ctx{position:fixed;z-index:30;min-width:220px;background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);
+#ctx{position:fixed;z-index:30;min-width:220px;max-height:calc(100% - 110px);overflow-y:auto;background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);
   padding:4px;display:none;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 #ctx.show{display:block;animation:ctxIn .14s ease-out}
 @keyframes ctxIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
@@ -183,6 +183,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 
 <div id="help">
   <h2>CONTROLS</h2>
+  <p style="margin:-4px 0 8px">Version 2.1</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -744,7 +745,7 @@ function openMenu(id, x, y) {
   ctx.classList.add('show');
   const r = ctx.getBoundingClientRect();
   ctx.style.left = clamp(x - 20, 8, innerWidth - r.width - 8) + 'px';
-  ctx.style.top = clamp(y + 12, 60, innerHeight - r.height - 44) + 'px';
+  ctx.style.top = Math.max(60, Math.min(y + 12, innerHeight - r.height - 44)) + 'px';
   navigator.vibrate?.(12);
 }
 function closeMenu() { ctx.classList.remove('show'); ctxId = null; }
@@ -1302,7 +1303,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 2.1 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
