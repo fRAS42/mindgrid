@@ -120,7 +120,12 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 #help{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(360px,calc(100vw - 24px));
   max-height:calc(100% - 130px);overflow:auto;background:var(--panel);border:1px solid var(--g-mid);
   padding:14px 16px;font-size:13.5px;line-height:1.6;box-shadow:var(--glow);display:none}
-#help.show,#theme.show,#nodeColor.show{display:block}
+#help.show,#theme.show,#nodeColor.show,#rainPanel.show{display:block}
+#rainPanel{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(320px,calc(100vw - 24px));
+  background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
+#rainPanel h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em}
+#rainPanel .sw.def i{background:repeating-linear-gradient(45deg,var(--g) 0 3px,var(--bg) 3px 6px)}
+.chip{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6px;vertical-align:1px;border:1px solid var(--g-dim)}
 #nodeColor{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:25;width:min(320px,calc(100vw - 24px));
   background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
 #nodeColor h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -195,13 +200,14 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
   <button data-act="mode" id="modeBtn" title="Switch between night and day theme">☀ day</button>
   <button data-act="theme" title="Change interface colors">colors</button>
   <button data-act="rain" id="rainBtn" class="on" title="Toggle digital rain">rain</button>
+  <button data-act="raincolor" id="rainColorBtn" title="Change the color of the rain">rain color<i class="chip" id="rainChip"></i></button>
   <button data-act="help" title="Controls (?)">?</button>
 </div>
 
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 2.7</p>
+  <p style="margin:-4px 0 8px">Version 2.8</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -247,6 +253,13 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
   <div class="trow"><label for="latestOn">Most recent update in matrix green</label><input type="checkbox" id="latestOn" checked></div>
   <div class="trow"><label for="bgTint">Background tint</label><input type="range" id="bgTint" min="0" max="30" value="0"></div>
   <div class="trow"><span></span><button data-theme-reset>reset to green</button></div>
+</div>
+<div id="rainPanel">
+  <h2>RAIN COLOR</h2>
+  <div id="rainSwatches" class="swgrid"></div>
+  <div class="trow"><label for="rainCustom">Custom color</label><input type="color" id="rainCustom" value="#00ff41"></div>
+  <div class="trow"><label for="rainLevel2">Rain brightness</label><input type="range" id="rainLevel2" min="5" max="80" value="32"></div>
+  <div class="trow"><span></span><button id="rainDone">done</button></div>
 </div>
 <div id="ctx" role="menu"></div>
 <div id="nodeColor">
@@ -1101,7 +1114,7 @@ document.addEventListener('keydown', e => {
       if (ctx.classList.contains('show')) closeMenu();
       else if (ncId != null) closeNodeColor();
       else if (linkFrom != null) { endLink(); log('Connect cancelled'); }
-      else if ($('#help.show,#theme.show')) { $('#help').classList.remove('show'); $('#theme').classList.remove('show'); }
+      else if ($('#help.show,#theme.show,#rainPanel.show')) { ['#help', '#theme', '#rainPanel'].forEach(q => $(q).classList.remove('show')); }
       else overview();
       break;
     case '+': case '=': zoomStep(1.35); break;
@@ -1265,7 +1278,7 @@ addEventListener('beforeunload', e => { if (dirty) { cacheSession(); e.preventDe
 /* ---------- controls panel ---------- */
 function toggleHelp(force) {
   const show = force ?? !$('#help').classList.contains('show');
-  $('#theme').classList.remove('show'); closeNodeColor();
+  $('#theme').classList.remove('show'); $('#rainPanel').classList.remove('show'); closeNodeColor();
   $('#help').classList.toggle('show', show);
 }
 $('#hint').addEventListener('click', () => toggleHelp());
@@ -1300,7 +1313,8 @@ $('#bar').addEventListener('click', e => {
     case 'rain': rain.toggle(); b.classList.toggle('on', rain.on); break;
     case 'help': toggleHelp(); break;
     case 'mode': setMode(prefs.mode === 'day' ? 'night' : 'day'); break;
-    case 'theme': closeNodeColor(); $('#help').classList.remove('show'); $('#theme').classList.toggle('show'); break;
+    case 'theme': closeNodeColor(); $('#help').classList.remove('show'); $('#rainPanel').classList.remove('show'); $('#theme').classList.toggle('show'); break;
+    case 'raincolor': toggleRainPanel(); break;
   }
 });
 
@@ -1310,7 +1324,7 @@ const PRESETS = [
   ['magenta', '#ff2bd6'], ['red', '#ff3b3b'], ['violet', '#a77bff'], ['gold', '#ffe14d']
 ];
 const theme = { g: '#00ff41', hi: '#c8ffd6', mid: '#00b82e', dim: '#0a5c1c', rgb: '0,255,65' };
-const prefs = { color: '#00ff41', rain: 32, tint: 0, mode: 'night', latest: true };
+const prefs = { color: '#00ff41', rain: 32, tint: 0, mode: 'night', latest: true, rainColor: null };
 const hexToRgb = h => { const v = parseInt(h.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; };
 const toHex = a => '#' + a.map(v => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0')).join('');
 const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
@@ -1359,9 +1373,28 @@ function applyTheme() {
   document.querySelectorAll('#swatches .sw').forEach(b => b.classList.toggle('on', b.dataset.color === prefs.color));
   document.querySelectorAll('.seg [data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === prefs.mode));
   $('#modeBtn').textContent = day ? '☾ night' : '☀ day';
+  if ($('#rainSwatches')) syncRainPanel();
   $('#modeBtn').title = day ? 'Switch to night theme' : 'Switch to day theme';
   if (typeof renderAll === 'function' && nodes.size) renderAll();   // nodes with their own color re-shade
   scheduleMini();
+}
+/* ---------- rain color (separate from the interface color) ---------- */
+const rainPal = () => prefs.rainColor ? pal(prefs.rainColor) : theme;
+function syncRainPanel() {
+  $('#rainChip').style.background = rainPal().g;
+  $('#rainCustom').value = prefs.rainColor || prefs.color;
+  $('#rainLevel2').value = prefs.rain;
+  document.querySelectorAll('#rainSwatches .sw').forEach(b => b.classList.toggle('on', b.dataset.color === (prefs.rainColor || '')));
+}
+function toggleRainPanel(force) {
+  const show = force ?? !$('#rainPanel').classList.contains('show');
+  $('#help').classList.remove('show'); $('#theme').classList.remove('show'); closeNodeColor();
+  $('#rainPanel').classList.toggle('show', show);
+  if (show && !rain.on) { rain.toggle(); $('#rainBtn').classList.add('on'); }
+}
+function setRainColor(c) {
+  prefs.rainColor = c || null;
+  syncRainPanel(); savePrefs();
 }
 function setMode(mode) {
   if (prefs.mode === mode) return;
@@ -1381,6 +1414,7 @@ function loadThemeFrom(json) {
   if (isFinite(t.tint)) prefs.tint = clamp(+t.tint, 0, 30);
   if (t.mode === 'day' || t.mode === 'night') prefs.mode = t.mode;
   if (typeof t.latest === 'boolean') prefs.latest = t.latest;
+  prefs.rainColor = /^#[0-9a-f]{6}$/i.test(t.rainColor || '') ? t.rainColor.toLowerCase() : null;
   applyTheme(); savePrefs(false);
 }
 try { Object.assign(prefs, JSON.parse(localStorage.getItem('mindgrid-theme') || '{}')); } catch {}
@@ -1395,6 +1429,17 @@ $('#theme').addEventListener('click', e => {
 $('#customColor').addEventListener('input', e => { prefs.color = e.target.value; applyTheme(); });
 $('#customColor').addEventListener('change', savePrefs);
 $('#rainLevel').addEventListener('input', e => { prefs.rain = +e.target.value; applyTheme(); savePrefs(); });
+$('#rainSwatches').innerHTML =
+  `<button class="sw def" data-color="" title="same as interface"><i></i>interface</button>` +
+  PRESETS.map(([n, c]) => `<button class="sw" data-color="${c}" title="${n}"><i style="background:${c};box-shadow:0 0 8px ${c}"></i>${n}</button>`).join('');
+$('#rainSwatches').addEventListener('click', e => {
+  const b = e.target.closest('.sw'); if (!b) return;
+  setRainColor(b.dataset.color); log(b.dataset.color ? `Rain color set to ${b.title}` : 'Rain follows the interface color');
+});
+$('#rainCustom').addEventListener('input', e => { prefs.rainColor = e.target.value; syncRainPanel(); });
+$('#rainCustom').addEventListener('change', () => savePrefs());
+$('#rainLevel2').addEventListener('input', e => { prefs.rain = +e.target.value; applyTheme(); savePrefs(); });
+$('#rainDone').addEventListener('click', () => toggleRainPanel(false));
 $('#latestOn').addEventListener('change', e => { prefs.latest = e.target.checked; savePrefs(); renderAll(); });
 $('#bgTint').addEventListener('input', e => { prefs.tint = +e.target.value; applyTheme(); savePrefs(); });
 applyTheme();
@@ -1419,9 +1464,9 @@ const rain = (() => {
     for (let i = 0; i < cols; i++) {
       const y = drops[i] * fs;
       if (y > 0) {
-        ctx.fillStyle = theme.hi;
+        ctx.fillStyle = rainPal().hi;
         ctx.fillText(glyphs[(Math.random() * glyphs.length) | 0], i * fs, y);
-        ctx.fillStyle = theme.g;
+        ctx.fillStyle = rainPal().g;
         ctx.fillText(glyphs[(Math.random() * glyphs.length) | 0], i * fs, y - fs);
       }
       if (y > c.height && Math.random() > 0.975) drops[i] = 0;
@@ -1442,7 +1487,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 2.7 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 2.8 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
