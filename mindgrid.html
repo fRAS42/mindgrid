@@ -479,7 +479,10 @@ function focusNode(id) {
   const n = nodes.get(id); if (!n) return;
   select(id);
   const kids = n.collapsed ? [] : children(id);
-  flyToBounds(boundsOf([n, ...kids]), 1.9);
+  const b = boundsOf([n, ...kids]), pad = Math.min(170, innerWidth * 0.12);
+  const fit = Math.min(1.9, innerWidth / (b.maxX - b.minX + pad * 2), (innerHeight - 110) / (b.maxY - b.minY + 180));
+  if (fit >= 0.75) flyToBounds(b, 1.9, pad);
+  else flyTo(n.x, n.y, Math.min(1.5, innerWidth / (halfW(id) * 2 + 60)));
   log(`Zoomed to “${n.text.split('\n')[0].slice(0, 40)}”`);
 }
 function overview() {
@@ -569,6 +572,9 @@ function startEdit(id) {
   if (editingId != null) commitEdit();
   const el = els.get(id); if (!el) return;
   select(id); editingId = id;
+  const n = nodes.get(id);
+  if (view.s < 0.7) flyTo(n.x, n.y, Math.min(1.2, innerWidth / (halfW(id) * 2 + 60)), 300);
+  else ensureVisible(id);
   const t = el.firstChild;
   el.classList.add('editing'); t.contentEditable = 'true'; t.focus();
   const r = document.createRange(); r.selectNodeContents(t);
@@ -635,7 +641,7 @@ stage.addEventListener('pointermove', e => {
   }
   if (!drag) return;
   const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
-  if (!drag.moved && Math.hypot(dx, dy) < 4) return;
+  if (!drag.moved && Math.hypot(dx, dy) < (e.pointerType === 'mouse' ? 4 : 12)) return;
   if (!drag.moved && drag.type !== 'pan') pushUndo();
   drag.moved = true;
   if (drag.type === 'resize') {
@@ -647,6 +653,8 @@ stage.addEventListener('pointermove', e => {
     drawEdges();
   } else { view.x = drag.vx + dx; view.y = drag.vy + dy; applyView(); }
 });
+const DBL = 420;
+let diveTimer = 0;
 function endPointer(e) {
   pts.delete(e.pointerId);
   if (pts.size < 2) pinch = null;
@@ -656,13 +664,14 @@ function endPointer(e) {
   if (d.moved) { if (d.type !== 'pan') markDirty(); return; }
   if (e.type === 'pointercancel') return;
   const t = performance.now();
+  clearTimeout(diveTimer);
   if (d.type === 'resize') {
-    if (t - lastTap.t < 380 && lastTap.id === 'grip' + d.id) { lastTap.t = 0; setWidth(d.id, null); }
+    if (t - lastTap.t < DBL && lastTap.id === 'grip' + d.id) { lastTap.t = 0; setWidth(d.id, null); }
     else lastTap = { t, id: 'grip' + d.id, x: e.clientX, y: e.clientY };
     return;
   }
   const id = d.type === 'node' ? d.id : null;
-  if (t - lastTap.t < 380 && lastTap.id === id && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 24) {
+  if (t - lastTap.t < DBL && lastTap.id === id && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 30) {
     lastTap.t = 0;
     if (id != null) startEdit(id);
     else {
@@ -673,7 +682,8 @@ function endPointer(e) {
     }
   } else {
     lastTap = { t, id, x: e.clientX, y: e.clientY };
-    if (id != null && view.s < 0.6) { lastTap.t = 0; focusNode(id); }
+    // zoomed far out: a single tap dives in, but only once the double-tap window has passed
+    if (id != null && view.s < 0.45) diveTimer = setTimeout(() => { lastTap.t = 0; focusNode(id); }, DBL);
   }
 }
 stage.addEventListener('pointerup', endPointer);
