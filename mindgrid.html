@@ -80,10 +80,9 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
 .editbar button{font-size:14px;padding:6px 10px;min-width:38px}
 .node .txt{outline:none;min-height:1.35em}
 .node .txt[contenteditable="true"]{user-select:text;-webkit-user-select:text;caret-color:var(--g-hi)}
-.node .stamp{position:absolute;left:-1px;bottom:calc(100% + 5px);font-size:12px;line-height:1.3;color:var(--g-mid);
+.node .stamp{position:absolute;left:-1px;bottom:calc(100% + 5px);font-size:calc(1em + 2px);line-height:1.3;color:var(--g-mid);
   white-space:nowrap;pointer-events:none;text-shadow:none;letter-spacing:0;font-weight:normal;
   background:var(--panel);padding:1px 6px;border:1px solid var(--g-dim)}
-.node.root .stamp{font-size:12px}
 .node.editing .stamp{display:none}
 .node.newest::before{content:"";position:absolute;left:-5px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;
   background:var(--g);box-shadow:0 0 6px rgba(var(--rgb),.85);pointer-events:none}
@@ -212,7 +211,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 2.9</p>
+  <p style="margin:-4px 0 8px">Version 3.1</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -580,13 +579,24 @@ function ago(iso) {
   if (days < 30) return days + ' days ago';
   return '';
 }
+/* "2 days 3 hours 14 mins ago" */
+function agoLong(iso) {
+  const d = new Date(iso); if (!iso || isNaN(d)) return null;
+  let m = Math.max(0, Math.floor((Date.now() - d) / 60000));
+  if (m < 1) return 'just now';
+  const days = Math.floor(m / 1440); m -= days * 1440;
+  const hours = Math.floor(m / 60); m -= hours * 60;
+  const part = (v, w) => v ? `${v} ${w}${v === 1 ? '' : 's'}` : '';
+  return [part(days, 'day'), part(hours, 'hour'), part(m, 'min')].filter(Boolean).join(' ') + ' ago';
+}
 function updateStamp(id) {
   const el = els.get(id); if (!el) return;
   let st = el.querySelector('.stamp');
   if (id !== selectedId || !nodes.has(id)) { st?.remove(); return; }
   if (!st) { st = document.createElement('div'); st.className = 'stamp'; el.appendChild(st); }
-  const n = nodes.get(id), when = fmtTime(n.updated || n.created), rel = ago(n.updated || n.created);
-  st.textContent = when ? `updated ${when}${rel ? ' (' + rel + ')' : ''}` : 'no update time recorded';
+  const n = nodes.get(id), rel = agoLong(n.updated || n.created);
+  st.textContent = rel || 'no update time recorded';
+  st.title = fmtTime(n.updated || n.created) || '';
 }
 setInterval(() => updateStamp(selectedId), 30000);
 function select(id) {
@@ -1516,7 +1526,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 2.9 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 3.1 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');

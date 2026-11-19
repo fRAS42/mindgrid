@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 2.9
+**Current version:** 3.1
 
-![new in 2.9](https://img.shields.io/badge/new_in-2.9-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 3.1](https://img.shields.io/badge/new_in-3.1-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -20,8 +20,8 @@ No install, no account, no server. Everything runs in your browser.
 - Per-node colors, interface color themes, and a night/day theme
 - Separate color for the digital rain
 - Adjustable node widths
-- $\color{#00FF41}\textsf{Text size per node, from the node menu}$ ![new in 2.9](https://img.shields.io/badge/new_in-2.9-00ff41?labelColor=000000)
-- Last-updated time shown above the selected node; created and updated times in the node menu
+- Text size per node, from the node menu
+- How long ago the selected node was updated, shown above it (for example 2 days 3 hours 14 mins ago) $\color{#00FF41}\textsf{in text 2 sizes bigger than the node's own text}$; full created and updated dates in the node menu ![new in 3.1](https://img.shields.io/badge/new_in-3.1-00ff41?labelColor=000000)
 - The most recently updated node glows in matrix green, so you can always see where you left off
 - The newest child of every node has a small dot on its left edge
 - Fold and unfold branches
@@ -49,7 +49,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 
 | Action | What it does |
 |---|---|
-| Tap / click a node | Select it and show when it was last updated |
+| Tap / click a node | Select it and show how long ago it was last updated |
 | Double-tap / double-click a node | Edit its text |
 | Triple-tap a node | Add a child node |
 | Double-tap / double-click empty space | Add a child of the selected node at that spot |
@@ -112,7 +112,7 @@ The top of the menu shows when the node was created and last updated.
 | Add child node | Add a branch and start typing |
 | Zoom to node | Zoom into the node and its branches |
 | Change color… | Pick a color for the node, optionally for its whole branch |
-| $\color{#00FF41}\textsf{Text size: A− / A+ / default}$ | $\color{#00FF41}\textsf{Make the node's text smaller or bigger in steps of 2, or back to the default size. The menu stays open so you can tap several times}$ |
+| Text size: A− / A+ / default | Make the node's text smaller or bigger in steps of 2, or back to the default size. The menu stays open so you can tap several times |
 | Fold / Unfold branch | Hide or show everything below the node |
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
@@ -169,7 +169,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | collapsed | 1 if the branch is folded |
 | width | Fixed width in pixels (empty = automatic) |
 | color | The node's own color, such as `#ffb000` (empty = interface color) |
-| $\color{#00FF41}\textsf{font_size}$ | $\color{#00FF41}\textsf{The node's text size in pixels (empty = default: 19 for a central node, 15 for others)}$ |
+| font_size | The node's text size in pixels (empty = default: 19 for a central node, 15 for others) |
 | created_at | When the node was created (ISO 8601, UTC) |
 | updated_at | When the node's text, color, width, text size or connection last changed (ISO 8601, UTC) |
 
@@ -207,7 +207,9 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{2.9}$ | $\color{#00FF41}\textsf{Text size controls (A−, A+, default) in the node menu, saved per node}$ |
+| $\color{#00FF41}\textsf{3.1}$ | $\color{#00FF41}\textsf{The how-long-ago label is 2px bigger than the node's text and follows the node's text size}$ |
+| 3.0 | The label above the selected node shows only how long ago it was updated, in days, hours and minutes |
+| 2.9 | Text size controls (A−, A+, default) in the node menu, saved per node |
 | 2.8 | rain color button in the toolbar: give the digital rain its own color |
 | 2.7 | The newest child of every node gets a small dot on its left edge |
 | 2.6 | The most recently updated node shows in matrix green with a glow (can be turned off in **colors**) |
