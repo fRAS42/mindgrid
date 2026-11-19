@@ -158,8 +158,10 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
     <tr><td>Drag node</td><td>Move branch (Shift: just the node)</td></tr>
     <tr><td>Drag empty / wheel</td><td>Pan / zoom (pinch on touch)</td></tr>
     <tr><td>Tab</td><td>Add child</td></tr>
-    <tr><td>Enter</td><td>Add sibling (or finish editing)</td></tr>
-    <tr><td>Shift+Enter</td><td>New line while editing</td></tr>
+    <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
+    <tr><td>Tap / click outside</td><td>Save the text you are editing</td></tr>
+    <tr><td>Ctrl/⌘+Enter</td><td>Save the text you are editing</td></tr>
+    <tr><td>Esc while editing</td><td>Cancel changes</td></tr>
     <tr><td>F2 / Space</td><td>Edit selected</td></tr>
     <tr><td>Arrows</td><td>Move selection</td></tr>
     <tr><td>Del / Backspace</td><td>Delete branch</td></tr>
@@ -591,6 +593,9 @@ function commitEdit(cancel = false) {
   if (!txt) txt = '…';
   pushUndo(); n.text = txt; n.updated = now(); t.textContent = txt; markDirty();
 }
+world.addEventListener('focusout', e => {
+  if (editingId != null && e.target.classList?.contains('txt')) commitEdit();
+});
 world.addEventListener('paste', e => {
   if (editingId == null) return;
   e.preventDefault();
@@ -713,7 +718,11 @@ document.addEventListener('keydown', e => {
   if (mod && kl === 's') { e.preventDefault(); commitEdit(); saveFile(e.shiftKey); return; }
   if (mod && kl === 'o') { e.preventDefault(); commitEdit(); openFile(); return; }
   if (editingId != null) {
-    if (k === 'Enter' && !e.shiftKey) { e.preventDefault(); commitEdit(); }
+    if (k === 'Enter' && mod) { e.preventDefault(); commitEdit(); }
+    else if (k === 'Enter') {
+      e.preventDefault();
+      if (!document.execCommand('insertLineBreak')) document.execCommand('insertText', false, '\n');
+    }
     else if (k === 'Escape') { e.preventDefault(); commitEdit(true); }
     else if (k === 'Tab') { e.preventDefault(); const id = editingId; commitEdit(); addAndEdit(id); }
     return;
