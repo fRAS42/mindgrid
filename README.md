@@ -4,7 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 2.6
+**Current version:** 2.7
+
+![new in 2.7](https://img.shields.io/badge/new_in-2.7-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -19,6 +21,7 @@ No install, no account, no server. Everything runs in your browser.
 - Adjustable node widths
 - Last-updated time shown above the selected node; created and updated times in the node menu
 - The most recently updated node glows in matrix green, so you can always see where you left off
+- $\color{#00FF41}\textsf{The newest child of every node has a small dot on its left edge}$ ![new in 2.7](https://img.shields.io/badge/new_in-2.7-00ff41?labelColor=000000)
 - Fold and unfold branches
 - Undo and redo
 - Auto-arrange (tidy) layout
@@ -58,6 +61,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Tap a node while zoomed far out | Zoom into that node |
 | Tap or drag on the radar minimap | Fly to that part of the map |
 | Tap the **+N** badge on a folded node | Unfold the branch |
+| $\color{#00FF41}\textsf{Dot on the left edge of a node}$ | $\color{#00FF41}\textsf{This is the newest child of its parent}$ |
 | Tap **? controls** (bottom right) | Show all controls; tap ✕ or the map to close |
 
 ### Keyboard (when not editing)
@@ -166,7 +170,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 
 **`meta`** holds map settings: the view position and zoom, the selected node, and the interface theme (color, rain, tint, night/day, latest-update highlight).
 
-The matrix-green highlight is not stored on the node itself: the app picks the node with the newest `updated_at` each time, and the node keeps its own `color`.
+The matrix-green highlight is not stored on the node itself. The app picks the node with the newest `updated_at` each time, and the node keeps its own `color`.
 
 ---
 
@@ -198,6 +202,7 @@ The matrix-green highlight is not stored on the node itself: the app picks the n
 
 | Version | Changes |
 |---|---|
+| $\color{#00FF41}\textsf{2.7}$ | $\color{#00FF41}\textsf{The newest child of every node gets a small dot on its left edge}$ |
 | 2.6 | The most recently updated node shows in matrix green with a glow (can be turned off in **colors**) |
 | 2.5 | Selected node shows its last-updated time above it; node menu shows created and updated times; width changes now count as updates |
 | 2.4 | **? controls** in the bottom-right corner opens the controls panel; panel has a close button and closes when you tap the map |

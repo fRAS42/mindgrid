@@ -80,6 +80,8 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
   background:var(--panel);padding:1px 6px;border:1px solid var(--g-dim)}
 .node.root .stamp{font-size:12px}
 .node.editing .stamp{display:none}
+.node.newest::before{content:"";position:absolute;left:-5px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;
+  background:var(--g);box-shadow:0 0 6px rgba(var(--rgb),.85);pointer-events:none}
 .node.latest{box-shadow:0 0 0 1px var(--g),0 0 18px rgba(var(--rgb),.45)}
 .node.latest.sel{box-shadow:0 0 0 2px var(--g-hi),0 0 22px rgba(var(--rgb),.55)}
 #ctx .ttl small{display:block;margin-top:3px;font-size:11.5px;color:var(--g-dim)}
@@ -199,13 +201,14 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 2.6</p>
+  <p style="margin:-4px 0 8px">Version 2.7</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
     <tr><td>Drag node</td><td>Move branch (Shift: just the node)</td></tr>
     <tr><td>Drag empty / wheel</td><td>Pan / zoom (pinch on touch)</td></tr>
     <tr><td>Tab</td><td>Add child</td></tr>
+    <tr><td>Dot on a node’s left</td><td>Newest child of its parent</td></tr>
     <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
     <tr><td>Hold node / right-click</td><td>Menu: color, delete, connect to another node, more</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
@@ -468,10 +471,24 @@ function refreshLatest(force = false) {
   for (const i of [old, id]) { const n = nodes.get(i), el = els.get(i); if (n && el) updateEl(n, el); }
   drawEdges();
 }
+/* newest child of every parent gets a dot on its left edge */
+function newestChildren(idx) {
+  const out = new Set();
+  for (const kids of idx.values()) {
+    let best = null;
+    for (const k of kids) {
+      if (!best || (k.created || '') > (best.created || '') || ((k.created || '') === (best.created || '') && k.id > best.id)) best = k;
+    }
+    if (best) out.add(best.id);
+  }
+  return out;
+}
+let newestSet = new Set();
 function renderAll() {
   latestId = findLatest();
   for (const [id, el] of els) if (!nodes.has(id)) { el.remove(); els.delete(id); }
   const idx = childIndex();
+  newestSet = newestChildren(idx);
   for (const n of nodes.values()) {
     let el = els.get(n.id);
     if (!el) {
@@ -500,6 +517,7 @@ function updateEl(n, el = els.get(n.id), idx) {
   }
   el.classList.toggle('root', n.parent == null || !nodes.has(n.parent));
   el.classList.toggle('sel', n.id === selectedId);
+  el.classList.toggle('newest', newestSet.has(n.id));
   if (idx) updateStamp(n.id);
   el.style.display = isHidden(n) ? 'none' : '';
   const t = el.firstChild;
@@ -1424,7 +1442,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 2.6 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 2.7 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
