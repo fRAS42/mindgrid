@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 2.8
+**Current version:** 2.9
 
-![new in 2.8](https://img.shields.io/badge/new_in-2.8-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 2.9](https://img.shields.io/badge/new_in-2.9-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -18,8 +18,9 @@ No install, no account, no server. Everything runs in your browser.
 - Smooth zoom into any node, overview of the whole map, and a radar minimap
 - Hold a node (or right-click it) for a menu with color, connect, disconnect and delete
 - Per-node colors, interface color themes, and a night/day theme
-- $\color{#00FF41}\textsf{Separate color for the digital rain}$ ![new in 2.8](https://img.shields.io/badge/new_in-2.8-00ff41?labelColor=000000)
+- Separate color for the digital rain
 - Adjustable node widths
+- $\color{#00FF41}\textsf{Text size per node, from the node menu}$ ![new in 2.9](https://img.shields.io/badge/new_in-2.9-00ff41?labelColor=000000)
 - Last-updated time shown above the selected node; created and updated times in the node menu
 - The most recently updated node glows in matrix green, so you can always see where you left off
 - The newest child of every node has a small dot on its left edge
@@ -111,6 +112,7 @@ The top of the menu shows when the node was created and last updated.
 | Add child node | Add a branch and start typing |
 | Zoom to node | Zoom into the node and its branches |
 | Change color… | Pick a color for the node, optionally for its whole branch |
+| $\color{#00FF41}\textsf{Text size: A− / A+ / default}$ | $\color{#00FF41}\textsf{Make the node's text smaller or bigger in steps of 2, or back to the default size. The menu stays open so you can tap several times}$ |
 | Fold / Unfold branch | Hide or show everything below the node |
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
@@ -136,7 +138,7 @@ Every change can be undone with **undo**.
 | ☀ day / ☾ night | Switch between the day and night theme |
 | colors | Interface color, night/day, matrix-green highlight for the latest update, rain brightness, background tint |
 | rain | Turn the digital rain on or off |
-| $\color{#00FF41}\textsf{rain color}$ | $\color{#00FF41}\textsf{Pick the rain color and brightness, separately from the interface}$ |
+| rain color | Pick the rain color and brightness, separately from the interface |
 | ? | Controls panel (also **? controls** in the bottom-right corner) |
 
 ---
@@ -167,10 +169,11 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | collapsed | 1 if the branch is folded |
 | width | Fixed width in pixels (empty = automatic) |
 | color | The node's own color, such as `#ffb000` (empty = interface color) |
+| $\color{#00FF41}\textsf{font_size}$ | $\color{#00FF41}\textsf{The node's text size in pixels (empty = default: 19 for a central node, 15 for others)}$ |
 | created_at | When the node was created (ISO 8601, UTC) |
-| updated_at | When the node's text, color, width or connection last changed (ISO 8601, UTC) |
+| updated_at | When the node's text, color, width, text size or connection last changed (ISO 8601, UTC) |
 
-**`meta`** holds map settings: the view position and zoom, the selected node, and the interface theme (color, rain brightness, $\color{#00FF41}\textsf{rain color}$, tint, night/day, latest-update highlight).
+**`meta`** holds map settings: the view position and zoom, the selected node, and the interface theme (color, rain brightness, rain color, tint, night/day, latest-update highlight).
 
 The matrix-green highlight is not stored on the node itself. The app picks the node with the newest `updated_at` each time, and the node keeps its own `color`.
 
@@ -204,7 +207,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{2.8}$ | $\color{#00FF41}\textsf{rain color button in the toolbar: give the digital rain its own color}$ |
+| $\color{#00FF41}\textsf{2.9}$ | $\color{#00FF41}\textsf{Text size controls (A−, A+, default) in the node menu, saved per node}$ |
+| 2.8 | rain color button in the toolbar: give the digital rain its own color |
 | 2.7 | The newest child of every node gets a small dot on its left edge |
 | 2.6 | The most recently updated node shows in matrix green with a glow (can be turned off in **colors**) |
 | 2.5 | Selected node shows its last-updated time above it; node menu shows created and updated times; width changes now count as updates |

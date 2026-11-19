@@ -33,6 +33,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
 #ctx button{display:block;width:100%;text-align:left;padding:10px 12px;font-size:15px}
 #ctx button.danger{color:#ff6b6b}
 #ctx hr{border:0;border-top:1px solid var(--g-dim);margin:3px 0}
+#ctx .fsrow{display:flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;font-size:15px}
+#ctx .fsrow span:first-child{flex:1;white-space:nowrap;padding-right:6px}
+#ctx .fsrow button{display:inline-block;width:auto;min-width:40px;text-align:center;padding:8px 8px;border:1px solid var(--g-dim)}
+#ctx .fsrow .fsval{min-width:34px;text-align:center;color:var(--g-hi)}
+#ctx .fsrow button.def{font-size:12.5px;min-width:0}
 #linkbar{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 58px);transform:translateX(-50%);z-index:20;
   display:none;align-items:center;gap:10px;padding:8px 8px 8px 14px;background:var(--panel);border:1px solid var(--g);
   box-shadow:var(--glow);max-width:calc(100vw - 24px)}
@@ -207,7 +212,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 2.8</p>
+  <p style="margin:-4px 0 8px">Version 2.9</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -216,7 +221,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
     <tr><td>Tab</td><td>Add child</td></tr>
     <tr><td>Dot on a node’s left</td><td>Newest child of its parent</td></tr>
     <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
-    <tr><td>Hold node / right-click</td><td>Menu: color, delete, connect to another node, more</td></tr>
+    <tr><td>Hold node / right-click</td><td>Menu: color, text size, delete, connect to another node, more</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
     <tr><td>⇥ ⇤ • in editor</td><td>Indent, outdent, bullet the current lines</td></tr>
     <tr><td>Tab / Shift+Tab editing</td><td>Indent / outdent lines</td></tr>
@@ -294,6 +299,7 @@ CREATE TABLE IF NOT EXISTS nodes(
   collapsed INTEGER NOT NULL DEFAULT 0,
   width REAL,
   color TEXT,
+  font_size REAL,
   created_at TEXT,
   updated_at TEXT
 );
@@ -312,6 +318,7 @@ function migrate(d) {
   const cols = (d.exec('PRAGMA table_info(nodes)')[0]?.values || []).map(r => r[1]);
   if (!cols.includes('width')) d.run('ALTER TABLE nodes ADD COLUMN width REAL');
   if (!cols.includes('color')) d.run('ALTER TABLE nodes ADD COLUMN color TEXT');
+  if (!cols.includes('font_size')) d.run('ALTER TABLE nodes ADD COLUMN font_size REAL');
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -517,6 +524,7 @@ function renderAll() {
 function updateEl(n, el = els.get(n.id), idx) {
   el.style.left = n.x + 'px'; el.style.top = n.y + 'px';
   el.style.width = n.w ? n.w + 'px' : '';
+  el.style.fontSize = n.fs ? n.fs + 'px' : '';
   el.classList.toggle('fixed', !!n.w);
   const ec = effColor(n);
   el.classList.toggle('latest', n.id === latestId && prefs.latest !== false);
@@ -818,8 +826,24 @@ world.addEventListener('focusout', e => {
 const ctx = $('#ctx');
 let ctxId = null, lpTimer = 0, linkFrom = null;
 const short = t => { const l = t.split('\n')[0].trim(); return l.length > 34 ? l.slice(0, 33) + '…' : l; };
+/* ---------- per-node text size ---------- */
+const FS_MIN = 9, FS_MAX = 48, FS_STEP = 2;
+let fsUndo = false;
+const isRootNode = n => n.parent == null || !nodes.has(n.parent);
+const fontSizeOf = n => n.fs || (isRootNode(n) ? 19 : 15);
+function changeFontSize(id, dir) {
+  const n = nodes.get(id); if (!n) return;
+  const def = isRootNode(n) ? 19 : 15;
+  const next = dir === 0 ? null : clamp(fontSizeOf(n) + dir * FS_STEP, FS_MIN, FS_MAX);
+  if ((next ?? def) === fontSizeOf(n) && (dir !== 0 || n.fs == null)) return;
+  if (!fsUndo) { pushUndo(); fsUndo = true; }
+  n.fs = next === def ? null : next; n.updated = now();
+  renderAll(); markDirty();
+  const v = ctx.querySelector('.fsval'); if (v) v.textContent = fontSizeOf(n);
+}
 function openMenu(id, x, y) {
   const n = nodes.get(id); if (!n) return;
+  fsUndo = false;
   if (editingId != null) commitEdit();
   select(id); ctxId = id;
   const hasParent = n.parent != null && nodes.has(n.parent);
@@ -829,6 +853,7 @@ function openMenu(id, x, y) {
     ['child', 'Add child node'],
     ['zoom', 'Zoom to node'],
     ['color', 'Change color…'],
+    'fs',
     kids ? ['fold', n.collapsed ? 'Unfold branch' : 'Fold branch'] : null,
     '-',
     ['link', 'Connect to another node…'],
@@ -838,7 +863,10 @@ function openMenu(id, x, y) {
   ].filter(Boolean);
   const cr = fmtTime(n.created), up = fmtTime(n.updated);
   ctx.innerHTML = `<div class="ttl">${escapeHtml(short(n.text))}` +
-    (cr ? `<small>created ${cr}</small>` : '') + (up ? `<small>updated ${up}</small>` : '') + `</div>` + items.map(it => it === '-' ? '<hr>' :
+    (cr ? `<small>created ${cr}</small>` : '') + (up ? `<small>updated ${up}</small>` : '') + `</div>` + items.map(it => it === '-' ? '<hr>' : it === 'fs' ?
+    `<div class="fsrow"><span>Text size</span><button data-fs="-1" title="Smaller" aria-label="Smaller text">A−</button>` +
+    `<span class="fsval">${fontSizeOf(n)}</span><button data-fs="1" title="Bigger" aria-label="Bigger text">A+</button>` +
+    `<button data-fs="0" class="def" title="Back to the default size">default</button></div>` :
     `<button data-m="${it[0]}" class="${it[2] || ''}" role="menuitem">${it[1]}</button>`).join('');
   ctx.classList.add('show');
   const r = ctx.getBoundingClientRect();
@@ -849,6 +877,7 @@ function openMenu(id, x, y) {
 function closeMenu() { ctx.classList.remove('show'); ctxId = null; }
 ctx.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.fs != null) { changeFontSize(ctxId, +b.dataset.fs); return; }   // menu stays open
   const id = ctxId; closeMenu();
   switch (b.dataset.m) {
     case 'edit': startEdit(id); break;
@@ -1137,9 +1166,9 @@ function writeToDb() {
   db.run('BEGIN');
   try {
     db.run('DELETE FROM nodes');
-    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)');
+    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
     for (const n of nodes.values())
-      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.created ?? null, n.updated ?? null]);
+      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.created ?? null, n.updated ?? null]);
     st.free();
     db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?)",
       [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs)]);
@@ -1148,9 +1177,9 @@ function writeToDb() {
 }
 function loadFromDb() {
   nodes = new Map();
-  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color FROM nodes');
+  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size FROM nodes');
   if (res.length) for (const r of res[0].values)
-    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null });
+    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null });
   if (!nodes.size) { const t = now(); nodes.set(1, { id: 1, parent: null, text: 'central idea', x: 0, y: 0, collapsed: false, created: t, updated: t }); }
   nextId = Math.max(0, ...nodes.keys()) + 1;
   const meta = Object.fromEntries((db.exec('SELECT key,value FROM meta')[0]?.values) || []);
@@ -1487,7 +1516,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 2.8 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 2.9 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
