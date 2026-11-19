@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#000000">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MINDGRID — mind map</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,8 +11,8 @@
 <style>
 :root{
   --g:#00ff41; --g-hi:#c8ffd6; --g-mid:#00b82e; --g-dim:#0a5c1c;
-  --bg:#000; --panel:rgba(0,14,3,.88);
-  --glow:0 0 6px rgba(0,255,65,.65),0 0 22px rgba(0,255,65,.22);
+  --rgb:0,255,65; --bg:#000; --panel:rgba(0,14,3,.88); --nodebg:rgba(0,9,2,.94);
+  --glow:0 0 6px rgba(var(--rgb),.65),0 0 22px rgba(var(--rgb),.22);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -30,8 +31,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
 @keyframes flow{to{stroke-dashoffset:-18}}
 
 .node{position:absolute;transform:translate(-50%,-50%);min-width:80px;max-width:320px;padding:8px 14px;
-  background:rgba(0,9,2,.94);border:1px solid var(--g-mid);color:var(--g);
-  text-shadow:0 0 4px rgba(0,255,65,.55);white-space:pre-wrap;overflow-wrap:anywhere;
+  background:var(--nodebg);border:1px solid var(--g-mid);color:var(--g);
+  text-shadow:0 0 4px rgba(var(--rgb),.55);white-space:pre-wrap;overflow-wrap:anywhere;
   font-size:15px;line-height:1.35;text-align:center;cursor:pointer;user-select:none;-webkit-user-select:none}
 .node:hover{border-color:var(--g)}
 .node.fixed{max-width:none}
@@ -61,8 +62,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
 .sep{width:1px;height:20px;background:var(--g-dim);margin:0 6px;flex:none}
 button{font:inherit;font-size:14px;color:var(--g);background:transparent;border:1px solid transparent;
   padding:5px 8px;cursor:pointer;flex:none}
-button:hover{border-color:var(--g-dim);background:rgba(0,255,65,.07)}
-button:active{background:rgba(0,255,65,.18)}
+button:hover{border-color:var(--g-dim);background:rgba(var(--rgb),.07)}
+button:active{background:rgba(var(--rgb),.18)}
 button:focus-visible{outline:1px solid var(--g-hi);outline-offset:1px}
 button.on{color:var(--g-hi);text-shadow:var(--glow)}
 
@@ -73,14 +74,25 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 #status .dirty{color:#e8ff5a}
 #log{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 40px);z-index:9;font-size:13px;
   pointer-events:none;max-width:min(560px,90vw)}
-#log div{opacity:.9;text-shadow:0 0 4px rgba(0,255,65,.6);transition:opacity 1.5s}
+#log div{opacity:.9;text-shadow:0 0 4px rgba(var(--rgb),.6);transition:opacity 1.5s}
 #log div.old{opacity:.35}
 #log div.err{color:#ff5a5a;text-shadow:0 0 4px rgba(255,60,60,.6)}
 
 #help{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(360px,calc(100vw - 24px));
   max-height:calc(100% - 130px);overflow:auto;background:var(--panel);border:1px solid var(--g-mid);
   padding:14px 16px;font-size:13.5px;line-height:1.6;box-shadow:var(--glow);display:none}
-#help.show{display:block}
+#help.show,#theme.show{display:block}
+#theme{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(320px,calc(100vw - 24px));
+  background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
+#theme h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em}
+#swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sw{height:44px;border:1px solid var(--g-dim);background:#000;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;font-size:11px;padding:0}
+.sw i{display:block;width:18px;height:18px;border-radius:50%}
+.sw.on{border-color:var(--g-hi);box-shadow:var(--glow)}
+.trow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px}
+.trow input[type=color]{width:52px;height:32px;padding:0;border:1px solid var(--g-mid);background:#000;cursor:pointer}
+.trow input[type=range]{flex:1;accent-color:var(--g)}
 #help h2{font-size:15px;font-weight:normal;margin:0 0 8px;color:var(--g-hi);letter-spacing:.1em}
 #help table{border-collapse:collapse;width:100%}
 #help td{padding:2px 0;vertical-align:top}
@@ -93,13 +105,13 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 .cursor{display:inline-block;width:.6em;background:var(--g);animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
 #mini{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 44px);z-index:9;width:220px;height:150px;
-  background:rgba(0,10,2,.88);border:1px solid var(--g-mid);box-shadow:var(--glow);cursor:crosshair;touch-action:none}
+  background:var(--panel);border:1px solid var(--g-mid);box-shadow:var(--glow);cursor:crosshair;touch-action:none}
 #mini[hidden]{display:none}
 #mini canvas{width:100%;height:100%;display:block}
 #mini .lbl{position:absolute;left:6px;top:3px;font-size:11px;color:var(--g-mid);pointer-events:none}
 @media (max-width:600px){#mini{width:140px;height:100px}#log{max-width:calc(100vw - 170px)}}
 #dropzone{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;
-  background:rgba(0,20,4,.8);border:3px dashed var(--g);font-size:22px;text-shadow:var(--glow)}
+  background:var(--panel);border:3px dashed var(--g);font-size:22px;text-shadow:var(--glow)}
 #dropzone.show{display:flex}
 @media (prefers-reduced-motion:reduce){.flow,.node.new,.cursor{animation:none}}
 </style>
@@ -133,6 +145,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
   <button data-act="zoomout" title="Zoom out (−)">−</button>
   <button data-act="radar" id="radarBtn" class="on" title="Show / hide minimap (M)">radar</button>
   <div class="sep"></div>
+  <button data-act="theme" title="Change interface colors">colors</button>
   <button data-act="rain" id="rainBtn" class="on" title="Toggle digital rain">rain</button>
   <button data-act="help" title="Controls (?)">?</button>
 </div>
@@ -167,6 +180,14 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
   <p>Your map is stored in a real SQLite database (tables <i>nodes</i> and <i>meta</i>). In Chrome and Edge, Save writes straight back to the same file. Other browsers download a fresh copy. Work in progress is also kept in this browser between visits, but only the .sqlite file is your real backup. You can also drop a .sqlite file onto the window.</p>
 </div>
 
+<div id="theme">
+  <h2>INTERFACE COLORS</h2>
+  <div id="swatches"></div>
+  <div class="trow"><label for="customColor">Custom color</label><input type="color" id="customColor" value="#00ff41"></div>
+  <div class="trow"><label for="rainLevel">Rain brightness</label><input type="range" id="rainLevel" min="5" max="80" value="32"></div>
+  <div class="trow"><label for="bgTint">Background tint</label><input type="range" id="bgTint" min="0" max="30" value="0"></div>
+  <div class="trow"><span></span><button data-theme-reset>reset to green</button></div>
+</div>
 <div id="mini" title="Click or drag to navigate"><canvas></canvas><div class="lbl">radar</div></div>
 <div id="log"></div>
 <div id="statusbar"><div id="status"></div><div id="hint">? for controls</div></div>
@@ -486,17 +507,17 @@ function drawMini() {
     miniT = { sc, ox: (W - (maxX - minX) * sc) / 2 - minX * sc, oy: (H - (maxY - minY) * sc) / 2 - minY * sc };
   }
   const { sc, ox, oy } = miniT, X = x => ox + x * sc, Y = y => oy + y * sc;
-  mctx.strokeStyle = '#0a7a24'; mctx.lineWidth = 1; mctx.beginPath();
+  mctx.strokeStyle = theme.mid; mctx.lineWidth = 1; mctx.beginPath();
   for (const n of vis) { const p = nodes.get(n.parent); if (p) { mctx.moveTo(X(p.x), Y(p.y)); mctx.lineTo(X(n.x), Y(n.y)); } }
   mctx.stroke();
   for (const n of vis) {
     const r = (n.parent == null || !nodes.has(n.parent)) ? 4 : 2.5;
-    mctx.fillStyle = n.id === selectedId ? '#e8ffee' : '#00ff41';
+    mctx.fillStyle = n.id === selectedId ? theme.hi : theme.g;
     mctx.fillRect(X(n.x) - r, Y(n.y) - r * 0.7, r * 2, r * 1.4);
   }
-  mctx.strokeStyle = '#c8ffd6'; mctx.lineWidth = 1.2;
+  mctx.strokeStyle = theme.hi; mctx.lineWidth = 1.2;
   mctx.strokeRect(X(vx), Y(vy), vw * sc, vh * sc);
-  mctx.fillStyle = 'rgba(0,255,65,.06)'; mctx.fillRect(X(vx), Y(vy), vw * sc, vh * sc);
+  mctx.fillStyle = `rgba(${theme.rgb},.06)`; mctx.fillRect(X(vx), Y(vy), vw * sc, vh * sc);
 }
 function miniToWorld(e) {
   const r = mini.getBoundingClientRect();
@@ -702,7 +723,8 @@ document.addEventListener('keydown', e => {
     case 'ArrowUp': e.preventDefault(); navigate(0, -1); break;
     case 'ArrowDown': e.preventDefault(); navigate(0, 1); break;
     case 'Escape':
-      if ($('#help').classList.contains('show')) $('#help').classList.remove('show'); else overview();
+      if ($('#help.show,#theme.show')) { $('#help').classList.remove('show'); $('#theme').classList.remove('show'); }
+      else overview();
       break;
     case '+': case '=': zoomStep(1.35); break;
     case '[': if (sel != null) nudgeWidth(sel, -40); break;
@@ -879,9 +901,54 @@ $('#bar').addEventListener('click', e => {
     case 'zoomout': zoomStep(1 / 1.35); break;
     case 'radar': toggleRadar(); break;
     case 'rain': rain.toggle(); b.classList.toggle('on', rain.on); break;
-    case 'help': $('#help').classList.toggle('show'); break;
+    case 'help': $('#theme').classList.remove('show'); $('#help').classList.toggle('show'); break;
+    case 'theme': $('#help').classList.remove('show'); $('#theme').classList.toggle('show'); break;
   }
 });
+
+/* ---------- interface colors ---------- */
+const PRESETS = [
+  ['matrix', '#00ff41'], ['amber', '#ffb000'], ['cyan', '#00e5ff'], ['ice', '#9fd8ff'],
+  ['magenta', '#ff2bd6'], ['red', '#ff3b3b'], ['violet', '#a77bff'], ['gold', '#ffe14d']
+];
+const theme = { g: '#00ff41', hi: '#c8ffd6', mid: '#00b82e', dim: '#0a5c1c', rgb: '0,255,65' };
+const prefs = { color: '#00ff41', rain: 32, tint: 0 };
+const hexToRgb = h => { const v = parseInt(h.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; };
+const toHex = a => '#' + a.map(v => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0')).join('');
+const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+function applyTheme() {
+  const c = hexToRgb(prefs.color), W = [255, 255, 255], K = [0, 0, 0];
+  theme.g = prefs.color; theme.hi = toHex(mix(c, W, .75)); theme.mid = toHex(mix(c, K, .3));
+  theme.dim = toHex(mix(c, K, .64)); theme.rgb = c.join(',');
+  const dark = mix(c, K, .94).map(Math.round), t = prefs.tint / 100;
+  const bg = toHex(mix(K, c, t * .35));
+  const r = document.documentElement.style;
+  r.setProperty('--g', theme.g); r.setProperty('--g-hi', theme.hi);
+  r.setProperty('--g-mid', theme.mid); r.setProperty('--g-dim', theme.dim);
+  r.setProperty('--rgb', theme.rgb); r.setProperty('--bg', bg);
+  r.setProperty('--panel', `rgba(${dark.join(',')},.9)`);
+  r.setProperty('--nodebg', `rgba(${mix(c, K, .965).map(Math.round).join(',')},.95)`);
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', bg);
+  $('#rain').style.opacity = prefs.rain / 100;
+  $('#customColor').value = prefs.color;
+  $('#rainLevel').value = prefs.rain; $('#bgTint').value = prefs.tint;
+  document.querySelectorAll('.sw').forEach(b => b.classList.toggle('on', b.dataset.color === prefs.color));
+  scheduleMini();
+}
+function savePrefs() { try { localStorage.setItem('mindgrid-theme', JSON.stringify(prefs)); } catch {} }
+try { Object.assign(prefs, JSON.parse(localStorage.getItem('mindgrid-theme') || '{}')); } catch {}
+$('#swatches').innerHTML = PRESETS.map(([n, c]) =>
+  `<button class="sw" data-color="${c}" title="${n}"><i style="background:${c};box-shadow:0 0 8px ${c}"></i>${n}</button>`).join('');
+$('#theme').addEventListener('click', e => {
+  const sw = e.target.closest('.sw');
+  if (sw) { prefs.color = sw.dataset.color; applyTheme(); savePrefs(); log(`Color set to ${sw.title}`); }
+  if (e.target.closest('[data-theme-reset]')) { Object.assign(prefs, { color: '#00ff41', rain: 32, tint: 0 }); applyTheme(); savePrefs(); log('Colors reset'); }
+});
+$('#customColor').addEventListener('input', e => { prefs.color = e.target.value; applyTheme(); });
+$('#customColor').addEventListener('change', savePrefs);
+$('#rainLevel').addEventListener('input', e => { prefs.rain = +e.target.value; applyTheme(); savePrefs(); });
+$('#bgTint').addEventListener('input', e => { prefs.tint = +e.target.value; applyTheme(); savePrefs(); });
+applyTheme();
 
 /* ---------- digital rain ---------- */
 const rain = (() => {
@@ -893,19 +960,19 @@ const rain = (() => {
     c.width = innerWidth; c.height = innerHeight;
     cols = Math.ceil(c.width / fs);
     drops = Array.from({ length: cols }, () => Math.random() * -60);
-    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#000'; ctx.fillRect(0, 0, c.width, c.height);
   }
   function frame(t) {
     requestAnimationFrame(frame);
     if (!api.on || t - last < 55) return; last = t;
-    ctx.fillStyle = 'rgba(0,0,0,0.09)'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = `rgba(${hexToRgb(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#000000').join(',')},0.09)`; ctx.fillRect(0, 0, c.width, c.height);
     ctx.font = fs + 'px monospace';
     for (let i = 0; i < cols; i++) {
       const y = drops[i] * fs;
       if (y > 0) {
-        ctx.fillStyle = '#d6ffe0';
+        ctx.fillStyle = theme.hi;
         ctx.fillText(glyphs[(Math.random() * glyphs.length) | 0], i * fs, y);
-        ctx.fillStyle = '#00ff41';
+        ctx.fillStyle = theme.g;
         ctx.fillText(glyphs[(Math.random() * glyphs.length) | 0], i * fs, y - fs);
       }
       if (y > c.height && Math.random() > 0.975) drops[i] = 0;
