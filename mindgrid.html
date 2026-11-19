@@ -33,7 +33,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
 .node{position:absolute;transform:translate(-50%,-50%);min-width:80px;max-width:320px;padding:8px 14px;
   background:var(--nodebg);border:1px solid var(--g-mid);color:var(--g);
   text-shadow:0 0 4px rgba(var(--rgb),.55);white-space:pre-wrap;overflow-wrap:anywhere;
-  font-size:15px;line-height:1.35;text-align:center;cursor:pointer;user-select:none;-webkit-user-select:none}
+  font-size:15px;line-height:1.35;text-align:left;cursor:pointer;user-select:none;-webkit-user-select:none}
 .node:hover{border-color:var(--g)}
 .node.fixed{max-width:none}
 .node .grip{position:absolute;right:-7px;top:50%;width:12px;height:26px;margin-top:-13px;background:#000;
@@ -45,7 +45,14 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
 @media (hover:hover){.node:hover .grip{display:block}}
 .node.root{font-size:19px;padding:12px 22px;border:2px solid var(--g);box-shadow:var(--glow);letter-spacing:.05em}
 .node.sel{border-color:var(--g-hi);color:var(--g-hi);box-shadow:0 0 0 1px var(--g),var(--glow)}
-.node.editing{border-style:dashed;cursor:text}
+.node.editing{border-style:dashed;cursor:text;z-index:3}
+.node textarea.ed{display:block;margin:0;padding:0;border:0;outline:none;resize:none;overflow:hidden;background:transparent;
+  color:inherit;font:inherit;line-height:inherit;letter-spacing:inherit;text-align:left;text-shadow:inherit;
+  white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4;caret-color:var(--g-hi);
+  user-select:text;-webkit-user-select:text;min-width:100%}
+.editbar{position:absolute;left:-1px;bottom:calc(100% + 6px);display:flex;gap:2px;padding:3px;
+  background:var(--panel);border:1px solid var(--g-mid);box-shadow:var(--glow);white-space:nowrap;cursor:default}
+.editbar button{font-size:14px;padding:6px 10px;min-width:38px}
 .node .txt{outline:none;min-height:1.35em}
 .node .txt[contenteditable="true"]{user-select:text;-webkit-user-select:text;caret-color:var(--g-hi)}
 .node .badge{position:absolute;right:-11px;top:-11px;min-width:22px;height:22px;padding:0 5px;
@@ -158,7 +165,10 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
     <tr><td>Drag node</td><td>Move branch (Shift: just the node)</td></tr>
     <tr><td>Drag empty / wheel</td><td>Pan / zoom (pinch on touch)</td></tr>
     <tr><td>Tab</td><td>Add child</td></tr>
+    <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
+    <tr><td>⇥ ⇤ • in editor</td><td>Indent, outdent, bullet the current lines</td></tr>
+    <tr><td>Tab / Shift+Tab editing</td><td>Indent / outdent lines</td></tr>
     <tr><td>Tap / click outside</td><td>Save the text you are editing</td></tr>
     <tr><td>Ctrl/⌘+Enter</td><td>Save the text you are editing</td></tr>
     <tr><td>Esc while editing</td><td>Cancel changes</td></tr>
@@ -341,7 +351,7 @@ function addNode(parentId, x = null, y = null, text = 'new thought') {
   const el = els.get(id); el.classList.add('new'); setTimeout(() => el.classList.remove('new'), 600);
   return id;
 }
-function addAndEdit(pid) { const id = addNode(pid); ensureVisible(id); requestAnimationFrame(() => startEdit(id)); }
+function addAndEdit(pid) { const id = addNode(pid); startEdit(id); }
 function addSibling() {
   const n = nodes.get(selectedId); if (!n) return;
   addAndEdit(n.parent != null && nodes.has(n.parent) ? n.parent : n.id);
@@ -569,37 +579,95 @@ function zoomStep(f) {
   flyTo(cx, cy, view.s * f, 220);
 }
 
-/* ---------- editing ---------- */
-function startEdit(id) {
+/* ---------- editing (textarea editor + indent bar) ---------- */
+const IND = '    ';
+let editStart = { id: null, t: 0 }, barPress = 0;
+function autosize(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+function startEdit(id, viaDoubleTap = false) {
   if (editingId != null) commitEdit();
   const el = els.get(id); if (!el) return;
   select(id); editingId = id;
   const n = nodes.get(id);
+  const t = el.firstChild;
+  const w = t.offsetWidth;
+  el.classList.add('editing');
+  const ta = document.createElement('textarea');
+  ta.className = 'ed'; ta.value = n.text; ta.rows = 1; ta.spellcheck = true;
+  ta.setAttribute('autocapitalize', 'sentences');
+  if (!n.w) ta.style.width = clamp(w + 24, 170, 292) + 'px';
+  t.style.display = 'none';
+  el.insertBefore(ta, t.nextSibling);
+  autosize(ta);
+  ta.addEventListener('input', () => autosize(ta));
+  const bar = document.createElement('div');
+  bar.className = 'editbar';
+  bar.innerHTML =
+    '<button data-ed="outdent" title="Outdent (Shift+Tab)">⇤</button>' +
+    '<button data-ed="indent" title="Indent (Tab)">⇥</button>' +
+    '<button data-ed="bullet" title="Toggle bullet">•</button>' +
+    '<button data-ed="cancel" title="Cancel changes (Esc)">✕</button>' +
+    '<button data-ed="done" title="Save (Ctrl/⌘+Enter or tap outside)">✓</button>';
+  const press = e => { e.preventDefault(); e.stopPropagation(); barPress = performance.now(); };
+  bar.addEventListener('mousedown', press);
+  bar.addEventListener('touchstart', press, { passive: false });
+  bar.addEventListener('pointerdown', e => {
+    press(e);
+    const b = e.target.closest('button'); if (!b) return;
+    const act = b.dataset.ed;
+    if (act === 'done') return commitEdit();
+    if (act === 'cancel') return commitEdit(true);
+    shiftLines(ta, act);
+    ta.focus();
+  });
+  el.appendChild(bar);
+  ta.focus({ preventScroll: true });
+  ta.setSelectionRange(0, ta.value.length);
+  editStart = { id: viaDoubleTap ? id : null, t: performance.now() };
   if (view.s < 0.7) flyTo(n.x, n.y, Math.min(1.2, innerWidth / (halfW(id) * 2 + 60)), 300);
   else ensureVisible(id);
-  const t = el.firstChild;
-  el.classList.add('editing'); t.contentEditable = 'true'; t.focus();
-  const r = document.createRange(); r.selectNodeContents(t);
-  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+}
+/* indent / outdent / bullet on every line touched by the selection */
+function shiftLines(ta, act) {
+  const v = ta.value, s0 = ta.selectionStart, e0 = ta.selectionEnd;
+  const ls = v.lastIndexOf('\n', s0 - 1) + 1;
+  let le = v.indexOf('\n', e0 > s0 && v[e0 - 1] === '\n' ? e0 - 1 : e0); if (le < 0) le = v.length;
+  let d0 = 0, dAll = 0;
+  const lines = v.slice(ls, le).split('\n').map((line, i) => {
+    let out = line;
+    if (act === 'indent') out = IND + line;
+    else if (act === 'outdent') out = line.replace(/^( {1,4}|\t)/, '');
+    else if (act === 'bullet') {
+      const m = line.match(/^(\s*)• /);
+      out = m ? line.replace(/^(\s*)• /, '$1') : line.replace(/^(\s*)/, '$1• ');
+    }
+    const diff = out.length - line.length;
+    if (i === 0) d0 = act === 'outdent' ? Math.max(diff, ls - s0) : diff;
+    dAll += diff;
+    return out;
+  });
+  ta.value = v.slice(0, ls) + lines.join('\n') + v.slice(le);
+  const ns = Math.max(ls, s0 + d0), ne = Math.max(ns, e0 + dAll);
+  ta.setSelectionRange(s0 === e0 ? ns : ns, s0 === e0 ? ns : ne);
+  autosize(ta);
 }
 function commitEdit(cancel = false) {
   if (editingId == null) return;
   const id = editingId; editingId = null;
   const el = els.get(id), n = nodes.get(id); if (!el || !n) return;
-  const t = el.firstChild;
-  t.contentEditable = 'false'; el.classList.remove('editing'); getSelection().removeAllRanges();
-  let txt = t.innerText.replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  const t = el.firstChild, ta = el.querySelector('textarea.ed');
+  const raw = ta ? ta.value : n.text;
+  ta?.remove(); el.querySelector('.editbar')?.remove();
+  t.style.display = ''; el.classList.remove('editing');
+  // keep indentation: only drop blank lines at the start and whitespace at the end
+  let txt = raw.replace(/\u00a0/g, ' ').replace(/^(\s*\n)+/, '').replace(/\s+$/, '').replace(/\n{3,}/g, '\n\n');
   if (cancel || txt === n.text) { t.textContent = n.text; return; }
-  if (!txt) txt = '…';
+  if (!txt.trim()) txt = '…';
   pushUndo(); n.text = txt; n.updated = now(); t.textContent = txt; markDirty();
 }
 world.addEventListener('focusout', e => {
-  if (editingId != null && e.target.classList?.contains('txt')) commitEdit();
-});
-world.addEventListener('paste', e => {
-  if (editingId == null) return;
-  e.preventDefault();
-  document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
+  if (editingId == null || !e.target.classList?.contains('ed')) return;
+  if (performance.now() - barPress < 400) { const ta = e.target; setTimeout(() => ta.isConnected && ta.focus(), 0); return; }
+  commitEdit();
 });
 
 /* ---------- pointer: drag, pan, pinch, double-tap ---------- */
@@ -616,7 +684,14 @@ stage.addEventListener('pointerdown', e => {
   stopCamera();
   const nodeEl = e.target.closest('.node');
   if (editingId != null) {
-    if (nodeEl && +nodeEl.dataset.id === editingId) return;
+    if (nodeEl && +nodeEl.dataset.id === editingId) {
+      if (!e.target.closest('.editbar') && editStart.id === editingId && performance.now() - editStart.t < DBL) {
+        e.preventDefault();
+        const id = editingId; editStart.id = null;
+        commitEdit(true); addAndEdit(id);
+      }
+      return;
+    }
     commitEdit();
   }
   if (e.target.classList.contains('badge')) { toggleFold(+nodeEl.dataset.id); return; }
@@ -678,12 +753,12 @@ function endPointer(e) {
   const id = d.type === 'node' ? d.id : null;
   if (t - lastTap.t < DBL && lastTap.id === id && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 30) {
     lastTap.t = 0;
-    if (id != null) startEdit(id);
+    if (id != null) startEdit(id, true);
     else {
       const parent = nodes.has(selectedId) ? selectedId : roots()[0]?.id;
       const p = screenToWorld(e.clientX, e.clientY);
       const nid = addNode(parent, p.x, p.y);
-      requestAnimationFrame(() => startEdit(nid));
+      startEdit(nid);
     }
   } else {
     lastTap = { t, id, x: e.clientX, y: e.clientY };
@@ -718,13 +793,10 @@ document.addEventListener('keydown', e => {
   if (mod && kl === 's') { e.preventDefault(); commitEdit(); saveFile(e.shiftKey); return; }
   if (mod && kl === 'o') { e.preventDefault(); commitEdit(); openFile(); return; }
   if (editingId != null) {
+    const ta = els.get(editingId)?.querySelector('textarea.ed');
     if (k === 'Enter' && mod) { e.preventDefault(); commitEdit(); }
-    else if (k === 'Enter') {
-      e.preventDefault();
-      if (!document.execCommand('insertLineBreak')) document.execCommand('insertText', false, '\n');
-    }
     else if (k === 'Escape') { e.preventDefault(); commitEdit(true); }
-    else if (k === 'Tab') { e.preventDefault(); const id = editingId; commitEdit(); addAndEdit(id); }
+    else if (k === 'Tab' && ta) { e.preventDefault(); shiftLines(ta, e.shiftKey ? 'outdent' : 'indent'); }
     return;
   }
   if (e.target.matches('input,textarea,[contenteditable="true"]')) return;
