@@ -4,6 +4,8 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
+**Current version:** 2.4
+
 No install, no account, no server. Everything runs in your browser.
 
 ---
@@ -54,6 +56,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Tap a node while zoomed far out | Zoom into that node |
 | Tap or drag on the radar minimap | Fly to that part of the map |
 | Tap the **+N** badge on a folded node | Unfold the branch |
+| Tap **? controls** (bottom right) | Show all controls; tap ✕ or the map to close |
 
 ### Keyboard (when not editing)
 
@@ -124,7 +127,7 @@ Every change can be undone with **undo**.
 | ☀ day / ☾ night | Switch between the day and night theme |
 | colors | Interface color, rain brightness, background tint |
 | rain | Turn the digital rain on or off |
-| ? | Controls panel |
+| ? | Controls panel (also **? controls** in the bottom-right corner) |
 
 ---
 
@@ -172,7 +175,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 
 ## Troubleshooting
 
-**The app shows an old version.** The startup screen and the **?** panel show the version number. Add `?v=` plus any number to the address to force a fresh copy, for example `mindgrid.html?v=24`. If you use a Home Screen icon, open the link in Safari first.
+**The app shows an old version.** The startup screen and the controls panel show the version number. Add `?v=` plus any number to the address to force a fresh copy, for example `mindgrid.html?v=24`. If you use a Home Screen icon, open the link in Safari first.
 
 **"SQLite engine" error on startup.** The engine loads from `cdnjs.cloudflare.com`. Check your internet connection and reload.
 
@@ -181,6 +184,19 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 **Nodes overlap after many changes.** Press **T** or tap **tidy** to rearrange them.
 
 **I deleted something by mistake.** Tap **undo**. If you've already closed the app, open your last saved `.sqlite` file.
+
+---
+
+## Version history
+
+| Version | Changes |
+|---|---|
+| 2.4 | **? controls** in the bottom-right corner opens the controls panel; panel has a close button and closes when you tap the map |
+| 2.3 | Night/day theme toggle; nodes grow to fit their text before wrapping |
+| 2.2 | Opening `.sqlite` files works on iPhone; clear messages when a file can't be read |
+| 2.1 | Version number on the startup screen; node menu scrolls on small screens |
+| 2.0 | Interface colors saved in the `.sqlite` file; per-node colors; hold/right-click node menu with connect, disconnect and delete; triple-tap adds a child; text editor with indent, outdent and bullets; left-aligned text; adjustable node widths; zoom to node, overview and radar minimap; interface color themes |
+| 1.0 | First release: mind map with SQLite save and open, digital rain, undo, tidy layout |
 
 ---
 
