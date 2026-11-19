@@ -107,11 +107,16 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 #help{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(360px,calc(100vw - 24px));
   max-height:calc(100% - 130px);overflow:auto;background:var(--panel);border:1px solid var(--g-mid);
   padding:14px 16px;font-size:13.5px;line-height:1.6;box-shadow:var(--glow);display:none}
-#help.show,#theme.show{display:block}
+#help.show,#theme.show,#nodeColor.show{display:block}
+#nodeColor{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:25;width:min(320px,calc(100vw - 24px));
+  background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
+#nodeColor h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nodeColor .sw.def i{background:repeating-linear-gradient(45deg,var(--g) 0 3px,#000 3px 6px)}
+.trow input[type=checkbox]{width:20px;height:20px;accent-color:var(--g)}
 #theme{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(320px,calc(100vw - 24px));
   background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
 #theme h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em}
-#swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+#swatches,.swgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .sw{height:44px;border:1px solid var(--g-dim);background:#000;cursor:pointer;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:2px;font-size:11px;padding:0}
 .sw i{display:block;width:18px;height:18px;border-radius:50%}
@@ -185,7 +190,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
     <tr><td>Drag empty / wheel</td><td>Pan / zoom (pinch on touch)</td></tr>
     <tr><td>Tab</td><td>Add child</td></tr>
     <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
-    <tr><td>Hold node / right-click</td><td>Menu: delete, connect to another node, more</td></tr>
+    <tr><td>Hold node / right-click</td><td>Menu: color, delete, connect to another node, more</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
     <tr><td>⇥ ⇤ • in editor</td><td>Indent, outdent, bullet the current lines</td></tr>
     <tr><td>Tab / Shift+Tab editing</td><td>Indent / outdent lines</td></tr>
@@ -221,6 +226,13 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
   <div class="trow"><span></span><button data-theme-reset>reset to green</button></div>
 </div>
 <div id="ctx" role="menu"></div>
+<div id="nodeColor">
+  <h2 id="ncTitle">NODE COLOR</h2>
+  <div id="ncSwatches" class="swgrid"></div>
+  <div class="trow"><label for="ncCustom">Custom color</label><input type="color" id="ncCustom" value="#00ff41"></div>
+  <div class="trow"><label for="ncBranch">Also color the branches below</label><input type="checkbox" id="ncBranch"></div>
+  <div class="trow"><span></span><button id="ncDone">done</button></div>
+</div>
 <div id="linkbar"><span id="linkmsg"></span><button id="linkCancel">cancel</button></div>
 <div id="mini" title="Click or drag to navigate"><canvas></canvas><div class="lbl">radar</div></div>
 <div id="log"></div>
@@ -245,6 +257,7 @@ CREATE TABLE IF NOT EXISTS nodes(
   y REAL NOT NULL DEFAULT 0,
   collapsed INTEGER NOT NULL DEFAULT 0,
   width REAL,
+  color TEXT,
   created_at TEXT,
   updated_at TEXT
 );
@@ -262,6 +275,7 @@ const now = () => new Date().toISOString();
 function migrate(d) {
   const cols = (d.exec('PRAGMA table_info(nodes)')[0]?.values || []).map(r => r[1]);
   if (!cols.includes('width')) d.run('ALTER TABLE nodes ADD COLUMN width REAL');
+  if (!cols.includes('color')) d.run('ALTER TABLE nodes ADD COLUMN color TEXT');
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -437,6 +451,14 @@ function updateEl(n, el = els.get(n.id), idx) {
   el.style.left = n.x + 'px'; el.style.top = n.y + 'px';
   el.style.width = n.w ? n.w + 'px' : '';
   el.classList.toggle('fixed', !!n.w);
+  if (el.dataset.color !== (n.color || '')) {
+    el.dataset.color = n.color || '';
+    const vars = ['--g', '--g-hi', '--g-mid', '--g-dim', '--rgb', '--nodebg'];
+    if (n.color) {
+      const sh = shades(n.color);
+      [sh.g, sh.hi, sh.mid, sh.dim, sh.rgb, sh.nodebg].forEach((v, i) => el.style.setProperty(vars[i], v));
+    } else vars.forEach(v => el.style.removeProperty(v));
+  }
   el.classList.toggle('root', n.parent == null || !nodes.has(n.parent));
   el.classList.toggle('sel', n.id === selectedId);
   el.style.display = isHidden(n) ? 'none' : '';
@@ -457,7 +479,9 @@ function drawEdges() {
     if (!p || isHidden(n)) continue;
     const dx = (n.x - p.x) * 0.5;
     const d = `M${p.x},${p.y} C${p.x + dx},${p.y} ${n.x - dx},${n.y} ${n.x},${n.y}`;
-    s += `<path class="edge" d="${d}"/><path class="flow" d="${d}"/>`;
+    const st = n.color ? shades(n.color) : null;
+    s += st ? `<path class="edge" d="${d}" style="stroke:${st.dim}"/><path class="flow" d="${d}" style="stroke:${st.g}"/>`
+            : `<path class="edge" d="${d}"/><path class="flow" d="${d}"/>`;
   }
   edgesSvg.innerHTML = s;
   scheduleMini();
@@ -549,7 +573,7 @@ function drawMini() {
   mctx.stroke();
   for (const n of vis) {
     const r = (n.parent == null || !nodes.has(n.parent)) ? 4 : 2.5;
-    mctx.fillStyle = n.id === selectedId ? theme.hi : theme.g;
+    mctx.fillStyle = n.id === selectedId ? theme.hi : (n.color || theme.g);
     mctx.fillRect(X(n.x) - r, Y(n.y) - r * 0.7, r * 2, r * 1.4);
   }
   mctx.strokeStyle = theme.hi; mctx.lineWidth = 1.2;
@@ -707,6 +731,7 @@ function openMenu(id, x, y) {
     ['edit', 'Edit text'],
     ['child', 'Add child node'],
     ['zoom', 'Zoom to node'],
+    ['color', 'Change color…'],
     kids ? ['fold', n.collapsed ? 'Unfold branch' : 'Fold branch'] : null,
     '-',
     ['link', 'Connect to another node…'],
@@ -730,6 +755,7 @@ ctx.addEventListener('click', e => {
     case 'edit': startEdit(id); break;
     case 'child': addAndEdit(id); break;
     case 'zoom': focusNode(id); break;
+    case 'color': openNodeColor(id); break;
     case 'fold': toggleFold(id); break;
     case 'link': startLink(id); break;
     case 'detach': detach(id); break;
@@ -742,6 +768,40 @@ stage.addEventListener('contextmenu', e => {
   const el = e.target.closest('.node');
   if (el && linkFrom == null && !ctx.classList.contains('show')) openMenu(+el.dataset.id, e.clientX, e.clientY);
 });
+
+/* ---------- per-node color ---------- */
+let ncId = null, ncUndo = false;
+function openNodeColor(id) {
+  const n = nodes.get(id); if (!n) return;
+  $('#help').classList.remove('show'); $('#theme').classList.remove('show');
+  ncId = id; ncUndo = false;
+  $('#ncTitle').textContent = 'COLOR: ' + short(n.text);
+  $('#ncSwatches').innerHTML =
+    `<button class="sw def" data-color="" title="interface color"><i></i>default</button>` +
+    PRESETS.map(([nm, c]) => `<button class="sw" data-color="${c}" title="${nm}"><i style="background:${c};box-shadow:0 0 8px ${c}"></i>${nm}</button>`).join('');
+  $('#ncCustom').value = n.color || prefs.color;
+  markNcSwatch();
+  $('#nodeColor').classList.add('show');
+}
+function markNcSwatch() {
+  const c = nodes.get(ncId)?.color || '';
+  document.querySelectorAll('#ncSwatches .sw').forEach(b => b.classList.toggle('on', b.dataset.color === c));
+}
+function setNodeColor(color) {
+  const n = nodes.get(ncId); if (!n) return;
+  if (!ncUndo) { pushUndo(); ncUndo = true; }
+  const ids = $('#ncBranch').checked ? [ncId, ...descendants(ncId)] : [ncId];
+  for (const i of ids) { const m = nodes.get(i); m.color = color || null; m.updated = now(); }
+  renderAll(); markDirty(); markNcSwatch();
+}
+function closeNodeColor() { $('#nodeColor').classList.remove('show'); ncId = null; }
+$('#ncSwatches').addEventListener('click', e => {
+  const b = e.target.closest('.sw'); if (!b) return;
+  setNodeColor(b.dataset.color); if (b.dataset.color) $('#ncCustom').value = b.dataset.color;
+});
+$('#ncCustom').addEventListener('input', e => setNodeColor(e.target.value));
+$('#ncBranch').addEventListener('change', () => { const n = nodes.get(ncId); if (n) setNodeColor(n.color); });
+$('#ncDone').addEventListener('click', closeNodeColor);
 
 function startLink(id) {
   linkFrom = id;
@@ -949,6 +1009,7 @@ document.addEventListener('keydown', e => {
     case 'ArrowDown': e.preventDefault(); navigate(0, 1); break;
     case 'Escape':
       if (ctx.classList.contains('show')) closeMenu();
+      else if (ncId != null) closeNodeColor();
       else if (linkFrom != null) { endLink(); log('Connect cancelled'); }
       else if ($('#help.show,#theme.show')) { $('#help').classList.remove('show'); $('#theme').classList.remove('show'); }
       else overview();
@@ -973,20 +1034,20 @@ function writeToDb() {
   db.run('BEGIN');
   try {
     db.run('DELETE FROM nodes');
-    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)');
+    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)');
     for (const n of nodes.values())
-      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.created ?? null, n.updated ?? null]);
+      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.created ?? null, n.updated ?? null]);
     st.free();
-    db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1')",
-      [JSON.stringify(view), String(selectedId ?? ''), now()]);
+    db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?)",
+      [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs)]);
     db.run('COMMIT');
   } catch (err) { db.run('ROLLBACK'); throw err; }
 }
 function loadFromDb() {
   nodes = new Map();
-  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width FROM nodes');
+  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color FROM nodes');
   if (res.length) for (const r of res[0].values)
-    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null });
+    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null });
   if (!nodes.size) { const t = now(); nodes.set(1, { id: 1, parent: null, text: 'central idea', x: 0, y: 0, collapsed: false, created: t, updated: t }); }
   nextId = Math.max(0, ...nodes.keys()) + 1;
   const meta = Object.fromEntries((db.exec('SELECT key,value FROM meta')[0]?.values) || []);
@@ -1010,6 +1071,7 @@ function loadBytes(bytes, name, opts = {}) {
   fileName = name || 'mindmap.sqlite';
   fileHandle = opts.handle ?? null;
   const meta = loadFromDb();
+  loadThemeFrom(meta.theme);
   undoStack.length = redoStack.length = 0;
   for (const el of els.values()) el.remove(); els.clear();
   renderAll();
@@ -1129,7 +1191,7 @@ $('#bar').addEventListener('click', e => {
     case 'radar': toggleRadar(); break;
     case 'rain': rain.toggle(); b.classList.toggle('on', rain.on); break;
     case 'help': $('#theme').classList.remove('show'); $('#help').classList.toggle('show'); break;
-    case 'theme': $('#help').classList.remove('show'); $('#theme').classList.toggle('show'); break;
+    case 'theme': closeNodeColor(); $('#help').classList.remove('show'); $('#theme').classList.toggle('show'); break;
   }
 });
 
@@ -1143,6 +1205,14 @@ const prefs = { color: '#00ff41', rain: 32, tint: 0 };
 const hexToRgb = h => { const v = parseInt(h.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; };
 const toHex = a => '#' + a.map(v => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0')).join('');
 const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+const shadeCache = new Map();
+function shades(hex) {
+  if (shadeCache.has(hex)) return shadeCache.get(hex);
+  const c = hexToRgb(hex), W = [255, 255, 255], K = [0, 0, 0];
+  const sh = { g: hex, hi: toHex(mix(c, W, .75)), mid: toHex(mix(c, K, .3)), dim: toHex(mix(c, K, .64)),
+    rgb: c.join(','), nodebg: `rgba(${mix(c, K, .965).map(Math.round).join(',')},.95)` };
+  shadeCache.set(hex, sh); return sh;
+}
 function applyTheme() {
   const c = hexToRgb(prefs.color), W = [255, 255, 255], K = [0, 0, 0];
   theme.g = prefs.color; theme.hi = toHex(mix(c, W, .75)); theme.mid = toHex(mix(c, K, .3));
@@ -1159,10 +1229,22 @@ function applyTheme() {
   $('#rain').style.opacity = prefs.rain / 100;
   $('#customColor').value = prefs.color;
   $('#rainLevel').value = prefs.rain; $('#bgTint').value = prefs.tint;
-  document.querySelectorAll('.sw').forEach(b => b.classList.toggle('on', b.dataset.color === prefs.color));
+  document.querySelectorAll('#swatches .sw').forEach(b => b.classList.toggle('on', b.dataset.color === prefs.color));
   scheduleMini();
 }
-function savePrefs() { try { localStorage.setItem('mindgrid-theme', JSON.stringify(prefs)); } catch {} }
+// interface colors are stored in the browser (default for new maps) and in each .sqlite file (meta 'theme')
+function savePrefs(fromUser = true) {
+  try { localStorage.setItem('mindgrid-theme', JSON.stringify(prefs)); } catch {}
+  if (fromUser && db) markDirty();
+}
+function loadThemeFrom(json) {
+  let t = null; try { t = JSON.parse(json || 'null'); } catch {}
+  if (!t || typeof t !== 'object') return;
+  if (/^#[0-9a-f]{6}$/i.test(t.color || '')) prefs.color = t.color.toLowerCase();
+  if (isFinite(t.rain)) prefs.rain = clamp(+t.rain, 5, 80);
+  if (isFinite(t.tint)) prefs.tint = clamp(+t.tint, 0, 30);
+  applyTheme(); savePrefs(false);
+}
 try { Object.assign(prefs, JSON.parse(localStorage.getItem('mindgrid-theme') || '{}')); } catch {}
 $('#swatches').innerHTML = PRESETS.map(([n, c]) =>
   `<button class="sw" data-color="${c}" title="${n}"><i style="background:${c};box-shadow:0 0 8px ${c}"></i>${n}</button>`).join('');
