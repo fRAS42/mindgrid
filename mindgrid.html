@@ -183,7 +183,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 
 <div id="help">
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 2.1</p>
+  <p style="margin:-4px 0 8px">Version 2.2</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -241,7 +241,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 <div id="scan"></div>
 <div id="dropzone">DROP .SQLITE FILE TO LOAD</div>
 <div id="boot"><pre id="bootText"></pre></div>
-<input type="file" id="fileIn" accept=".sqlite,.sqlite3,.db,application/x-sqlite3,application/vnd.sqlite3" hidden>
+<input type="file" id="fileIn" style="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0" tabindex="-1" aria-hidden="true">
 
 <script>
 (() => {
@@ -1124,21 +1124,29 @@ async function saveFile(saveAs = false) {
   dirty = false; updateStatus(); cacheSession();
   log(`Downloaded ${fileName}`);
 }
-async function openFile() {
-  if (dirty && !confirm('You have unsaved changes. Open another file anyway?')) return;
+function openFile() {
   if (window.showOpenFilePicker) {
-    try {
-      const [h] = await showOpenFilePicker({ types: sqliteTypes });
-      const f = await h.getFile();
-      loadBytes(new Uint8Array(await f.arrayBuffer()), f.name, { handle: h });
-      return;
-    } catch (err) { if (err.name === 'AbortError') return; }
+    showOpenFilePicker({ types: sqliteTypes, excludeAcceptAllOption: false })
+      .then(async ([h]) => { const f = await h.getFile(); await loadChosenFile(f, h); })
+      .catch(err => { if (err.name !== 'AbortError') $('#fileIn').click(); });
+    return;
   }
   $('#fileIn').click();
 }
-$('#fileIn').addEventListener('change', async e => {
+async function loadChosenFile(f, handle = null) {
+  if (dirty && !confirm('You have unsaved changes in the current map. Open ' + f.name + ' anyway?')) return;
+  log(`Reading ${f.name} …`);
+  let bytes;
+  try { bytes = new Uint8Array(await f.arrayBuffer()); }
+  catch (err) { return log(`Could not read ${f.name}: ${err.message}`, true); }
+  if (!bytes.length) return log(`${f.name} is empty (0 bytes). Pick the file you saved from MINDGRID.`, true);
+  const head = new TextDecoder().decode(bytes.slice(0, 15));
+  if (head !== 'SQLite format 3') return log(`${f.name} is not a SQLite database. Pick a .sqlite file saved from MINDGRID.`, true);
+  loadBytes(bytes, f.name, { handle });
+}
+$('#fileIn').addEventListener('change', e => {
   const f = e.target.files[0]; e.target.value = '';
-  if (f) loadBytes(new Uint8Array(await f.arrayBuffer()), f.name);
+  if (f) loadChosenFile(f);
 });
 
 let cacheTimer = null;
@@ -1161,8 +1169,7 @@ addEventListener('dragover', e => e.preventDefault());
 addEventListener('drop', async e => {
   e.preventDefault(); dragDepth = 0; $('#dropzone').classList.remove('show');
   const f = e.dataTransfer.files[0]; if (!f) return;
-  if (dirty && !confirm('You have unsaved changes. Load the dropped file anyway?')) return;
-  loadBytes(new Uint8Array(await f.arrayBuffer()), f.name);
+  loadChosenFile(f);
 });
 addEventListener('beforeunload', e => { if (dirty) { cacheSession(); e.preventDefault(); e.returnValue = ''; } });
 
@@ -1303,7 +1310,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 2.1 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 2.2 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
