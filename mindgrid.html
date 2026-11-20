@@ -44,6 +44,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
 #ctx .fsrow button{display:inline-block;width:auto;min-width:40px;text-align:center;padding:8px 8px;border:1px solid var(--g-dim)}
 #ctx .fsrow .fsval{min-width:34px;text-align:center;color:var(--g-hi)}
 #ctx .fsrow button.def{font-size:12.5px;min-width:0}
+#ctx .fsrow button.def.on{background:rgba(var(--rgb),.18);color:var(--g-hi)}
 #linkbar{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 58px);transform:translateX(-50%);z-index:20;
   display:none;align-items:center;gap:10px;padding:8px 8px 8px 14px;background:var(--panel);border:1px solid var(--g);
   box-shadow:var(--glow);max-width:calc(100vw - 24px)}
@@ -404,7 +405,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '5.4';
+const APP_VERSION = '5.5';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -659,6 +660,11 @@ function renderAll() {
   for (const [id, el] of els) if (!nodes.has(id)) { el.remove(); els.delete(id); }
   const idx = childIndex();
   newestSet = newestChildren(idx);
+  { // count nodes below each node once, for automatic text sizes
+    const below = new Map();
+    const cnt = id => { if (below.has(id)) return below.get(id); let c = 0; for (const k of idx.get(id) || []) c += 1 + cnt(k.id); below.set(id, c); return c; };
+    autoFS = new Map(); for (const m of nodes.values()) autoFS.set(m.id, autoFontSize(m, cnt(m.id)));
+  }
   newestAllId = null;
   { let best = null; for (const m of nodes.values()) if (idx.has(m.id)) continue; else if (!best || (m.created || '') > (best.created || '') || ((m.created || '') === (best.created || '') && m.id > best.id)) best = m;
     if (best && nodes.size > 1) newestAllId = best.id; }
@@ -677,7 +683,7 @@ function renderAll() {
 function updateEl(n, el = els.get(n.id), idx) {
   el.style.left = n.x + 'px'; el.style.top = n.y + 'px';
   el.style.width = n.w ? n.w + 'px' : '';
-  el.style.fontSize = n.fs ? n.fs + 'px' : '';
+  if (idx || n.fs) el.style.fontSize = (n.fs || autoFS.get(n.id) || autoFontSize(n)) + 'px';
   el.classList.toggle('fixed', !!n.w);
   const ec = effColor(n);
   el.classList.toggle('latest', n.id === latestId && prefs.latest !== false);
@@ -1102,7 +1108,15 @@ const short = t => { const l = t.split('\n')[0].trim(); return l.length > 34 ? l
 const FS_MIN = 9, FS_MAX = 48, FS_STEP = 2;
 let fsUndo = false;
 const isRootNode = n => n.parent == null || !nodes.has(n.parent);
-const fontSizeOf = n => n.fs || (isRootNode(n) ? 19 : 15);
+/* automatic size: grows with the number of nodes below (children, grandchildren, …); a size you set yourself wins */
+function autoFontSize(n, count) {
+  if (count == null) count = descendants(n.id).length;
+  return isRootNode(n)
+    ? Math.min(30, 19 + Math.round(1.5 * Math.log2(1 + count)))
+    : Math.min(26, 15 + Math.round(2 * Math.log2(1 + count)));
+}
+let autoFS = new Map();
+const fontSizeOf = n => n.fs || autoFS.get(n.id) || autoFontSize(n);
 function setDue(id, due) {
   const n = nodes.get(id); if (!n) return;
   due = due && /^\d{4}-\d{2}-\d{2}$/.test(due) ? due : null;
@@ -1120,13 +1134,14 @@ function refreshMenuTimes(n) {
 }
 function changeFontSize(id, dir) {
   const n = nodes.get(id); if (!n) return;
-  const def = isRootNode(n) ? 19 : 15;
+  const def = autoFontSize(n);
   const next = dir === 0 ? null : clamp(fontSizeOf(n) + dir * FS_STEP, FS_MIN, FS_MAX);
   if ((next ?? def) === fontSizeOf(n) && (dir !== 0 || n.fs == null)) return;
   if (!fsUndo) { pushUndo(); fsUndo = true; }
   n.fs = next === def ? null : next; n.updated = now();
   renderAll(); markDirty();
   const v = ctx.querySelector('.fsval'); if (v) v.textContent = fontSizeOf(n);
+  ctx.querySelector('.fsrow .def')?.classList.toggle('on', !n.fs);
   refreshMenuTimes(n);
 }
 function openMenu(id, x, y) {
@@ -1161,7 +1176,7 @@ function openMenu(id, x, y) {
     (cr ? `<small>created ${cr}</small>` : '') + (up ? `<small>updated ${up}</small>` : '') + `</div>` + items.map(it => it === '-' ? '<hr>' : it === 'fs' ?
     `<div class="fsrow"><span>Text size</span><button data-fs="-1" title="Smaller" aria-label="Smaller text">A−</button>` +
     `<span class="fsval">${fontSizeOf(n)}</span><button data-fs="1" title="Bigger" aria-label="Bigger text">A+</button>` +
-    `<button data-fs="0" class="def" title="Back to the default size">default</button></div>` :
+    `<button data-fs="0" class="def${n.fs ? '' : ' on'}" title="Automatic size (grows with the number of nodes below)">auto</button></div>` :
     it === 'cat' ?
     `<div class="catrow"><span>Priority</span>` +
     Object.keys(CATS).map(c => `<button data-cat="${c}" title="${CATS[c].name}" aria-label="${CATS[c].name}">${c}</button>`).join('') +

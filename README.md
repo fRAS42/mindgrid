@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 5.4
+**Current version:** 5.5
 
-![new in 5.4](https://img.shields.io/badge/new_in-5.4-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 5.5](https://img.shields.io/badge/new_in-5.5-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -24,7 +24,7 @@ No install, no account, no server. Everything runs in your browser.
 - Adjustable node widths
 - Due dates for leaf nodes, shown in the table view (not on the map, to keep it tidy) and used to sort the table
 - Priority flags A, B, C, D (urgent / important), shown on the node and as a column in the table
-- Text size per node, from the node menu
+- $\color{#00FF41}\textsf{Automatic text size: the more nodes a branch holds, the bigger its text}$, or set your own size per node from the node menu ![new in 5.5](https://img.shields.io/badge/new_in-5.5-00ff41?labelColor=000000)
 - Recoloring or resizing the text of a node counts as an update; moving nodes around does not
 - How long ago the selected node was updated, shown above it (for example 2 days 3 hours 14 mins ago) in text 2 sizes bigger than the node's own text; full created and updated dates in the node menu
 - The most recently updated node glows in matrix green, so you can always see where you left off. A node you colored yourself keeps its own color
@@ -39,21 +39,21 @@ No install, no account, no server. Everything runs in your browser.
 
 ## Try the demo
 
-$\color{#00FF41}\textsf{Download mindgrid-demo.sqlite from this repository, open the app, tap open and pick the file.}$
+Download mindgrid-demo.sqlite from this repository, open the app, tap open and pick the file.
 
 - **Download:** [mindgrid-demo.sqlite](https://github.com/fras42/mindgrid/raw/main/mindgrid-demo.sqlite)
 - **On iPhone:** the file lands in **Files → Downloads**. In the app, tap **open** and choose it.
 
-$\color{#00FF41}\textsf{The demo is a plan for a year, MY 2027, and shows most of what the app can do:}$
+The demo is a plan for a year, MY 2027, and shows most of what the app can do:
 
-- $\color{#00FF41}\textsf{Colored branches (side app, learning, home, health) and the latest-updated node glowing in matrix green (Book flights)}$
-- $\color{#00FF41}\textsf{Priority letters A to D, due dates that are overdue, today, tomorrow and soon, and done tasks struck through}$
-- $\color{#00FF41}\textsf{A folded branch (Read 12 books) drawn as a stack of cards with a +5 badge}$
-- $\color{#00FF41}\textsf{A multi-line node with bullets and indentation, a wider node, and bigger text on the main topics}$
-- $\color{#00FF41}\textsf{Newest-child dots, and two separate floating maps: START HERE (quick tips) and IDEAS INBOX}$
-- $\color{#00FF41}\textsf{Tap the table button to see it as a to-do list, sorted by due date and priority}$
+- Colored branches (side app, learning, home, health) and the latest-updated node glowing in matrix green (Book flights)
+- Priority letters A to D, due dates that are overdue, today, tomorrow and soon, and done tasks struck through
+- A folded branch (Read 12 books) drawn as a stack of cards with a +5 badge
+- A multi-line node with bullets and indentation, a wider node, and bigger text on the main topics
+- Newest-child dots, and two separate floating maps: START HERE (quick tips) and IDEAS INBOX
+- Tap the table button to see it as a to-do list, sorted by due date and priority
 
-$\color{#00FF41}\textsf{The due dates were set around November 20, 2026, so the longer you wait, the more of them will show as overdue.}$
+The due dates were set around November 20, 2026, so the longer you wait, the more of them will show as overdue.
 
 ---
 
@@ -206,7 +206,7 @@ The top of the menu shows when the node was created and last updated. The menu o
 | Change color… | Pick a color for the node, optionally for its whole branch |
 | Due date (leaf nodes, or any node that already has one) | Pick a date with the date picker; ✕ removes it. The menu stays open |
 | Priority: A / B / C / D / ✕ | Flag the node (see Priority below). Tap the active letter again or ✕ to remove it. The menu stays open |
-| Text size: A− / A+ / default | Make the node's text smaller or bigger in steps of 2, or back to the default size. The menu stays open so you can tap several times |
+| Text size: A− / A+ / $\color{#00FF41}\textsf{auto}$ | Make the node's text smaller or bigger in steps of 2. $\color{#00FF41}\textsf{auto (highlighted when active) goes back to the automatic size.}$ The menu stays open so you can tap several times |
 | Fold / Unfold branch | Hide or show everything below the node |
 | Tidy children | Neatly arrange everything below this node, leaving the node itself and the rest of the map where they are. Shown when the node has visible children |
 | Focus: fold everything else | Fold every branch except this node's own branch and the path leading to it, then zoom in on it. The status bar shows focus: and the node's name |
@@ -223,7 +223,7 @@ Every change can be undone with **undo**.
 
 | Button | What it does |
 |---|---|
-| $\color{#00FF41}\textsf{MINDGRID (logo)}$ | $\color{#00FF41}\textsf{About: version, where your data lives, link to this page, and a short summary of the open map}$ ![new in 5.4](https://img.shields.io/badge/new_in-5.4-00ff41?labelColor=000000) |
+| MINDGRID (logo) | About: version, where your data lives, link to this page, and a short summary of the open map |
 | new | Start a new empty map |
 | open | Load a map from a `.sqlite` file |
 | save / save as | Save the map to a `.sqlite` file |
@@ -241,6 +241,22 @@ Every change can be undone with **undo**.
 | rain color | Pick the rain color and brightness, separately from the interface |
 | magnifier | Search the text of all nodes (also in the bottom-right corner) |
 | ? | Controls panel (also ? in the bottom-right corner) |
+
+---
+
+## Automatic text size
+
+$\color{#00FF41}\textsf{Nodes that hold more below them (children, grandchildren and so on) get bigger text, so the main topics stand out on their own:}$
+
+| $\color{#00FF41}\textsf{Nodes below}$ | $\color{#00FF41}\textsf{Text size}$ |
+|---|---|
+| $\color{#00FF41}\textsf{none (a leaf)}$ | $\color{#00FF41}\textsf{15}$ |
+| $\color{#00FF41}\textsf{1}$ | $\color{#00FF41}\textsf{17}$ |
+| $\color{#00FF41}\textsf{3}$ | $\color{#00FF41}\textsf{19}$ |
+| $\color{#00FF41}\textsf{7}$ | $\color{#00FF41}\textsf{21}$ |
+| $\color{#00FF41}\textsf{15 or more}$ | $\color{#00FF41}\textsf{23, up to 26}$ |
+
+$\color{#00FF41}\textsf{A central node starts at 19 and grows up to 30. Sizes change by themselves as you add or delete nodes. A size you set with A− or A+ always wins and stays fixed; tap auto to go back to automatic.}$
 
 ---
 
@@ -274,7 +290,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | collapsed | 1 if the branch is folded |
 | width | Fixed width in pixels (empty = automatic) |
 | color | The node's own color, such as `#ffb000` (empty = interface color) |
-| font_size | The node's text size in pixels (empty = default: 19 for a central node, 15 for others) |
+| font_size | The node's text size in pixels, $\color{#00FF41}\textsf{when you set it yourself (empty = automatic size)}$ |
 | done | 1 if the node is marked done in the table view, otherwise 0 |
 | due | The node's due date as YYYY-MM-DD (empty = no due date) |
 | category | Priority flag: A, B, C or D (empty = none) |
@@ -299,7 +315,7 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 ## Troubleshooting
 
-**The app shows an old version.** The startup screen, the controls panel $\color{#00FF41}\textsf{and the About panel (tap MINDGRID)}$ show the version number. Add `?v=` plus any number to the address to force a fresh copy, for example `mindgrid.html?v=24`. If you use a Home Screen icon, open the link in Safari first.
+**The app shows an old version.** The startup screen, the controls panel and the About panel (tap MINDGRID) show the version number. Add `?v=` plus any number to the address to force a fresh copy, for example `mindgrid.html?v=24`. If you use a Home Screen icon, open the link in Safari first.
 
 **"SQLite engine" error on startup.** The engine loads from `cdnjs.cloudflare.com`. Check your internet connection and reload.
 
@@ -317,7 +333,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{5.4}$ | $\color{#00FF41}\textsf{Tap the MINDGRID logo for an About panel}$ |
+| $\color{#00FF41}\textsf{5.5}$ | $\color{#00FF41}\textsf{Automatic text size based on how many nodes are below; manual sizes still win; default button renamed auto}$ |
+| 5.4 | Tap the MINDGRID logo for an About panel |
 | 5.3 | Due dates are no longer shown under nodes on the map; they stay in the menu and the table |
 | 5.2 | Tidy children in the node menu: arrange only one branch |
 | 5.1 | Priority flags A–D (Eisenhower) in the node menu, on the node and as a PRI column in the table; table sorting combines due dates and priority |
