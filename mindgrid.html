@@ -405,7 +405,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '5.5';
+const APP_VERSION = '5.6';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -871,9 +871,13 @@ function focusNode(id) {
   const n = nodes.get(id); if (!n) return;
   select(id);
   const kids = n.collapsed ? [] : children(id);
-  const b = boundsOf([n, ...kids]), pad = Math.min(170, innerWidth * 0.12);
-  const fit = Math.min(1.9, innerWidth / (b.maxX - b.minX + pad * 2), (innerHeight - 110) / (b.maxY - b.minY + 180));
-  if (fit >= 0.75) flyToBounds(b, 1.9, pad);
+  // fit the nodes' full widths (not just their centres), so nothing is cut off at the screen edge
+  const list = [n, ...kids];
+  const b = { minX: Math.min(...list.map(m => m.x - halfW(m.id))), maxX: Math.max(...list.map(m => m.x + halfW(m.id))),
+              minY: Math.min(...list.map(m => m.y)) - 30, maxY: Math.max(...list.map(m => m.y)) + 30 };
+  const pad = 24;
+  const fit = Math.min(1.9, innerWidth / (b.maxX - b.minX + pad * 2), (innerHeight - 170) / (b.maxY - b.minY + 120));
+  if (fit >= 0.6) flyToBounds(b, 1.9, pad, 60);
   else flyTo(n.x, n.y, Math.min(1.5, innerWidth / (halfW(id) * 2 + 60)));
   log(`Zoomed to “${n.text.split('\n')[0].slice(0, 40)}”`);
 }
