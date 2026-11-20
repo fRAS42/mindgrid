@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 5.1
+**Current version:** 5.2
 
-![new in 5.1](https://img.shields.io/badge/new_in-5.1-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 5.2](https://img.shields.io/badge/new_in-5.2-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -23,7 +23,7 @@ No install, no account, no server. Everything runs in your browser.
 - Separate color for the digital rain
 - Adjustable node widths
 - Due dates for leaf nodes, shown under the node and used to sort the table
-- $\color{#00FF41}\textsf{Priority flags A, B, C, D (urgent / important), shown on the node and as a column in the table}$ ![new in 5.1](https://img.shields.io/badge/new_in-5.1-00ff41?labelColor=000000)
+- Priority flags A, B, C, D (urgent / important), shown on the node and as a column in the table
 - Text size per node, from the node menu
 - Recoloring or resizing the text of a node counts as an update; moving nodes around does not
 - How long ago the selected node was updated, shown above it (for example 2 days 3 hours 14 mins ago) in text 2 sizes bigger than the node's own text; full created and updated dates in the node menu
@@ -128,16 +128,16 @@ Done nodes show their due date struck through. Setting or removing a due date co
 
 ### Priority
 
-$\color{#00FF41}\textsf{Any node can be flagged with a priority letter from the node menu. It shows as a small colored letter on the node's bottom-right corner and in the table's PRI column.}$
+Any node can be flagged with a priority letter from the node menu. It shows as a small colored letter on the node's bottom-right corner and in the table's PRI column.
 
 | Flag | Meaning | Color |
 |---|---|---|
-| $\color{#00FF41}\textsf{A}$ | $\color{#00FF41}\textsf{Urgent and important}$ | $\color{#00FF41}\textsf{red}$ |
-| $\color{#00FF41}\textsf{B}$ | $\color{#00FF41}\textsf{Important, not urgent}$ | $\color{#00FF41}\textsf{amber}$ |
-| $\color{#00FF41}\textsf{C}$ | $\color{#00FF41}\textsf{Urgent, not important}$ | $\color{#00FF41}\textsf{blue}$ |
-| $\color{#00FF41}\textsf{D}$ | $\color{#00FF41}\textsf{Neither urgent nor important}$ | $\color{#00FF41}\textsf{grey}$ |
+| A | Urgent and important | red |
+| B | Important, not urgent | amber |
+| C | Urgent, not important | blue |
+| D | Neither urgent nor important | grey |
 
-$\color{#00FF41}\textsf{In the table, tap a row's PRI cell to cycle A, B, C, D, none. Changing priority counts as an update and can be undone.}$
+In the table, tap a row's PRI cell to cycle A, B, C, D, none. Changing priority counts as an update and can be undone.
 
 ### Search
 
@@ -155,19 +155,19 @@ If a match is inside a folded branch, the branch opens so you can see it. This d
 
 ### Table view
 
-Tap the table button in the bottom-right corner, next to the magnifier, to see your leaf nodes (the nodes at the ends of branches, with no children) as a list, plus any node that has a due date $\color{#00FF41}\textsf{or a priority}$ even if it has children (marked with ▸). Tap it again (it now shows a small map icon) to go back to the map.
+Tap the table button in the bottom-right corner, next to the magnifier, to see your leaf nodes (the nodes at the ends of branches, with no children) as a list, plus any node that has a due date or a priority even if it has children (marked with ▸). Tap it again (it now shows a small map icon) to go back to the map.
 
 | Column | What it shows |
 |---|---|
 | NODE | The first line of the node's text, in the node's color. A thin bar on the left shows the color too |
-| $\color{#00FF41}\textsf{PRI}$ | $\color{#00FF41}\textsf{The priority letter. Tap it to cycle A, B, C, D, none}$ |
+| PRI | The priority letter. Tap it to cycle A, B, C, D, none |
 | UPDATED | When the node was last updated, and how long ago |
 | DONE | A checkbox to mark the node as done. The header counts how many leaf nodes are done, for example 3/12 |
 
-- $\color{#00FF41}\textsf{Sorting, from top to bottom:}$
-  1. $\color{#00FF41}\textsf{Overdue or due within 3 days, soonest due first (same day: by priority).}$
-  2. $\color{#00FF41}\textsf{Then by priority: A, B, C, D, then no priority.}$
-  3. $\color{#00FF41}\textsf{Within the same priority: earlier due date first, then the newest node first.}$
+- Sorting, from top to bottom:
+  1. Overdue or due within 3 days, soonest due first (same day: by priority).
+  2. Then by priority: A, B, C, D, then no priority.
+  3. Within the same priority: earlier due date first, then the newest node first.
 - A node's due date is shown under its name: red when overdue, yellow when due within 2 days.
 - Nodes marked done leave the list about a second after you tick them. Tap show N done at the bottom to list them again (and hide N done to hide them).
 - Tap a node's name to jump back to the map and zoom to that node. Folded branches open if needed.
@@ -185,9 +185,10 @@ The top of the menu shows when the node was created and last updated. The menu o
 | Zoom to node | Zoom into the node and its branches |
 | Change color… | Pick a color for the node, optionally for its whole branch |
 | Due date (leaf nodes, or any node that already has one) | Pick a date with the date picker; ✕ removes it. The menu stays open |
-| $\color{#00FF41}\textsf{Priority: A / B / C / D / ✕}$ | $\color{#00FF41}\textsf{Flag the node (see Priority below). Tap the active letter again or ✕ to remove it. The menu stays open}$ |
+| Priority: A / B / C / D / ✕ | Flag the node (see Priority below). Tap the active letter again or ✕ to remove it. The menu stays open |
 | Text size: A− / A+ / default | Make the node's text smaller or bigger in steps of 2, or back to the default size. The menu stays open so you can tap several times |
 | Fold / Unfold branch | Hide or show everything below the node |
+| $\color{#00FF41}\textsf{Tidy children}$ | $\color{#00FF41}\textsf{Neatly arrange everything below this node, leaving the node itself and the rest of the map where they are. Shown when the node has visible children}$ ![new in 5.2](https://img.shields.io/badge/new_in-5.2-00ff41?labelColor=000000) |
 | Focus: fold everything else | Fold every branch except this node's own branch and the path leading to it, then zoom in on it. The status bar shows focus: and the node's name |
 | Exit focus (keep my folds) | Shown while focusing instead of Unfold everything. Opens only what focus folded, so branches you folded yourself stay folded. Focus is saved in the file |
 | Unfold everything | Open all folded branches again (shown when something is folded and you are not in focus mode) |
@@ -255,9 +256,9 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | font_size | The node's text size in pixels (empty = default: 19 for a central node, 15 for others) |
 | done | 1 if the node is marked done in the table view, otherwise 0 |
 | due | The node's due date as YYYY-MM-DD (empty = no due date) |
-| $\color{#00FF41}\textsf{category}$ | $\color{#00FF41}\textsf{Priority flag: A, B, C or D (empty = none)}$ |
+| category | Priority flag: A, B, C or D (empty = none) |
 | created_at | When the node was created (ISO 8601, UTC) |
-| updated_at | When the node's text, color, width, text size, done state, due date, $\color{#00FF41}\textsf{priority}$ or connection last changed (ISO 8601, UTC). Moving nodes, folding, focusing and tidy do not change it |
+| updated_at | When the node's text, color, width, text size, done state, due date, priority or connection last changed (ISO 8601, UTC). Moving nodes, folding, focusing, tidy and $\color{#00FF41}\textsf{tidy children}$ do not change it |
 
 **`meta`** holds map settings: the view position and zoom, the selected node, when the map was last saved to a file (file_saved_at), and the interface theme (color, rain brightness, rain color, tint, night/day, latest-update highlight).
 
@@ -295,7 +296,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{5.1}$ | $\color{#00FF41}\textsf{Priority flags A–D (Eisenhower) in the node menu, on the node and as a PRI column in the table; table sorting combines due dates and priority}$ |
+| $\color{#00FF41}\textsf{5.2}$ | $\color{#00FF41}\textsf{Tidy children in the node menu: arrange only one branch}$ |
+| 5.1 | Priority flags A–D (Eisenhower) in the node menu, on the node and as a PRI column in the table; table sorting combines due dates and priority |
 | 5.0 | Nodes with children that have a due date are listed in the table too (marked ▸) and can still change or clear their due date in the menu |
 | 4.9 | Only nodes due within 3 days (or overdue) move to the top of the table |
 | 4.8 | Due dates for leaf nodes: date picker in the node menu, label under the node, near due dates on top of the table; Esc closes the menu even from the date field |

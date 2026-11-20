@@ -293,7 +293,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 5.1</p>
+  <p style="margin:-4px 0 8px">Version 5.2</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -568,7 +568,7 @@ function toggleFold(id) {
   if (!children(id).length) return log('This node has no branches to fold');
   pushUndo(); n.collapsed = !n.collapsed; forgetFocusFold(id); renderAll(); markDirty();
 }
-function tidy() {
+function tidy(onlyId = null) {    // onlyId: tidy just that node's branch, keeping the node where it is
   pushUndo();
   const idx = childIndex(), H = new Map();
   const kidsOf = id => (nodes.get(id).collapsed ? [] : (idx.get(id) || []).slice().sort((a, b) => a.y - b.y));
@@ -580,14 +580,24 @@ function tidy() {
     const k = kidsOf(id); let cy = y - k.reduce((a, c) => a + H.get(c.id), 0) / 2;
     for (const c of k) { place(c.id, x + dir * (halfW(id) + 70 + halfW(c.id)), cy + H.get(c.id) / 2, dir); cy += H.get(c.id); }
   }
-  for (const r of roots()) {
+  function layoutChildren(r, fixedDir) {
     const k = kidsOf(r.id);
-    for (const [side, dir] of [[k.filter(c => c.x >= r.x), 1], [k.filter(c => c.x < r.x), -1]]) {
+    const sides = fixedDir ? [[k, fixedDir]] : [[k.filter(c => c.x >= r.x), 1], [k.filter(c => c.x < r.x), -1]];
+    for (const [side, dir] of sides) {
       side.forEach(c => h(c.id));
       let cy = r.y - side.reduce((a, c) => a + H.get(c.id), 0) / 2;
       for (const c of side) { place(c.id, r.x + dir * (halfW(r.id) + 80 + halfW(c.id)), cy + H.get(c.id) / 2, dir); cy += H.get(c.id); }
     }
   }
+  if (onlyId != null) {
+    const r = nodes.get(onlyId); if (!r) return;
+    const p = nodes.get(r.parent);
+    layoutChildren(r, p ? (r.x >= p.x ? 1 : -1) : 0);   // children keep growing away from the parent
+    renderAll(); markDirty();
+    log(`Tidied the branch of “${short(r.text)}”`);
+    return;
+  }
+  for (const r of roots()) layoutChildren(r, 0);
   renderAll(); markDirty(); log('Layout arranged');
 }
 
@@ -1114,6 +1124,7 @@ function openMenu(id, x, y) {
     kids && !n.due ? null : 'due',
     'cat',
     kids ? ['fold', n.collapsed ? 'Unfold branch' : 'Fold branch'] : null,
+    kids && !n.collapsed ? ['tidybranch', 'Tidy children'] : null,
     ['focus', 'Focus: fold everything else'],
     focusState ? ['exitfocus', 'Exit focus (keep my folds)'] : null,
     !focusState && [...nodes.values()].some(m => m.collapsed) ? ['unfoldall', 'Unfold everything'] : null,
@@ -1172,6 +1183,7 @@ ctx.addEventListener('click', e => {
     case 'child': addAndEdit(id); break;
     case 'zoom': focusNode(id); break;
     case 'focus': focusBranch(id); break;
+    case 'tidybranch': tidy(id); break;
     case 'unfoldall': unfoldAll(); break;
     case 'exitfocus': exitFocus(); break;
     case 'color': openNodeColor(id); break;
@@ -2062,7 +2074,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 5.1 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 5.2 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
