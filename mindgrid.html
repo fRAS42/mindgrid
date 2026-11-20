@@ -113,6 +113,23 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
   border-top:1px solid var(--g-dim);font-size:13px;color:var(--g-mid)}
 #status span{margin-right:16px}
 #status .dirty{color:var(--warn)}
+#sbtns{display:flex;gap:6px;flex:none}
+#searchBtn{font-size:13px;color:var(--g);padding:2px 10px;margin:-3px 0;border:1px solid var(--g-dim)}
+#search{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 56px);transform:translateX(-50%);z-index:21;
+  width:min(520px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);padding:8px;display:none}
+#search.show{display:block}
+#search .srow{display:flex;gap:4px;align-items:center}
+#q{flex:1;min-width:0;font:inherit;font-size:16px;background:var(--bg);color:var(--g);border:1px solid var(--g-mid);padding:8px 10px;outline:none;border-radius:0}
+#q:focus{border-color:var(--g-hi)}
+#q::placeholder{color:var(--g-dim)}
+#scount{min-width:70px;text-align:center;color:var(--g-mid);font-size:13px;white-space:nowrap}
+#sres{max-height:38vh;overflow:auto;margin-top:6px}
+#sres:empty{display:none}
+#sres button{display:block;width:100%;text-align:left;padding:8px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sres button.cur{background:rgba(var(--rgb),.16);color:var(--g-hi)}
+mark{background:rgba(var(--rgb),.35);color:var(--g-hi);padding:0 1px}
+body.searching .node.miss{opacity:.22}
+body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 #hint{font-size:13px;color:var(--g);padding:2px 10px;margin:-3px -6px -3px 0;border:1px solid var(--g-dim)}
 #help .close{position:sticky;top:0;float:right;margin:-6px -8px 0 0;font-size:16px}
 #log{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 40px);z-index:9;font-size:13px;
@@ -205,13 +222,14 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
   <button data-act="theme" title="Change interface colors">colors</button>
   <button data-act="rain" id="rainBtn" class="on" title="Toggle digital rain">rain</button>
   <button data-act="raincolor" id="rainColorBtn" title="Change the color of the rain">rain color<i class="chip" id="rainChip"></i></button>
+  <button data-act="search" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button>
   <button data-act="help" title="Controls (?)">?</button>
 </div>
 
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 3.1</p>
+  <p style="margin:-4px 0 8px">Version 3.4</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -240,6 +258,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
     <tr><td>[ / ]</td><td>Narrower / wider</td></tr>
     <tr><td>C</td><td>Fold / unfold branch</td></tr>
     <tr><td>T</td><td>Tidy layout</td></tr>
+    <tr><td>Ctrl+F or /</td><td>Search the text of all nodes</td></tr>
     <tr><td>Ctrl+Z / Ctrl+Y</td><td>Undo / redo</td></tr>
     <tr><td>Ctrl+S / Ctrl+Shift+S</td><td>Save / save as</td></tr>
     <tr><td>Ctrl+O</td><td>Open a .sqlite file</td></tr>
@@ -265,6 +284,16 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
   <div class="trow"><label for="rainLevel2">Rain brightness</label><input type="range" id="rainLevel2" min="5" max="80" value="32"></div>
   <div class="trow"><span></span><button id="rainDone">done</button></div>
 </div>
+<div id="search" role="search">
+  <div class="srow">
+    <input id="q" type="search" placeholder="Search all nodes…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+    <span id="scount"></span>
+    <button id="sPrev" title="Previous match (Shift+Enter)" aria-label="Previous match">▲</button>
+    <button id="sNext" title="Next match (Enter)" aria-label="Next match">▼</button>
+    <button id="sClose" title="Close search (Esc)" aria-label="Close search">✕</button>
+  </div>
+  <div id="sres"></div>
+</div>
 <div id="ctx" role="menu"></div>
 <div id="nodeColor">
   <h2 id="ncTitle">NODE COLOR</h2>
@@ -276,7 +305,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 <div id="linkbar"><span id="linkmsg"></span><button id="linkCancel">cancel</button></div>
 <div id="mini" title="Click or drag to navigate"><canvas></canvas><div class="lbl">radar</div></div>
 <div id="log"></div>
-<div id="statusbar"><div id="status"></div><button id="hint" type="button" title="Show all controls">? controls</button></div>
+<div id="statusbar"><div id="status"></div><div id="sbtns"><button id="searchBtn" type="button" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button><button id="hint" type="button" title="Show all controls">? controls</button></div></div>
 <div id="scan"></div>
 <div id="dropzone">DROP .SQLITE FILE TO LOAD</div>
 <div id="boot"><pre id="bootText"></pre></div>
@@ -841,6 +870,13 @@ const FS_MIN = 9, FS_MAX = 48, FS_STEP = 2;
 let fsUndo = false;
 const isRootNode = n => n.parent == null || !nodes.has(n.parent);
 const fontSizeOf = n => n.fs || (isRootNode(n) ? 19 : 15);
+function refreshMenuTimes(n) {
+  const t = ctx.querySelector('.ttl'); if (!t) return;
+  t.querySelectorAll('small').forEach(e => e.remove());
+  const cr = fmtTime(n.created), up = fmtTime(n.updated);
+  if (cr) t.insertAdjacentHTML('beforeend', `<small>created ${cr}</small>`);
+  if (up) t.insertAdjacentHTML('beforeend', `<small>updated ${up}</small>`);
+}
 function changeFontSize(id, dir) {
   const n = nodes.get(id); if (!n) return;
   const def = isRootNode(n) ? 19 : 15;
@@ -850,6 +886,7 @@ function changeFontSize(id, dir) {
   n.fs = next === def ? null : next; n.updated = now();
   renderAll(); markDirty();
   const v = ctx.querySelector('.fsval'); if (v) v.textContent = fontSizeOf(n);
+  refreshMenuTimes(n);
 }
 function openMenu(id, x, y) {
   const n = nodes.get(id); if (!n) return;
@@ -930,7 +967,7 @@ function setNodeColor(color) {
   if (!ncUndo) { pushUndo(); ncUndo = true; }
   const ids = $('#ncBranch').checked ? [ncId, ...descendants(ncId)] : [ncId];
   for (const i of ids) { const m = nodes.get(i); m.color = color || null; m.updated = now(); }
-  renderAll(); markDirty(); markNcSwatch();
+  renderAll(); markDirty(); markNcSwatch(); updateStamp(selectedId);
 }
 function closeNodeColor() { $('#nodeColor').classList.remove('show'); ncId = null; }
 $('#ncSwatches').addEventListener('click', e => {
@@ -1071,6 +1108,7 @@ function endPointer(e) {
   const d = drag; drag = null;
   if (d.link) return;   // panning while choosing a node to connect to
   if (d.moved) {
+    // moving nodes is rearranging, not editing: only a width change counts as an update
     if (d.type === 'resize') { const n = nodes.get(d.id); if (n) { n.updated = now(); updateStamp(d.id); } }
     if (d.type !== 'pan') markDirty();
     return;
@@ -1128,6 +1166,7 @@ document.addEventListener('keydown', e => {
   const k = e.key, mod = e.ctrlKey || e.metaKey, kl = k.toLowerCase();
   if (mod && kl === 's') { e.preventDefault(); commitEdit(); saveFile(e.shiftKey); return; }
   if (mod && kl === 'o') { e.preventDefault(); commitEdit(); openFile(); return; }
+  if (mod && kl === 'f') { e.preventDefault(); openSearch(); return; }
   if (editingId != null) {
     const ta = els.get(editingId)?.querySelector('textarea.ed');
     if (k === 'Enter' && mod) { e.preventDefault(); commitEdit(); }
@@ -1162,6 +1201,7 @@ document.addEventListener('keydown', e => {
     case '\\': if (sel != null) setWidth(sel, null); break;
     case '-': case '_': zoomStep(1 / 1.35); break;
     case '?': toggleHelp(); break;
+    case '/': e.preventDefault(); openSearch(); break;
     default:
       if (kl === 'c' && sel != null) toggleFold(sel);
       else if (kl === 'f' || kl === 'o') overview();
@@ -1291,7 +1331,7 @@ $('#fileIn').addEventListener('change', e => {
 });
 
 let cacheTimer = null;
-function markDirty() { refreshLatest(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
+function markDirty() { if (searchOpen()) { clearTimeout(sTimer); sTimer = setTimeout(() => runSearch(true), 150); } refreshLatest(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
 async function cacheSession() {
   if (!db) return;
   try {
@@ -1313,6 +1353,108 @@ addEventListener('drop', async e => {
   loadChosenFile(f);
 });
 addEventListener('beforeunload', e => { if (dirty) { cacheSession(); e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- full-text search ---------- */
+const sBox = $('#search'), qIn = $('#q');
+let hits = [], hitIdx = -1, sTimer = 0;
+const searchOpen = () => sBox.classList.contains('show');
+const foldChar = ch => ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+function normMap(text) {             // normalized text + map back to original positions
+  let out = ''; const map = [];
+  for (let i = 0; i < text.length; i++) for (const c of foldChar(text[i])) { out += c; map.push(i); }
+  return { out, map };
+}
+function findRanges(text, terms) {
+  const { out, map } = normMap(text), r = [];
+  for (const t of terms) {
+    let i = out.indexOf(t); if (i < 0) return null;            // every word must appear
+    while (i >= 0) { r.push([map[i], map[i + t.length - 1] + 1]); i = out.indexOf(t, i + t.length); }
+  }
+  r.sort((a, b) => a[0] - b[0]);
+  const m = [];
+  for (const x of r) { if (m.length && x[0] <= m[m.length - 1][1]) m[m.length - 1][1] = Math.max(m[m.length - 1][1], x[1]); else m.push(x.slice()); }
+  return m;
+}
+function markHtml(text, ranges, from = 0, to = text.length) {
+  let h = '', p = from;
+  for (const [a, b] of ranges) {
+    if (b <= from || a >= to) continue;
+    const s0 = Math.max(a, from), e0 = Math.min(b, to);
+    h += escapeHtml(text.slice(p, s0)) + '<mark>' + escapeHtml(text.slice(s0, e0)) + '</mark>'; p = e0;
+  }
+  return h + escapeHtml(text.slice(p, to));
+}
+function clearMarks() {
+  for (const [id, el] of els) {
+    el.classList.remove('hit', 'miss', 'cur');
+    const n = nodes.get(id), t = el.firstChild;
+    if (n && t.querySelector('mark')) t.textContent = n.text;
+  }
+}
+function runSearch(keepIdx = false) {
+  if (!searchOpen()) return;
+  const prevId = hits[hitIdx]?.id;
+  clearMarks();
+  const terms = foldChar(qIn.value).split(/\s+/).filter(Boolean);
+  hits = [];
+  if (!terms.length) { document.body.classList.remove('searching'); hitIdx = -1; renderResults(); return; }
+  for (const n of nodes.values()) { const r = findRanges(n.text, terms); if (r) hits.push({ id: n.id, r }); }
+  hits.sort((a, b) => { const A = nodes.get(a.id), B = nodes.get(b.id); return (A.y - B.y) || (A.x - B.x); });
+  document.body.classList.add('searching');
+  const hitSet = new Set(hits.map(h => h.id));
+  for (const [id, el] of els) el.classList.add(hitSet.has(id) ? 'hit' : 'miss');
+  for (const h of hits) { const el = els.get(h.id); if (el && editingId !== h.id) el.firstChild.innerHTML = markHtml(nodes.get(h.id).text, h.r); }
+  hitIdx = keepIdx && prevId != null ? hits.findIndex(h => h.id === prevId) : -1;
+  renderResults();
+}
+function snippet(h) {
+  const text = nodes.get(h.id).text, a = h.r[0][0];
+  const ls = text.lastIndexOf('\n', a - 1) + 1; let le = text.indexOf('\n', a); if (le < 0) le = text.length;
+  const from = Math.max(ls, a - 24), to = Math.min(le, from + 90);
+  return (from > ls ? '…' : '') + markHtml(text, h.r, from, to) + (to < le ? '…' : '');
+}
+function renderResults() {
+  const q = qIn.value.trim();
+  $('#scount').textContent = !q ? '' : !hits.length ? 'no matches' : hitIdx >= 0 ? `${hitIdx + 1} of ${hits.length}` : `${hits.length} found`;
+  $('#sres').innerHTML = hits.slice(0, 60).map((h, i) =>
+    `<button data-i="${i}" class="${i === hitIdx ? 'cur' : ''}">${snippet(h)}</button>`).join('');
+  for (const [id, el] of els) el.classList.toggle('cur', hitIdx >= 0 && hits[hitIdx]?.id === id);
+}
+function goHit(i) {
+  if (!hits.length) return;
+  hitIdx = (i + hits.length) % hits.length;
+  const n = nodes.get(hits[hitIdx].id); if (!n) return;
+  // open folded branches that hide this match (a view change, not an edit)
+  let p = nodes.get(n.parent), opened = false;
+  while (p) { if (p.collapsed) { p.collapsed = false; opened = true; } p = nodes.get(p.parent); }
+  if (opened) { renderAll(); runSearch(true); hitIdx = hits.findIndex(h => h.id === n.id); markDirty(); }
+  select(n.id);
+  flyTo(n.x, n.y, Math.max(view.s, Math.min(1.2, innerWidth / (halfW(n.id) * 2 + 80))));
+  renderResults();
+  $('#sres .cur')?.scrollIntoView({ block: 'nearest' });
+}
+function openSearch() {
+  ['#help', '#theme', '#rainPanel'].forEach(q => $(q).classList.remove('show')); closeNodeColor();
+  if (editingId != null) commitEdit();
+  sBox.classList.add('show'); qIn.focus(); qIn.select();
+  if (qIn.value) runSearch(true);
+}
+function closeSearch() {
+  clearTimeout(sTimer);
+  sBox.classList.remove('show'); qIn.blur();
+  clearMarks(); document.body.classList.remove('searching'); hits = []; hitIdx = -1;
+  $('#sres').innerHTML = ''; $('#scount').textContent = '';
+}
+qIn.addEventListener('input', () => { clearTimeout(sTimer); sTimer = setTimeout(() => runSearch(), 120); });
+qIn.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); clearTimeout(sTimer); if (!hits.length) runSearch(); goHit(hitIdx + (e.shiftKey ? -1 : 1)); }
+  else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeSearch(); }
+});
+$('#sNext').addEventListener('click', () => goHit(hitIdx + 1));
+$('#sPrev').addEventListener('click', () => goHit(hitIdx < 0 ? -1 : hitIdx - 1));
+$('#sClose').addEventListener('click', closeSearch);
+$('#sres').addEventListener('click', e => { const b = e.target.closest('button'); if (b) goHit(+b.dataset.i); });
+$('#searchBtn').addEventListener('click', () => searchOpen() ? closeSearch() : openSearch());
 
 /* ---------- controls panel ---------- */
 function toggleHelp(force) {
@@ -1354,6 +1496,7 @@ $('#bar').addEventListener('click', e => {
     case 'mode': setMode(prefs.mode === 'day' ? 'night' : 'day'); break;
     case 'theme': closeNodeColor(); $('#help').classList.remove('show'); $('#rainPanel').classList.remove('show'); $('#theme').classList.toggle('show'); break;
     case 'raincolor': toggleRainPanel(); break;
+    case 'search': searchOpen() ? closeSearch() : openSearch(); break;
   }
 });
 
@@ -1526,7 +1669,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 3.1 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 3.4 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
