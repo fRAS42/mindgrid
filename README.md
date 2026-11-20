@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 4.9
+**Current version:** 5.0
 
-![new in 4.9](https://img.shields.io/badge/new_in-4.9-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 5.0](https://img.shields.io/badge/new_in-5.0-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -16,7 +16,7 @@ No install, no account, no server. Everything runs in your browser.
 
 - Free-form mind maps with branches, multi-line nodes, indentation and bullets
 - Full-text search across all nodes, with highlighted matches
-- Table view: every leaf node (a node without children) that is not done yet in a list, newest first, with its updated time and a done checkbox
+- Table view: every leaf node (a node without children) $\color{#00FF41}\textsf{and every node with a due date}$ that is not done yet in a list,  newest first, with its updated time and a done checkbox
 - Smooth zoom into any node, overview of the whole map, and a radar minimap
 - Hold a node (or right-click it) for a menu with color, connect, disconnect and delete
 - Per-node colors, interface color themes, and a night/day theme (toggle in the bottom-right corner)
@@ -141,7 +141,7 @@ If a match is inside a folded branch, the branch opens so you can see it. This d
 
 ### Table view
 
-Tap the table button in the bottom-right corner, next to the magnifier, to see your leaf nodes (the nodes at the ends of branches, with no children) as a list. Tap it again (it now shows a small map icon) to go back to the map.
+Tap the table button in the bottom-right corner, next to the magnifier, to see your leaf nodes (the nodes at the ends of branches, with no children) as a list, $\color{#00FF41}\textsf{plus any node that has a due date even if it has children (marked with ▸)}$. Tap it again (it now shows a small map icon) to go back to the map.
 
 | Column | What it shows |
 |---|---|
@@ -149,7 +149,7 @@ Tap the table button in the bottom-right corner, next to the magnifier, to see y
 | UPDATED | When the node was last updated, and how long ago |
 | DONE | A checkbox to mark the node as done. The header counts how many leaf nodes are done, for example 3/12 |
 
-- Nodes that are overdue or due $\color{#00FF41}\textsf{within 3 days (today, tomorrow, or the next 2 days after that)}$ come first, soonest due at the top. Everything else follows, $\color{#00FF41}\textsf{including nodes due later,}$ sorted with the newest node (most recently created) at the top.
+- Nodes that are overdue or due within 3 days (today, tomorrow, or the next 2 days after that) come first, soonest due at the top. Everything else follows, including nodes due later, sorted with the newest node (most recently created) at the top.
 - A node's due date is shown under its name: red when overdue, yellow when due within 2 days.
 - Nodes marked done leave the list about a second after you tick them. Tap show N done at the bottom to list them again (and hide N done to hide them).
 - Tap a node's name to jump back to the map and zoom to that node. Folded branches open if needed.
@@ -166,7 +166,7 @@ The top of the menu shows when the node was created and last updated. The menu o
 | Add child node | Add a branch and start typing |
 | Zoom to node | Zoom into the node and its branches |
 | Change color… | Pick a color for the node, optionally for its whole branch |
-| Due date (leaf nodes only) | Pick a date with the date picker; ✕ removes it. The menu stays open |
+| Due date (leaf nodes$\color{#00FF41}\textsf{, or any node that already has one}$) | Pick a date with the date picker; ✕ removes it. The menu stays open |
 | Text size: A− / A+ / default | Make the node's text smaller or bigger in steps of 2, or back to the default size. The menu stays open so you can tap several times |
 | Fold / Unfold branch | Hide or show everything below the node |
 | Focus: fold everything else | Fold every branch except this node's own branch and the path leading to it, then zoom in on it. The status bar shows focus: and the node's name |
@@ -275,7 +275,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{4.9}$ | $\color{#00FF41}\textsf{Only nodes due within 3 days (or overdue) move to the top of the table}$ |
+| $\color{#00FF41}\textsf{5.0}$ | $\color{#00FF41}\textsf{Nodes with children that have a due date are listed in the table too (marked ▸) and can still change or clear their due date in the menu}$ |
+| 4.9 | Only nodes due within 3 days (or overdue) move to the top of the table |
 | 4.8 | Due dates for leaf nodes: date picker in the node menu, label under the node, near due dates on top of the table; Esc closes the menu even from the date field |
 | 4.7 | Table view hides done nodes, with a show done / hide done button at the bottom |
 | 4.6 | Exit focus keeps your own folds; folded nodes look like a stack of cards; high-contrast +N badge; focus shown in the status bar |

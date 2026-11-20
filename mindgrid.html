@@ -161,6 +161,7 @@ body.tableview #stage,body.tableview #mini,body.tableview #log{visibility:hidden
 #tv input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--g);cursor:pointer}
 #tv tr.done td.t button{text-decoration:line-through;opacity:.55}
 #tv tr.sel td{background:rgba(var(--rgb),.1)}
+#tv tr.parent td.t button::before{content:"▸ ";opacity:.8}
 #tv tr.leaving{transition:opacity .6s .3s;opacity:0}
 #tv td.empty{text-align:center;color:var(--g-mid);padding:24px 8px;border-left:0}
 #tableView .tvdone{display:block;margin:14px auto 18px;padding:8px 16px;border:1px solid var(--g-dim);color:var(--g-mid);font-size:14px}
@@ -281,7 +282,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 4.9</p>
+  <p style="margin:-4px 0 8px">Version 5.0</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -1065,7 +1066,7 @@ function openMenu(id, x, y) {
     ['zoom', 'Zoom to node'],
     ['color', 'Change color…'],
     'fs',
-    kids ? null : 'due',
+    kids && !n.due ? null : 'due',
     kids ? ['fold', n.collapsed ? 'Unfold branch' : 'Fold branch'] : null,
     ['focus', 'Focus: fold everything else'],
     focusState ? ['exitfocus', 'Exit focus (keep my folds)'] : null,
@@ -1681,7 +1682,7 @@ function renderTable() {
   const keep = tvBox.scrollTop;
   const parents = new Set([...nodes.values()].map(n => n.parent).filter(p => p != null && nodes.has(p)));
   const near = n => n.due && daysUntil(n.due) <= DUE_TOP ? daysUntil(n.due) : null;
-  const rows = [...nodes.values()].filter(n => !parents.has(n.id))          // leaf nodes only
+  const rows = [...nodes.values()].filter(n => !parents.has(n.id) || n.due)   // leaf nodes, plus any node with a due date
     .sort((a, b) => {
       const da = near(a), db = near(b);
       if (da != null && db != null && da !== db) return da - db;            // soonest due first
@@ -1696,7 +1697,7 @@ function renderTable() {
     (shown.length ? '' : `<tr><td colspan="3" class="empty">${rows.length ? 'Everything is done.' : 'No leaf nodes yet.'}</td></tr>`) +
     shown.map(n => {
       const ec = effColor(n), title = n.text.split('\n')[0].trim() || '…';
-      return `<tr class="${n.done ? 'done' : ''}${n.id === selectedId ? ' sel' : ''}" style="${ec ? colorVars(ec) : ''}">` +
+      return `<tr class="${n.done ? 'done' : ''}${n.id === selectedId ? ' sel' : ''}${parents.has(n.id) ? ' parent' : ''}" style="${ec ? colorVars(ec) : ''}">` +
         `<td class="t"><button data-go="${n.id}" title="${escapeHtml(n.text)}">${escapeHtml(title)}</button>` +
         (n.due ? `<small class="due ${dueInfo(n.due).cls}">${dueInfo(n.due).text}</small>` : '') + `</td>` +
         `<td class="u">${fmtShort(n.updated || n.created)}<small>${ago(n.updated || n.created)}</small></td>` +
@@ -1988,7 +1989,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 4.9 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 5.0 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
