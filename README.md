@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 3.8
+**Current version:** 3.9
 
-![new in 3.8](https://img.shields.io/badge/new_in-3.8-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 3.9](https://img.shields.io/badge/new_in-3.9-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -16,6 +16,7 @@ No install, no account, no server. Everything runs in your browser.
 
 - Free-form mind maps with branches, multi-line nodes, indentation and bullets
 - Full-text search across all nodes, with highlighted matches
+- $\color{#00FF41}\textsf{Table view: every node in a list, newest first, with its updated time and a done checkbox}$ ![new in 3.9](https://img.shields.io/badge/new_in-3.9-00ff41?labelColor=000000)
 - Smooth zoom into any node, overview of the whole map, and a radar minimap
 - Hold a node (or right-click it) for a menu with color, connect, disconnect and delete
 - Per-node colors, interface color themes, and a night/day theme
@@ -24,8 +25,8 @@ No install, no account, no server. Everything runs in your browser.
 - Text size per node, from the node menu
 - Recoloring or resizing the text of a node counts as an update; moving nodes around does not
 - How long ago the selected node was updated, shown above it (for example 2 days 3 hours 14 mins ago) in text 2 sizes bigger than the node's own text; full created and updated dates in the node menu
-- The most recently updated node glows in matrix green, so you can always see where you left off. $\color{#00FF41}\textsf{A node you colored yourself keeps its own color}$ ![new in 3.8](https://img.shields.io/badge/new_in-3.8-00ff41?labelColor=000000)
-- The newest child of every node has a small $\color{#00FF41}\textsf{matrix-green}$ dot on its left edge
+- The most recently updated node glows in matrix green, so you can always see where you left off. A node you colored yourself keeps its own color
+- The newest child of every node has a small matrix-green dot on its left edge
 - Fold and unfold branches; focus on one topic by folding everything else
 - Undo and redo
 - Auto-arrange (tidy) layout
@@ -65,8 +66,9 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Tap a node while zoomed far out | Zoom into that node |
 | Tap or drag on the radar minimap | Fly to that part of the map |
 | Tap the **+N** badge on a folded node | Unfold the branch |
-| $\color{#00FF41}\textsf{Matrix-green}$ dot on the left edge of a node | This is the newest child of its parent |
-| Tap **? controls** (bottom right) | Show all controls; tap ✕ or the map to close |
+| Matrix-green dot on the left edge of a node | This is the newest child of its parent |
+| Tap $\color{#00FF41}\textsf{?}$ (bottom right) | Show all controls; tap ✕ or the map to close |
+| $\color{#00FF41}\textsf{Tap the table button (bottom right, next to the magnifier)}$ | $\color{#00FF41}\textsf{Switch to the table view; tap it again to go back to the map}$ |
 | Tap the magnifier (bottom right or toolbar) | Open search |
 
 ### Keyboard (when not editing)
@@ -121,6 +123,21 @@ Type to search the text of every node. Matches light up and are highlighted insi
 
 If a match is inside a folded branch, the branch opens so you can see it. This does not change any node's updated time.
 
+### Table view
+
+$\color{#00FF41}\textsf{Tap the table button in the bottom-right corner, next to the magnifier, to see all your nodes as a list. Tap it again (it now shows a small map icon) to go back to the map.}$
+
+| Column | What it shows |
+|---|---|
+| $\color{#00FF41}\textsf{NODE}$ | $\color{#00FF41}\textsf{The first line of the node's text, in the node's color. A thin bar on the left shows the color too}$ |
+| $\color{#00FF41}\textsf{UPDATED}$ | $\color{#00FF41}\textsf{When the node was last updated, and how long ago}$ |
+| $\color{#00FF41}\textsf{DONE}$ | $\color{#00FF41}\textsf{A checkbox to mark the node as done. The header counts how many are done, for example 3/12}$ |
+
+- $\color{#00FF41}\textsf{Rows are sorted with the newest node (most recently created) at the top.}$
+- $\color{#00FF41}\textsf{Tap a node's name to jump back to the map and zoom to that node. Folded branches open if needed.}$
+- $\color{#00FF41}\textsf{Done nodes are struck through, both in the table and on the map. Ticking done counts as an update and can be undone.}$
+- $\color{#00FF41}\textsf{Esc also goes back to the map. Map shortcuts (like Delete) are switched off while the table is open.}$
+
 ### Node menu (hold a node or right-click)
 
 The top of the menu shows when the node was created and last updated.
@@ -161,7 +178,7 @@ Every change can be undone with **undo**.
 | rain | Turn the digital rain on or off |
 | rain color | Pick the rain color and brightness, separately from the interface |
 | magnifier | Search the text of all nodes (also in the bottom-right corner) |
-| ? | Controls panel (also **? controls** in the bottom-right corner) |
+| ? | Controls panel (also $\color{#00FF41}\textsf{?}$ in the bottom-right corner) |
 
 ---
 
@@ -196,8 +213,9 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | width | Fixed width in pixels (empty = automatic) |
 | color | The node's own color, such as `#ffb000` (empty = interface color) |
 | font_size | The node's text size in pixels (empty = default: 19 for a central node, 15 for others) |
+| $\color{#00FF41}\textsf{done}$ | $\color{#00FF41}\textsf{1 if the node is marked done in the table view, otherwise 0}$ |
 | created_at | When the node was created (ISO 8601, UTC) |
-| updated_at | When the node's text, color, width, text size or connection last changed (ISO 8601, UTC). Moving nodes, folding, focusing and tidy do not change it |
+| updated_at | When the node's text, color, width, text size, $\color{#00FF41}\textsf{done state}$ or connection last changed (ISO 8601, UTC). Moving nodes, folding, focusing and tidy do not change it |
 
 **`meta`** holds map settings: the view position and zoom, the selected node, when the map was last saved to a file (file_saved_at), and the interface theme (color, rain brightness, rain color, tint, night/day, latest-update highlight).
 
@@ -233,7 +251,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{3.8}$ | $\color{#00FF41}\textsf{Latest-update highlight no longer overrides a color you picked; newest-child dot is always matrix green}$ |
+| $\color{#00FF41}\textsf{3.9}$ | $\color{#00FF41}\textsf{Table view (title, updated, done) with its own button next to the magnifier; done nodes struck through on the map; the help button is now just ?}$ |
+| 3.8 | Latest-update highlight no longer overrides a color you picked; newest-child dot is always matrix green |
 | 3.7 | Typing into a new node lifts it 50px higher on screen |
 | 3.6 | Status bar shows how long ago the map was saved to a file; zoom level is labelled zoom |
 | 3.5 | Node menu: Focus (fold everything else) and Unfold everything |

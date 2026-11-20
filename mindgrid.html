@@ -115,7 +115,28 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 #status{min-width:0;line-height:1.45}
 #status span{margin-right:14px;white-space:nowrap;display:inline-block}
 #status .dirty{color:var(--warn)}
-#sbtns{display:flex;gap:6px;flex:none}
+#sbtns{display:flex;gap:6px;flex:none;align-items:flex-start}
+#tableBtn{font-size:13px;color:var(--g);padding:2px 10px;margin:-3px 0;border:1px solid var(--g-dim)}
+#tableBtn.on{background:rgba(var(--rgb),.18);color:var(--g-hi);border-color:var(--g-mid)}
+#tableView{position:fixed;left:0;right:0;top:50px;bottom:40px;z-index:8;display:none;overflow:auto;
+  background:var(--panel);-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+body.tableview #tableView{display:block}
+body.tableview #stage,body.tableview #mini,body.tableview #log{visibility:hidden}
+#tv{width:100%;border-collapse:collapse;font-size:15px}
+#tv th{position:sticky;top:0;z-index:1;background:var(--panel);text-align:left;font-weight:normal;color:var(--g-hi);
+  padding:10px 8px;border-bottom:1px solid var(--g-mid);font-size:12.5px;letter-spacing:.1em;white-space:nowrap}
+#tv th small{display:block;font-size:11px;letter-spacing:0;color:var(--g-mid)}
+#tv td{padding:10px 8px;border-bottom:1px solid var(--g-dim);vertical-align:middle;color:var(--g)}
+#tv td.t{width:100%;max-width:0;border-left:3px solid var(--g);padding-left:10px}
+#tv td.t button{all:unset;display:block;box-sizing:border-box;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  cursor:pointer;color:var(--g);text-shadow:var(--ts);padding:2px 0}
+#tv td.u{white-space:nowrap;font-size:13px;color:var(--g-mid)}
+#tv td.u small{display:block;font-size:11.5px;opacity:.75}
+#tv th.d,#tv td.d{text-align:center;width:64px}
+#tv input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--g);cursor:pointer}
+#tv tr.done td.t button{text-decoration:line-through;opacity:.55}
+#tv tr.sel td{background:rgba(var(--rgb),.1)}
+.node.done .txt{text-decoration:line-through;opacity:.6}
 #searchBtn{font-size:13px;color:var(--g);padding:2px 10px;margin:-3px 0;border:1px solid var(--g-dim)}
 #search{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 56px);transform:translateX(-50%);z-index:21;
   width:min(520px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);padding:8px;display:none}
@@ -231,7 +252,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 3.8</p>
+  <p style="margin:-4px 0 8px">Version 3.9</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -261,6 +282,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
     <tr><td>C</td><td>Fold / unfold branch</td></tr>
     <tr><td>T</td><td>Tidy layout</td></tr>
     <tr><td>Ctrl+F or /</td><td>Search the text of all nodes</td></tr>
+    <tr><td>Table button (bottom right)</td><td>Switch between the map and a table of all nodes with a done checkbox</td></tr>
     <tr><td>Ctrl+Z / Ctrl+Y</td><td>Undo / redo</td></tr>
     <tr><td>Ctrl+S / Ctrl+Shift+S</td><td>Save / save as</td></tr>
     <tr><td>Ctrl+O</td><td>Open a .sqlite file</td></tr>
@@ -286,6 +308,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
   <div class="trow"><label for="rainLevel2">Rain brightness</label><input type="range" id="rainLevel2" min="5" max="80" value="32"></div>
   <div class="trow"><span></span><button id="rainDone">done</button></div>
 </div>
+<div id="tableView" aria-label="Table of all nodes"></div>
 <div id="search" role="search">
   <div class="srow">
     <input id="q" type="search" placeholder="Search all nodes…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
@@ -307,7 +330,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="linkbar"><span id="linkmsg"></span><button id="linkCancel">cancel</button></div>
 <div id="mini" title="Click or drag to navigate"><canvas></canvas><div class="lbl">radar</div></div>
 <div id="log"></div>
-<div id="statusbar"><div id="status"></div><div id="sbtns"><button id="searchBtn" type="button" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button><button id="hint" type="button" title="Show all controls">? controls</button></div></div>
+<div id="statusbar"><div id="status"></div><div id="sbtns"><button id="searchBtn" type="button" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button><button id="tableBtn" type="button" title="Table view" aria-label="Table view"></button><button id="hint" type="button" title="Show all controls" aria-label="Show all controls">?</button></div></div>
 <div id="scan"></div>
 <div id="dropzone">DROP .SQLITE FILE TO LOAD</div>
 <div id="boot"><pre id="bootText"></pre></div>
@@ -330,6 +353,7 @@ CREATE TABLE IF NOT EXISTS nodes(
   width REAL,
   color TEXT,
   font_size REAL,
+  done INTEGER NOT NULL DEFAULT 0,
   created_at TEXT,
   updated_at TEXT
 );
@@ -350,6 +374,7 @@ function migrate(d) {
   if (!cols.includes('width')) d.run('ALTER TABLE nodes ADD COLUMN width REAL');
   if (!cols.includes('color')) d.run('ALTER TABLE nodes ADD COLUMN color TEXT');
   if (!cols.includes('font_size')) d.run('ALTER TABLE nodes ADD COLUMN font_size REAL');
+  if (!cols.includes('done')) d.run('ALTER TABLE nodes ADD COLUMN done INTEGER NOT NULL DEFAULT 0');
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -581,6 +606,7 @@ function updateEl(n, el = els.get(n.id), idx) {
   el.classList.toggle('root', n.parent == null || !nodes.has(n.parent));
   el.classList.toggle('sel', n.id === selectedId);
   el.classList.toggle('newest', newestSet.has(n.id));
+  el.classList.toggle('done', !!n.done);
   if (idx) updateStamp(n.id);
   el.style.display = isHidden(n) ? 'none' : '';
   const t = el.firstChild;
@@ -1226,6 +1252,7 @@ document.addEventListener('keydown', e => {
   if (mod && kl === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && kl === 'y') { e.preventDefault(); redo(); return; }
   if (mod || e.altKey) return;
+  if (tableOn) { if (k === 'Escape') toggleTable(false); return; }   // map shortcuts are off in the table
   const sel = nodes.has(selectedId) ? selectedId : null;
   switch (k) {
     case 'Tab': e.preventDefault(); if (sel != null) addAndEdit(sel); break;
@@ -1264,9 +1291,9 @@ function writeToDb() {
   db.run('BEGIN');
   try {
     db.run('DELETE FROM nodes');
-    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
+    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,done,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
     for (const n of nodes.values())
-      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.created ?? null, n.updated ?? null]);
+      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.done ? 1 : 0, n.created ?? null, n.updated ?? null]);
     st.free();
     db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?),('file_saved_at',?)",
       [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs), lastSaved ?? '']);
@@ -1275,9 +1302,9 @@ function writeToDb() {
 }
 function loadFromDb() {
   nodes = new Map();
-  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size FROM nodes');
+  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size,done FROM nodes');
   if (res.length) for (const r of res[0].values)
-    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null });
+    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null, done: !!r[11] });
   if (!nodes.size) { const t = now(); nodes.set(1, { id: 1, parent: null, text: 'central idea', x: 0, y: 0, collapsed: false, created: t, updated: t }); }
   nextId = Math.max(0, ...nodes.keys()) + 1;
   const meta = Object.fromEntries((db.exec('SELECT key,value FROM meta')[0]?.values) || []);
@@ -1382,7 +1409,7 @@ $('#fileIn').addEventListener('change', e => {
 });
 
 let cacheTimer = null;
-function markDirty() { if (searchOpen()) { clearTimeout(sTimer); sTimer = setTimeout(() => runSearch(true), 150); } refreshLatest(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
+function markDirty() { scheduleTable(); if (searchOpen()) { clearTimeout(sTimer); sTimer = setTimeout(() => runSearch(true), 150); } refreshLatest(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
 async function cacheSession() {
   if (!db) return;
   try {
@@ -1485,6 +1512,7 @@ function goHit(i) {
   $('#sres .cur')?.scrollIntoView({ block: 'nearest' });
 }
 function openSearch() {
+  if (tableOn) toggleTable(false);
   ['#help', '#theme', '#rainPanel'].forEach(q => $(q).classList.remove('show')); closeNodeColor();
   if (editingId != null) commitEdit();
   sBox.classList.add('show'); qIn.focus(); qIn.select();
@@ -1506,6 +1534,80 @@ $('#sPrev').addEventListener('click', () => goHit(hitIdx < 0 ? -1 : hitIdx - 1))
 $('#sClose').addEventListener('click', closeSearch);
 $('#sres').addEventListener('click', e => { const b = e.target.closest('button'); if (b) goHit(+b.dataset.i); });
 $('#searchBtn').addEventListener('click', () => searchOpen() ? closeSearch() : openSearch());
+
+/* ---------- table view (title, updated, done) ---------- */
+const TABLE_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="16"/><path d="M3 9h18M3 14.5h18M10 9v11"/></svg>';
+const MAP_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="vertical-align:-2px"><circle cx="5" cy="12" r="2.6"/><circle cx="19" cy="5" r="2.6"/><circle cx="19" cy="19" r="2.6"/><path d="M7.4 11 16.6 6M7.4 13l9.2 5"/></svg>';
+const tvBox = $('#tableView'), tvBtn = $('#tableBtn');
+let tableOn = false, tvTimer = 0;
+function fmtShort(iso) {
+  const d = new Date(iso); if (!iso || isNaN(d)) return '—';
+  const o = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+  if (d.getFullYear() !== new Date().getFullYear()) o.year = 'numeric';
+  return d.toLocaleString(undefined, o);
+}
+function colorVars(hex) {
+  const p = shades(hex);
+  return `--g:${p.g};--g-hi:${p.hi};--g-mid:${p.mid};--g-dim:${p.dim};--rgb:${p.rgb}`;
+}
+function layoutTable() {
+  tvBox.style.top = $('#bar').getBoundingClientRect().bottom + 'px';
+  tvBox.style.bottom = Math.max(0, innerHeight - $('#statusbar').getBoundingClientRect().top) + 'px';
+}
+function renderTable() {
+  if (!tableOn) return;
+  const keep = tvBox.scrollTop;
+  const rows = [...nodes.values()].sort((a, b) => (b.created || '').localeCompare(a.created || '') || b.id - a.id);
+  const doneCount = rows.filter(n => n.done).length;
+  tvBox.innerHTML = `<table id="tv"><thead><tr><th class="t">NODE</th><th class="u">UPDATED</th>` +
+    `<th class="d">DONE<small>${doneCount}/${rows.length}</small></th></tr></thead><tbody>` +
+    rows.map(n => {
+      const ec = effColor(n), title = n.text.split('\n')[0].trim() || '…';
+      return `<tr class="${n.done ? 'done' : ''}${n.id === selectedId ? ' sel' : ''}" style="${ec ? colorVars(ec) : ''}">` +
+        `<td class="t"><button data-go="${n.id}" title="${escapeHtml(n.text)}">${escapeHtml(title)}</button></td>` +
+        `<td class="u">${fmtShort(n.updated || n.created)}<small>${ago(n.updated || n.created)}</small></td>` +
+        `<td class="d"><input type="checkbox" data-done="${n.id}"${n.done ? ' checked' : ''} aria-label="Mark done"></td></tr>`;
+    }).join('') + '</tbody></table>';
+  tvBox.scrollTop = keep;
+}
+function scheduleTable() { if (tableOn) { clearTimeout(tvTimer); tvTimer = setTimeout(renderTable, 80); } }
+function toggleTable(force) {
+  tableOn = force ?? !tableOn;
+  if (editingId != null) commitEdit();
+  closeMenu(); closeNodeColor();
+  if (tableOn && searchOpen()) closeSearch();
+  ['#help', '#theme', '#rainPanel'].forEach(q => $(q).classList.remove('show'));
+  document.body.classList.toggle('tableview', tableOn);
+  tvBtn.innerHTML = tableOn ? MAP_ICON : TABLE_ICON;
+  tvBtn.classList.toggle('on', tableOn);
+  tvBtn.title = tableOn ? 'Back to the map' : 'Table view';
+  tvBtn.setAttribute('aria-label', tvBtn.title);
+  if (tableOn) { layoutTable(); renderTable(); tvBox.scrollTop = 0; }
+  else scheduleMini();
+}
+function goToNode(id) {
+  const n = nodes.get(id); if (!n) return;
+  let p = nodes.get(n.parent), opened = false;
+  while (p) { if (p.collapsed) { p.collapsed = false; opened = true; } p = nodes.get(p.parent); }
+  if (opened) { renderAll(); markDirty(); }
+  select(id); focusNode(id);
+}
+tvBtn.innerHTML = TABLE_ICON;
+tvBtn.addEventListener('click', () => toggleTable());
+tvBox.addEventListener('click', e => {
+  const b = e.target.closest('[data-go]'); if (!b) return;
+  const id = +b.dataset.go; toggleTable(false); goToNode(id);
+});
+tvBox.addEventListener('change', e => {
+  const c = e.target.closest('[data-done]'); if (!c) return;
+  const n = nodes.get(+c.dataset.done); if (!n) return;
+  pushUndo(); n.done = c.checked; n.updated = now();
+  c.closest('tr').classList.toggle('done', c.checked);
+  renderAll(); markDirty();
+  log(c.checked ? `Done: “${short(n.text)}”` : `Not done: “${short(n.text)}”`);
+});
+addEventListener('resize', () => { if (tableOn) layoutTable(); });
+setInterval(() => { if (tableOn) renderTable(); }, 60000);
 
 /* ---------- controls panel ---------- */
 function toggleHelp(force) {
@@ -1721,7 +1823,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 3.8 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 3.9 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
