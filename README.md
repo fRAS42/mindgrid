@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 4.5
+**Current version:** 4.6
 
-![new in 4.5](https://img.shields.io/badge/new_in-4.5-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 4.6](https://img.shields.io/badge/new_in-4.6-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -26,8 +26,8 @@ No install, no account, no server. Everything runs in your browser.
 - Recoloring or resizing the text of a node counts as an update; moving nodes around does not
 - How long ago the selected node was updated, shown above it (for example 2 days 3 hours 14 mins ago) in text 2 sizes bigger than the node's own text; full created and updated dates in the node menu
 - The most recently updated node glows in matrix green, so you can always see where you left off. A node you colored yourself keeps its own color
-- The newest child of every node has a small dot on its left edge in the node's own color; the newest node in the whole map gets a matrix-green dot. $\color{#00FF41}\textsf{Dots appear only on leaf nodes (nodes without children)}$ ![new in 4.5](https://img.shields.io/badge/new_in-4.5-00ff41?labelColor=000000)
-- Fold and unfold branches; focus on one topic by folding everything else
+- The newest child of every node has a small dot on its left edge in the node's own color; the newest node in the whole map gets a matrix-green dot. Dots appear only on leaf nodes (nodes without children)
+- Fold and unfold branches; focus on one topic by folding everything else. $\color{#00FF41}\textsf{Folded nodes look like a stack of cards with a bright +N badge, and leaving focus keeps your own folds}$ ![new in 4.6](https://img.shields.io/badge/new_in-4.6-00ff41?labelColor=000000)
 - Undo and redo
 - Auto-arrange (tidy) layout
 - Saves to a standard `.sqlite` file, which you can open in any SQLite tool
@@ -65,9 +65,9 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Mouse wheel / pinch | Zoom |
 | Tap a node while zoomed far out | Zoom into that node |
 | Tap or drag on the radar minimap | Fly to that part of the map |
-| Tap the **+N** badge on a folded node | Unfold the branch |
-| Dot on the left edge of a node, in the node's color | This is the newest child of its parent $\color{#00FF41}\textsf{and has no children of its own}$ |
-| Matrix-green dot on the left edge of a node | This is the newest $\color{#00FF41}\textsf{leaf}$ node in the whole map |
+| Tap the **+N** badge on a folded node | Unfold the branch. $\color{#00FF41}\textsf{Folded nodes are drawn as a stack of cards, and the bright badge shows how many nodes are hidden}$ |
+| Dot on the left edge of a node, in the node's color | This is the newest child of its parent and has no children of its own |
+| Matrix-green dot on the left edge of a node | This is the newest leaf node in the whole map |
 | Tap ? (bottom right) | Show all controls; tap ✕ or the map to close |
 | Tap the table button (bottom right, next to the magnifier) | Switch to the table view; tap it again to go back to the map |
 | Tap the sun / moon button (bottom right) | Switch between the night and day theme |
@@ -152,8 +152,9 @@ The top of the menu shows when the node was created and last updated. The menu o
 | Change color… | Pick a color for the node, optionally for its whole branch |
 | Text size: A− / A+ / default | Make the node's text smaller or bigger in steps of 2, or back to the default size. The menu stays open so you can tap several times |
 | Fold / Unfold branch | Hide or show everything below the node |
-| Focus: fold everything else | Fold every branch except this node's own branch and the path leading to it, then zoom in on it |
-| Unfold everything | Open all folded branches again (shown when something is folded) |
+| Focus: fold everything else | Fold every branch except this node's own branch and the path leading to it, then zoom in on it. $\color{#00FF41}\textsf{The status bar shows focus: and the node's name}$ |
+| $\color{#00FF41}\textsf{Exit focus (keep my folds)}$ | $\color{#00FF41}\textsf{Shown while focusing instead of Unfold everything. Opens only what focus folded, so branches you folded yourself stay folded. Focus is saved in the file}$ |
+| Unfold everything | Open all folded branches again (shown when something is folded $\color{#00FF41}\textsf{and you are not in focus mode}$) |
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
 | Delete node | Delete the node and everything below it |
@@ -256,7 +257,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{4.5}$ | $\color{#00FF41}\textsf{Newest-child dots and the matrix-green newest dot only appear on leaf nodes}$ |
+| $\color{#00FF41}\textsf{4.6}$ | $\color{#00FF41}\textsf{Exit focus keeps your own folds; folded nodes look like a stack of cards; high-contrast +N badge; focus shown in the status bar}$ |
+| 4.5 | Newest-child dots and the matrix-green newest dot only appear on leaf nodes |
 | 4.4 | Day/night toggle (sun / moon) in the bottom-right buttons next to search and table |
 | 4.3 | done checkbox in the node menu (bottom right); bigger search, table and ? buttons |
 | 4.2 | Bug fix: after jumping from the table to a node on iPhone, the map could stop responding to taps and the table button |
