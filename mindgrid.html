@@ -111,7 +111,8 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 #statusbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:space-between;gap:12px;
   padding:6px 12px calc(env(safe-area-inset-bottom,0px) + 6px);background:var(--panel);
   border-top:1px solid var(--g-dim);font-size:13px;color:var(--g-mid)}
-#status span{margin-right:16px}
+#status{min-width:0;line-height:1.45}
+#status span{margin-right:14px;white-space:nowrap;display:inline-block}
 #status .dirty{color:var(--warn)}
 #sbtns{display:flex;gap:6px;flex:none}
 #searchBtn{font-size:13px;color:var(--g);padding:2px 10px;margin:-3px 0;border:1px solid var(--g-dim)}
@@ -229,7 +230,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 3.5</p>
+  <p style="margin:-4px 0 8px">Version 3.6</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -339,6 +340,7 @@ let nodes = new Map();          // id -> {id,parent,text,x,y,collapsed,created,u
 const els = new Map();          // id -> element
 let nextId = 1, selectedId = null, editingId = null;
 let fileHandle = null, fileName = 'mindmap.sqlite', dirty = false;
+let lastSaved = null;   // when the map was last written to a .sqlite file
 const view = { x: 0, y: 0, s: 1 };
 const undoStack = [], redoStack = [];
 const now = () => new Date().toISOString();
@@ -639,8 +641,10 @@ function select(id) {
 function updateStatus() {
   $('#status').innerHTML =
     `<span class="${dirty ? 'dirty' : ''}">${escapeHtml(fileName)}${dirty ? ' (unsaved)' : ''}</span>` +
-    `<span>${nodes.size} nodes</span><span>${Math.round(view.s * 100)}%</span>`;
+    `<span>${nodes.size} nodes</span><span>zoom ${Math.round(view.s * 100)}%</span>` +
+    `<span title="${escapeHtml(lastSaved ? fmtTime(lastSaved) || '' : '')}">${lastSaved ? 'saved ' + agoLong(lastSaved) : 'not saved to a file yet'}</span>`;
 }
+setInterval(updateStatus, 30000);
 const escapeHtml = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /* ---------- view ---------- */
@@ -1249,8 +1253,8 @@ function writeToDb() {
     for (const n of nodes.values())
       st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.created ?? null, n.updated ?? null]);
     st.free();
-    db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?)",
-      [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs)]);
+    db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?),('file_saved_at',?)",
+      [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs), lastSaved ?? '']);
     db.run('COMMIT');
   } catch (err) { db.run('ROLLBACK'); throw err; }
 }
@@ -1283,6 +1287,7 @@ function loadBytes(bytes, name, opts = {}) {
   fileHandle = opts.handle ?? null;
   const meta = loadFromDb();
   loadThemeFrom(meta.theme);
+  lastSaved = meta.file_saved_at || null;
   undoStack.length = redoStack.length = 0;
   for (const el of els.values()) el.remove(); els.clear();
   renderAll();
@@ -1298,7 +1303,7 @@ function newMap(silent = false) {
   db?.close(); db = new SQL.Database(); db.run(SCHEMA);
   const t = now();
   nodes = new Map([[1, { id: 1, parent: null, text: 'central idea', x: 0, y: 0, collapsed: false, created: t, updated: t }]]);
-  nextId = 2; selectedId = 1; fileHandle = null; fileName = 'mindmap.sqlite';
+  nextId = 2; selectedId = 1; fileHandle = null; fileName = 'mindmap.sqlite'; lastSaved = null;
   undoStack.length = redoStack.length = 0;
   for (const el of els.values()) el.remove(); els.clear();
   view.s = 1; renderAll(); centerOn(1);
@@ -1308,7 +1313,9 @@ function newMap(silent = false) {
 const sqliteTypes = [{ description: 'SQLite database', accept: { 'application/x-sqlite3': ['.sqlite', '.sqlite3', '.db'] } }];
 async function saveFile(saveAs = false) {
   if (editingId != null) commitEdit();
-  try { writeToDb(); } catch (err) { return log('Save failed: ' + err.message, true); }
+  const prevSaved = lastSaved;
+  lastSaved = now();
+  try { writeToDb(); } catch (err) { lastSaved = prevSaved; return log('Save failed: ' + err.message, true); }
   const data = db.export();
   if (window.showSaveFilePicker) {
     try {
@@ -1322,7 +1329,7 @@ async function saveFile(saveAs = false) {
       dirty = false; updateStatus(); cacheSession();
       return log(`Saved ${fileName} (${(data.length / 1024).toFixed(1)} KB)`);
     } catch (err) {
-      if (err.name === 'AbortError') return log('Save cancelled');
+      if (err.name === 'AbortError') { lastSaved = prevSaved; updateStatus(); return log('Save cancelled'); }
       fileHandle = null;
       log('Direct file access unavailable, downloading instead');
     }
@@ -1698,7 +1705,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 3.5 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 3.6 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
