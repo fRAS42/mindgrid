@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 5.3
+**Current version:** 5.4
 
-![new in 5.3](https://img.shields.io/badge/new_in-5.3-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 5.4](https://img.shields.io/badge/new_in-5.4-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -22,7 +22,7 @@ No install, no account, no server. Everything runs in your browser.
 - Per-node colors, interface color themes, and a night/day theme (toggle in the bottom-right corner)
 - Separate color for the digital rain
 - Adjustable node widths
-- Due dates for leaf nodes, $\color{#00FF41}\textsf{shown in the table view (not on the map, to keep it tidy)}$ and used to sort the table ![new in 5.3](https://img.shields.io/badge/new_in-5.3-00ff41?labelColor=000000)
+- Due dates for leaf nodes, shown in the table view (not on the map, to keep it tidy) and used to sort the table
 - Priority flags A, B, C, D (urgent / important), shown on the node and as a column in the table
 - Text size per node, from the node menu
 - Recoloring or resizing the text of a node counts as an update; moving nodes around does not
@@ -115,7 +115,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 
 ### Due dates
 
-Hold a leaf node (one without children) and pick a date in the Due date row of the menu. $\color{#00FF41}\textsf{The map stays clean: the date is shown in the table view, under the node's name:}$
+Hold a leaf node (one without children) and pick a date in the Due date row of the menu. The map stays clean: the date is shown in the table view, under the node's name:
 
 | Label | Meaning |
 |---|---|
@@ -203,6 +203,7 @@ Every change can be undone with **undo**.
 
 | Button | What it does |
 |---|---|
+| $\color{#00FF41}\textsf{MINDGRID (logo)}$ | $\color{#00FF41}\textsf{About: version, where your data lives, link to this page, and a short summary of the open map}$ ![new in 5.4](https://img.shields.io/badge/new_in-5.4-00ff41?labelColor=000000) |
 | new | Start a new empty map |
 | open | Load a map from a `.sqlite` file |
 | save / save as | Save the map to a `.sqlite` file |
@@ -278,7 +279,7 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 ## Troubleshooting
 
-**The app shows an old version.** The startup screen and the controls panel show the version number. Add `?v=` plus any number to the address to force a fresh copy, for example `mindgrid.html?v=24`. If you use a Home Screen icon, open the link in Safari first.
+**The app shows an old version.** The startup screen, the controls panel $\color{#00FF41}\textsf{and the About panel (tap MINDGRID)}$ show the version number. Add `?v=` plus any number to the address to force a fresh copy, for example `mindgrid.html?v=24`. If you use a Home Screen icon, open the link in Safari first.
 
 **"SQLite engine" error on startup.** The engine loads from `cdnjs.cloudflare.com`. Check your internet connection and reload.
 
@@ -296,7 +297,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{5.3}$ | $\color{#00FF41}\textsf{Due dates are no longer shown under nodes on the map; they stay in the menu and the table}$ |
+| $\color{#00FF41}\textsf{5.4}$ | $\color{#00FF41}\textsf{Tap the MINDGRID logo for an About panel}$ |
+| 5.3 | Due dates are no longer shown under nodes on the map; they stay in the menu and the table |
 | 5.2 | Tidy children in the node menu: arrange only one branch |
 | 5.1 | Priority flags A–D (Eisenhower) in the node menu, on the node and as a PRI column in the table; table sorting combines due dates and priority |
 | 5.0 | Nodes with children that have a due date are listed in the table too (marked ▸) and can still change or clear their due date in the menu |

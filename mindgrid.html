@@ -133,7 +133,8 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
   padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 8px;background:var(--panel);
   border-bottom:1px solid var(--g-dim);overflow-x:auto;white-space:nowrap;scrollbar-width:none}
 #bar::-webkit-scrollbar{display:none}
-#logo{font-size:18px;letter-spacing:.18em;margin-right:10px;text-shadow:var(--glow);flex:none}
+#logo{font-size:18px;letter-spacing:.18em;margin-right:10px;text-shadow:var(--glow);flex:none;padding:4px 6px;border:1px solid transparent}
+#logo b{font-weight:normal}
 #logo b{color:var(--g-hi);font-weight:normal}
 .sep{width:1px;height:20px;background:var(--g-dim);margin:0 6px;flex:none}
 button{font:inherit;font-size:14px;color:var(--g);background:transparent;border:1px solid transparent;
@@ -205,7 +206,17 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 #help{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(360px,calc(100vw - 24px));
   max-height:calc(100% - 130px);overflow:auto;background:var(--panel);border:1px solid var(--g-mid);
   padding:14px 16px;font-size:13.5px;line-height:1.6;box-shadow:var(--glow);display:none}
-#help.show,#theme.show,#nodeColor.show,#rainPanel.show{display:block}
+#help.show,#theme.show,#nodeColor.show,#rainPanel.show,#about.show{display:block}
+#about{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:22;width:min(360px,calc(100vw - 24px));
+  max-height:calc(100% - 130px);overflow:auto;background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);
+  padding:16px 18px;font-size:14px;line-height:1.6;display:none}
+#about h2{margin:0;font-size:22px;font-weight:normal;letter-spacing:.18em;text-shadow:var(--glow)}
+#about h2 b{color:var(--g-hi);font-weight:normal}
+#about .ver{color:var(--g-mid);margin:2px 0 12px}
+#about p{margin:0 0 10px}
+#about a{color:var(--g-hi)}
+#about .stats{border-top:1px solid var(--g-dim);padding-top:10px;margin-top:12px;color:var(--g-mid)}
+#about .close{float:right;margin:-8px -10px 0 0;font-size:16px}
 #rainPanel{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(320px,calc(100vw - 24px));
   background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
 #rainPanel h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em}
@@ -258,7 +269,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="stage"><div id="world"><svg id="edges"></svg></div></div>
 
 <div id="bar">
-  <div id="logo">MIND<b>GRID</b></div>
+  <button id="logo" type="button" title="About MINDGRID" aria-label="About MINDGRID">MIND<b>GRID</b></button>
   <button data-act="new" title="New map">new</button>
   <button data-act="open" title="Open .sqlite file (Ctrl+O)">open</button>
   <button data-act="save" title="Save to .sqlite file (Ctrl+S)">save</button>
@@ -293,7 +304,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 5.3</p>
+  <p style="margin:-4px 0 8px">Version <span class="appver"></span></p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -352,6 +363,16 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
   <div class="trow"><span></span><button id="rainDone">done</button></div>
 </div>
 <div id="tableView" aria-label="Table of all nodes"></div>
+<div id="about" role="dialog" aria-label="About MINDGRID">
+  <button class="close" type="button" aria-label="Close">✕</button>
+  <h2>MIND<b>GRID</b></h2>
+  <div class="ver">version <span class="appver"></span></div>
+  <p>A mind map for your thoughts, in a single HTML file, with a terminal look and falling digital rain.</p>
+  <p>Your maps live in SQLite files that you own. Nothing is sent to a server: the app runs entirely in your browser.</p>
+  <p>Source and help: <a href="https://github.com/fras42/mindgrid" target="_blank" rel="noopener">github.com/fras42/mindgrid</a></p>
+  <p>Built with plain JavaScript and <a href="https://github.com/sql-js/sql.js" target="_blank" rel="noopener">sql.js</a> (SQLite for the browser).</p>
+  <div class="stats" id="aboutStats"></div>
+</div>
 <div id="search" role="search">
   <div class="srow">
     <input id="q" type="search" placeholder="Search all nodes…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
@@ -383,6 +404,8 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
+const APP_VERSION = '5.4';
+document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
 const SCHEMA = `
@@ -1449,7 +1472,7 @@ document.addEventListener('keydown', e => {
       if (ctx.classList.contains('show')) closeMenu();
       else if (ncId != null) closeNodeColor();
       else if (linkFrom != null) { endLink(); log('Connect cancelled'); }
-      else if ($('#help.show,#theme.show,#rainPanel.show')) { ['#help', '#theme', '#rainPanel'].forEach(q => $(q).classList.remove('show')); }
+      else if ($('#help.show,#theme.show,#rainPanel.show,#about.show')) { ['#help', '#theme', '#rainPanel', '#about'].forEach(q => $(q).classList.remove('show')); }
       else overview();
       break;
     case '+': case '=': zoomStep(1.35); break;
@@ -1850,9 +1873,23 @@ addEventListener('resize', () => { if (tableOn) layoutTable(); });
 setInterval(() => { if (tableOn) renderTable(); }, 60000);
 
 /* ---------- controls panel ---------- */
+function toggleAbout(force) {
+  const box = $('#about'), show = force ?? !box.classList.contains('show');
+  if (show) {
+    ['#help', '#theme', '#rainPanel'].forEach(q => $(q).classList.remove('show')); closeNodeColor(); closeMenu();
+    const all = [...nodes.values()], done = all.filter(n => n.done).length;
+    const first = all.map(n => n.created).filter(Boolean).sort()[0];
+    $('#aboutStats').textContent = `This map: ${fileName}, ${all.length} node${all.length === 1 ? '' : 's'}, ${done} done` +
+      (first ? `, started ${fmtTime(first)}` : '') + '.';
+  }
+  box.classList.toggle('show', show);
+}
+$('#logo').addEventListener('click', () => toggleAbout());
+$('#about .close').addEventListener('click', () => toggleAbout(false));
+stage.addEventListener('pointerdown', () => { if ($('#about').classList.contains('show')) toggleAbout(false); }, true);
 function toggleHelp(force) {
   const show = force ?? !$('#help').classList.contains('show');
-  $('#theme').classList.remove('show'); $('#rainPanel').classList.remove('show'); closeNodeColor();
+  $('#theme').classList.remove('show'); $('#rainPanel').classList.remove('show'); $('#about').classList.remove('show'); closeNodeColor();
   $('#help').classList.toggle('show', show);
 }
 $('#hint').addEventListener('click', () => toggleHelp());
@@ -2072,7 +2109,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 5.3 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, `MINDGRID ${APP_VERSION} // thought mapping terminal`, fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
