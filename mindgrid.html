@@ -74,8 +74,10 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
   border-left:1px solid var(--g);border-right:1px solid var(--g);pointer-events:none}
 .node.sel .grip{display:block}
 @media (hover:hover){.node:hover .grip{display:block}}
-.node.root{font-size:19px;padding:12px 22px;border:2px solid var(--g);box-shadow:var(--glow);letter-spacing:.05em}
-.node.sel{border-color:var(--g-hi);color:var(--g-hi);box-shadow:0 0 0 1px var(--g),var(--glow)}
+.node{--stack:0 0 #0000;box-shadow:var(--stack)}
+.node.folded{--stack:5px 5px 0 -1px var(--nodebg),5px 5px 0 0 var(--g-mid),10px 10px 0 -1px var(--nodebg),10px 10px 0 0 var(--g-dim)}
+.node.root{font-size:19px;padding:12px 22px;border:2px solid var(--g);box-shadow:var(--glow),var(--stack);letter-spacing:.05em}
+.node.sel{border-color:var(--g-hi);color:var(--g-hi);box-shadow:0 0 0 1px var(--g),var(--glow),var(--stack)}
 .node.editing{border-style:dashed;cursor:text;z-index:3}
 .node textarea.ed{display:block;margin:0;padding:0;border:0;outline:none;resize:none;overflow:hidden;background:transparent;
   color:inherit;font:inherit;line-height:inherit;letter-spacing:inherit;text-align:left;text-shadow:inherit;
@@ -93,11 +95,12 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
 .node.newest::before,.node.newest-all::before{content:"";position:absolute;left:-5px;top:50%;width:9px;height:9px;margin-top:-4.5px;
   border-radius:50%;background:var(--g);box-shadow:0 0 6px rgba(var(--rgb),.85);pointer-events:none}
 .node.newest-all::before{background:var(--matrix);box-shadow:0 0 7px rgba(var(--matrix-rgb),.9)}
-.node.latest{box-shadow:0 0 0 1px var(--g),0 0 18px rgba(var(--rgb),.45)}
-.node.latest.sel{box-shadow:0 0 0 2px var(--g-hi),0 0 22px rgba(var(--rgb),.55)}
+.node.latest{box-shadow:0 0 0 1px var(--g),0 0 18px rgba(var(--rgb),.45),var(--stack)}
+.node.latest.sel{box-shadow:0 0 0 2px var(--g-hi),0 0 22px rgba(var(--rgb),.55),var(--stack)}
 #ctx .ttl small{display:block;margin-top:3px;font-size:11.5px;color:var(--g-dim)}
-.node .badge{position:absolute;right:-11px;top:-11px;min-width:22px;height:22px;padding:0 5px;
-  background:var(--bg);border:1px solid var(--g);font-size:12px;line-height:20px;text-align:center;cursor:pointer;color:var(--g)}
+.node .badge{position:absolute;right:-13px;top:-13px;min-width:26px;height:24px;padding:0 6px;
+  background:var(--g);border:1px solid var(--g-hi);font-size:13px;font-weight:bold;line-height:20px;text-align:center;cursor:pointer;
+  color:var(--bg);text-shadow:none;box-shadow:0 0 0 2px var(--bg),0 0 10px rgba(var(--rgb),.7);z-index:2}
 .node.new{animation:materialize .55s ease-out}
 @keyframes materialize{0%{opacity:0;filter:blur(5px);letter-spacing:.6em}100%{opacity:1;filter:none}}
 
@@ -119,6 +122,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
   padding:6px 12px calc(env(safe-area-inset-bottom,0px) + 6px);background:var(--panel);
   border-top:1px solid var(--g-dim);font-size:13px;color:var(--g-mid)}
 #status{min-width:0;line-height:1.45}
+#status .focusinfo{color:var(--g-hi)}
 #status span{margin-right:14px;white-space:nowrap;display:inline-block}
 #status .dirty{color:var(--warn)}
 #sbtns{display:flex;gap:6px;flex:none;align-items:flex-start}
@@ -260,7 +264,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 4.5</p>
+  <p style="margin:-4px 0 8px">Version 4.6</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -453,10 +457,13 @@ function isHidden(n) {
 const roots = () => [...nodes.values()].filter(n => n.parent == null || !nodes.has(n.parent));
 
 /* ---------- undo ---------- */
-const snapshot = () => JSON.stringify([...nodes.values()]);
+const snapshot = () => JSON.stringify({ nodes: [...nodes.values()],
+  focus: focusState ? { id: focusState.id, folded: [...focusState.folded], opened: [...focusState.opened] } : null });
 function pushUndo() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack.length = 0; }
 function restore(s) {
-  nodes = new Map(JSON.parse(s).map(n => [n.id, n]));
+  const snap = JSON.parse(s), list = Array.isArray(snap) ? snap : snap.nodes, f = Array.isArray(snap) ? null : snap.focus;
+  nodes = new Map(list.map(n => [n.id, n]));
+  focusState = f ? { id: f.id, folded: new Set(f.folded), opened: new Set(f.opened) } : null;
   nextId = Math.max(0, ...nodes.keys()) + 1;
   if (!nodes.has(selectedId)) selectedId = roots()[0]?.id ?? null;
   renderAll(); markDirty();
@@ -525,7 +532,7 @@ function deleteNode(id) {
 function toggleFold(id) {
   const n = nodes.get(id); if (!n) return;
   if (!children(id).length) return log('This node has no branches to fold');
-  pushUndo(); n.collapsed = !n.collapsed; renderAll(); markDirty();
+  pushUndo(); n.collapsed = !n.collapsed; forgetFocusFold(id); renderAll(); markDirty();
 }
 function tidy() {
   pushUndo();
@@ -628,8 +635,10 @@ function updateEl(n, el = els.get(n.id), idx) {
     let b = el.querySelector('.badge');
     if (n.collapsed && idx.has(n.id)) {
       if (!b) { b = document.createElement('div'); b.className = 'badge'; b.title = 'Unfold'; el.appendChild(b); }
-      b.textContent = '+' + descendants(n.id, idx).length;
+      const c = descendants(n.id, idx).length;
+      b.textContent = '+' + c; b.title = `${c} hidden node${c > 1 ? 's' : ''}. Tap to unfold`;
     } else if (b) b.remove();
+    el.classList.toggle('folded', !!(n.collapsed && idx.has(n.id)));
   }
 }
 function drawEdges() {
@@ -693,6 +702,7 @@ function updateStatus() {
   $('#status').innerHTML =
     `<span class="${dirty ? 'dirty' : ''}">${escapeHtml(fileName)}${dirty ? ' (unsaved)' : ''}</span>` +
     `<span>${nodes.size} nodes</span><span>zoom ${Math.round(view.s * 100)}%</span>` +
+    (focusState && nodes.has(focusState.id) ? `<span class="focusinfo">focus: ${escapeHtml(short(nodes.get(focusState.id).text))}</span>` : '') +
     `<span title="${escapeHtml(lastSaved ? fmtTime(lastSaved) || '' : '')}">${lastSaved ? 'saved ' + agoLong(lastSaved) : 'not saved to a file yet'}</span>`;
 }
 setInterval(updateStatus, 30000);
@@ -743,19 +753,39 @@ function focusNode(id) {
   log(`Zoomed to “${n.text.split('\n')[0].slice(0, 40)}”`);
 }
 /* fold every branch except the path down to this node and this node's own branch */
+let focusState = null;   // { id, folded: Set (folded by focus), opened: Set (your folds that focus opened) }
+function restoreFocusFolds() {
+  if (!focusState) return;
+  for (const i of focusState.folded) { const m = nodes.get(i); if (m) m.collapsed = false; }
+  for (const i of focusState.opened) { const m = nodes.get(i); if (m) m.collapsed = true; }
+  focusState = null;
+}
+function forgetFocusFold(id) { focusState?.folded.delete(id); focusState?.opened.delete(id); }
+function exitFocus() {
+  if (!focusState) return;
+  pushUndo(); restoreFocusFolds();
+  renderAll(); markDirty(); overview();
+  log('Focus ended. Your own folded branches stay folded');
+}
 function focusBranch(id) {
   const n = nodes.get(id); if (!n) return;
   pushUndo();
+  restoreFocusFolds();                                   // switching focus starts from your own folds
   const idx = childIndex();
   const path = new Set(); let p = n.parent;
   while (p != null && nodes.has(p) && !path.has(p)) { path.add(p); p = nodes.get(p).parent; }
   const branch = new Set([id, ...descendants(id, idx)]);
   let folded = 0;
+  const fs = { id, folded: new Set(), opened: new Set() };
   for (const m of nodes.values()) {
     if (!idx.has(m.id)) continue;                       // leaves have nothing to fold
     const fold = !path.has(m.id) && !branch.has(m.id);
-    if (m.collapsed !== fold) { m.collapsed = fold; if (fold) folded++; }
+    if (m.collapsed !== fold) {
+      m.collapsed = fold;
+      if (fold) { folded++; fs.folded.add(m.id); } else fs.opened.add(m.id);
+    }
   }
+  focusState = fs;
   renderAll(); markDirty(); select(id);
   flyToBounds(boundsOf([...branch].map(i => nodes.get(i))), 1.4);
   log(`Focused on “${short(n.text)}”${folded ? `, ${folded} other branch${folded > 1 ? 'es' : ''} folded` : ''}`);
@@ -764,6 +794,7 @@ function unfoldAll() {
   if (![...nodes.values()].some(m => m.collapsed)) return log('Nothing is folded');
   pushUndo();
   for (const m of nodes.values()) m.collapsed = false;
+  focusState = null;
   renderAll(); markDirty(); overview();
   log('Everything unfolded');
 }
@@ -986,7 +1017,8 @@ function openMenu(id, x, y) {
     'fs',
     kids ? ['fold', n.collapsed ? 'Unfold branch' : 'Fold branch'] : null,
     ['focus', 'Focus: fold everything else'],
-    [...nodes.values()].some(m => m.collapsed) ? ['unfoldall', 'Unfold everything'] : null,
+    focusState ? ['exitfocus', 'Exit focus (keep my folds)'] : null,
+    !focusState && [...nodes.values()].some(m => m.collapsed) ? ['unfoldall', 'Unfold everything'] : null,
     '-',
     ['link', 'Connect to another node…'],
     hasParent ? ['detach', 'Disconnect from parent'] : null,
@@ -1031,6 +1063,7 @@ ctx.addEventListener('click', e => {
     case 'zoom': focusNode(id); break;
     case 'focus': focusBranch(id); break;
     case 'unfoldall': unfoldAll(); break;
+    case 'exitfocus': exitFocus(); break;
     case 'color': openNodeColor(id); break;
     case 'fold': toggleFold(id); break;
     case 'link': startLink(id); break;
@@ -1323,8 +1356,9 @@ function writeToDb() {
     for (const n of nodes.values())
       st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.done ? 1 : 0, n.created ?? null, n.updated ?? null]);
     st.free();
-    db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?),('file_saved_at',?)",
-      [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs), lastSaved ?? '']);
+    db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?),('file_saved_at',?),('focus',?)",
+      [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs), lastSaved ?? '',
+       focusState ? JSON.stringify({ id: focusState.id, folded: [...focusState.folded], opened: [...focusState.opened] }) : '']);
     db.run('COMMIT');
   } catch (err) { db.run('ROLLBACK'); throw err; }
 }
@@ -1358,6 +1392,8 @@ function loadBytes(bytes, name, opts = {}) {
   const meta = loadFromDb();
   loadThemeFrom(meta.theme);
   lastSaved = meta.file_saved_at || null;
+  focusState = null;
+  try { const f = JSON.parse(meta.focus || 'null'); if (f && nodes.has(f.id)) focusState = { id: f.id, folded: new Set(f.folded || []), opened: new Set(f.opened || []) }; } catch {}
   undoStack.length = redoStack.length = 0;
   for (const el of els.values()) el.remove(); els.clear();
   renderAll();
@@ -1373,7 +1409,7 @@ function newMap(silent = false) {
   db?.close(); db = new SQL.Database(); db.run(SCHEMA);
   const t = now();
   nodes = new Map([[1, { id: 1, parent: null, text: 'central idea', x: 0, y: 0, collapsed: false, created: t, updated: t }]]);
-  nextId = 2; selectedId = 1; fileHandle = null; fileName = 'mindmap.sqlite'; lastSaved = null;
+  nextId = 2; selectedId = 1; fileHandle = null; fileName = 'mindmap.sqlite'; lastSaved = null; focusState = null;
   undoStack.length = redoStack.length = 0;
   for (const el of els.values()) el.remove(); els.clear();
   view.s = 1; renderAll(); centerOn(1);
@@ -1532,7 +1568,7 @@ function goHit(i) {
   const n = nodes.get(hits[hitIdx].id); if (!n) return;
   // open folded branches that hide this match (a view change, not an edit)
   let p = nodes.get(n.parent), opened = false;
-  while (p) { if (p.collapsed) { p.collapsed = false; opened = true; } p = nodes.get(p.parent); }
+  while (p) { if (p.collapsed) { p.collapsed = false; opened = true; forgetFocusFold(p.id); } p = nodes.get(p.parent); }
   if (opened) { renderAll(); runSearch(true); hitIdx = hits.findIndex(h => h.id === n.id); markDirty(); }
   select(n.id);
   flyTo(n.x, n.y, Math.max(view.s, Math.min(1.2, innerWidth / (halfW(n.id) * 2 + 80))));
@@ -1633,7 +1669,7 @@ function toggleTable(force) {
 function goToNode(id) {
   const n = nodes.get(id); if (!n) return;
   let p = nodes.get(n.parent), opened = false;
-  while (p) { if (p.collapsed) { p.collapsed = false; opened = true; } p = nodes.get(p.parent); }
+  while (p) { if (p.collapsed) { p.collapsed = false; opened = true; forgetFocusFold(p.id); } p = nodes.get(p.parent); }
   if (opened) { renderAll(); markDirty(); }
   select(id); focusNode(id);
 }
@@ -1879,7 +1915,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 4.5 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 4.6 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
