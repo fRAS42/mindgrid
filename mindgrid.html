@@ -281,7 +281,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 4.8</p>
+  <p style="margin:-4px 0 8px">Version 4.9</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -693,7 +693,8 @@ function ago(iso) {
   return '';
 }
 /* ---------- due dates (leaf nodes) ---------- */
-const DUE_NEAR = 7;   // due within this many days (or overdue) goes to the top of the table
+const DUE_NEAR = 7;        // labels say "(in N days)" within this many days
+const DUE_TOP = 3;         // due within this many days (or overdue) goes to the top of the table
 function daysUntil(due) {
   const [y, m, d] = due.split('-').map(Number);
   const t = new Date(); t.setHours(0, 0, 0, 0);
@@ -1679,7 +1680,7 @@ function renderTable() {
   if (!tableOn) return;
   const keep = tvBox.scrollTop;
   const parents = new Set([...nodes.values()].map(n => n.parent).filter(p => p != null && nodes.has(p)));
-  const near = n => n.due && daysUntil(n.due) <= DUE_NEAR ? daysUntil(n.due) : null;
+  const near = n => n.due && daysUntil(n.due) <= DUE_TOP ? daysUntil(n.due) : null;
   const rows = [...nodes.values()].filter(n => !parents.has(n.id))          // leaf nodes only
     .sort((a, b) => {
       const da = near(a), db = near(b);
@@ -1987,7 +1988,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 4.8 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 4.9 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
