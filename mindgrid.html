@@ -102,6 +102,17 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
 #tv td.t small.due{display:block;font-size:12px;margin-top:2px;color:var(--g-mid)}
 #tv td.t small.due.soon{color:var(--warn)}
 #tv td.t small.due.over{color:var(--err);font-weight:bold}
+.node .cat{position:absolute;right:-9px;bottom:-11px;min-width:20px;height:20px;padding:0 4px;font-size:12px;line-height:20px;
+  font-weight:bold;text-align:center;color:#000;text-shadow:none;letter-spacing:0;pointer-events:none;box-shadow:0 0 0 2px var(--bg)}
+#ctx .catrow{display:flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;font-size:15px}
+#ctx .catrow span{flex:1;white-space:nowrap}
+#ctx .catrow button{display:inline-block;width:auto;min-width:36px;text-align:center;padding:8px 6px;border:1px solid var(--g-dim);font-weight:bold}
+#ctx .catrow button.on{color:#000;border-color:transparent}
+#ctx .catrow button.clr{font-weight:normal}
+#tv th.c,#tv td.c{text-align:center;width:44px;padding-left:2px;padding-right:2px}
+#tv td.c button{all:unset;display:inline-block;min-width:26px;height:26px;line-height:26px;text-align:center;font-weight:bold;cursor:pointer;
+  border:1px dashed var(--g-dim);color:var(--g-dim)}
+#tv td.c button.set{color:#000;border:0}
 .node .stamp{position:absolute;left:-1px;bottom:calc(100% + 5px);font-size:calc(1em + 2px);line-height:1.3;color:var(--g-mid);
   white-space:nowrap;pointer-events:none;text-shadow:none;letter-spacing:0;font-weight:normal;
   background:var(--panel);padding:1px 6px;border:1px solid var(--g-dim)}
@@ -282,7 +293,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 5.0</p>
+  <p style="margin:-4px 0 8px">Version 5.1</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -292,7 +303,8 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
     <tr><td>Dot on a node’s left</td><td>Newest child of its parent, if it has no children (in the node’s color)</td></tr>
     <tr><td>Matrix-green dot</td><td>The newest leaf node (no children) in the whole map</td></tr>
     <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
-    <tr><td>Hold node / right-click</td><td>Menu: color, text size, due date (leaf nodes), done, delete, connect, more</td></tr>
+    <tr><td>Hold node / right-click</td><td>Menu: color, text size, priority A–D, due date (leaf nodes), done, delete, connect, more</td></tr>
+    <tr><td>Priority A / B / C / D</td><td>A urgent + important, B important, C urgent, D neither</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
     <tr><td>⇥ ⇤ • in editor</td><td>Indent, outdent, bullet the current lines</td></tr>
     <tr><td>Tab / Shift+Tab editing</td><td>Indent / outdent lines</td></tr>
@@ -386,6 +398,7 @@ CREATE TABLE IF NOT EXISTS nodes(
   font_size REAL,
   done INTEGER NOT NULL DEFAULT 0,
   due TEXT,
+  category TEXT,
   created_at TEXT,
   updated_at TEXT
 );
@@ -408,6 +421,7 @@ function migrate(d) {
   if (!cols.includes('font_size')) d.run('ALTER TABLE nodes ADD COLUMN font_size REAL');
   if (!cols.includes('done')) d.run('ALTER TABLE nodes ADD COLUMN done INTEGER NOT NULL DEFAULT 0');
   if (!cols.includes('due')) d.run('ALTER TABLE nodes ADD COLUMN due TEXT');
+  if (!cols.includes('category')) d.run('ALTER TABLE nodes ADD COLUMN category TEXT');
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -647,6 +661,10 @@ function updateEl(n, el = els.get(n.id), idx) {
   el.classList.toggle('newest', newestSet.has(n.id));
   el.classList.toggle('newest-all', n.id === newestAllId);
   el.classList.toggle('done', !!n.done);
+  { let ct = el.querySelector('.cat');
+    if (n.cat) { if (!ct) { ct = document.createElement('div'); ct.className = 'cat'; el.appendChild(ct); }
+      ct.textContent = n.cat; ct.style.background = catColor(n.cat); ct.title = CATS[n.cat].name; }
+    else ct?.remove(); }
   { let du = el.querySelector('.due'); const info = dueInfo(n.due);
     if (info) { if (!du) { du = document.createElement('div'); el.appendChild(du); } du.className = 'due ' + info.cls; du.textContent = info.text; }
     else du?.remove(); }
@@ -693,6 +711,33 @@ function ago(iso) {
   if (days < 30) return days + ' days ago';
   return '';
 }
+/* ---------- priority category (Eisenhower: A urgent+important, B important, C urgent, D neither) ---------- */
+const CATS = {
+  A: { color: '#ff3b3b', name: 'A: urgent and important' },
+  B: { color: '#ffb000', name: 'B: important, not urgent' },
+  C: { color: '#00b7ff', name: 'C: urgent, not important' },
+  D: { color: '#9a9a9a', name: 'D: neither urgent nor important' }
+};
+const catRank = c => c ? 'ABCD'.indexOf(c) : 4;
+const catColor = c => pal(CATS[c].color).g;      // darker automatically in day mode
+function setCat(id, cat) {
+  const n = nodes.get(id); if (!n) return;
+  cat = /^[ABCD]$/.test(cat || '') ? cat : null;
+  if ((n.cat || null) === cat) return;
+  pushUndo(); n.cat = cat; n.updated = now();
+  renderAll(); markDirty();
+  if (ctxId === id) { refreshMenuTimes(n); markCatButtons(n); }
+  log(cat ? `“${short(n.text)}” flagged ${CATS[cat].name}` : `Priority removed from “${short(n.text)}”`);
+}
+function markCatButtons(n) {
+  ctx.querySelectorAll('[data-cat]').forEach(b => {
+    const on = b.dataset.cat && b.dataset.cat === n.cat;
+    b.classList.toggle('on', !!on);
+    b.style.background = on ? catColor(b.dataset.cat) : '';
+    b.style.color = on ? '#000' : (b.dataset.cat ? catColor(b.dataset.cat) : '');
+  });
+}
+
 /* ---------- due dates (leaf nodes) ---------- */
 const DUE_NEAR = 7;        // labels say "(in N days)" within this many days
 const DUE_TOP = 3;         // due within this many days (or overdue) goes to the top of the table
@@ -1067,6 +1112,7 @@ function openMenu(id, x, y) {
     ['color', 'Change color…'],
     'fs',
     kids && !n.due ? null : 'due',
+    'cat',
     kids ? ['fold', n.collapsed ? 'Unfold branch' : 'Fold branch'] : null,
     ['focus', 'Focus: fold everything else'],
     focusState ? ['exitfocus', 'Exit focus (keep my folds)'] : null,
@@ -1084,6 +1130,10 @@ function openMenu(id, x, y) {
     `<div class="fsrow"><span>Text size</span><button data-fs="-1" title="Smaller" aria-label="Smaller text">A−</button>` +
     `<span class="fsval">${fontSizeOf(n)}</span><button data-fs="1" title="Bigger" aria-label="Bigger text">A+</button>` +
     `<button data-fs="0" class="def" title="Back to the default size">default</button></div>` :
+    it === 'cat' ?
+    `<div class="catrow"><span>Priority</span>` +
+    Object.keys(CATS).map(c => `<button data-cat="${c}" title="${CATS[c].name}" aria-label="${CATS[c].name}">${c}</button>`).join('') +
+    `<button data-cat="" class="clr" title="No priority" aria-label="No priority">✕</button></div>` :
     it === 'due' ?
     `<div class="duerow"><span>Due date</span><input type="date" data-due value="${n.due || ''}" aria-label="Due date">` +
     `<button data-dueclear title="Remove due date" aria-label="Remove due date">✕</button></div>` :
@@ -1092,6 +1142,7 @@ function openMenu(id, x, y) {
     `<label class="donebox"><input type="checkbox" data-mdone${n.done ? ' checked' : ''}>done</label></div>` :
     `<button data-m="${it[0]}" class="${it[2] || ''}" role="menuitem">${it[1]}</button>`).join('');
   ctx.classList.add('show');
+  markCatButtons(n);
   // measure without the opening animation's scale, then place it 50px left / 50px up of the old spot
   const w = ctx.offsetWidth, h = ctx.offsetHeight;
   const topLimit = $('#bar').getBoundingClientRect().bottom + 6;
@@ -1113,6 +1164,7 @@ ctx.addEventListener('change', e => {
 ctx.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.fs != null) { changeFontSize(ctxId, +b.dataset.fs); return; }   // menu stays open
+  if (b.dataset.cat != null) { const n = nodes.get(ctxId); setCat(ctxId, b.dataset.cat && n && n.cat === b.dataset.cat ? null : b.dataset.cat); return; }
   if (b.dataset.dueclear != null) { const i = ctx.querySelector('[data-due]'); if (i) i.value = ''; setDue(ctxId, null); return; }
   const id = ctxId; closeMenu();
   switch (b.dataset.m) {
@@ -1411,9 +1463,9 @@ function writeToDb() {
   db.run('BEGIN');
   try {
     db.run('DELETE FROM nodes');
-    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,done,due,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,done,due,category,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     for (const n of nodes.values())
-      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.done ? 1 : 0, n.due ?? null, n.created ?? null, n.updated ?? null]);
+      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.done ? 1 : 0, n.due ?? null, n.cat ?? null, n.created ?? null, n.updated ?? null]);
     st.free();
     db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?),('file_saved_at',?),('focus',?)",
       [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs), lastSaved ?? '',
@@ -1423,9 +1475,9 @@ function writeToDb() {
 }
 function loadFromDb() {
   nodes = new Map();
-  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size,done,due FROM nodes');
+  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size,done,due,category FROM nodes');
   if (res.length) for (const r of res[0].values)
-    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null, done: !!r[11], due: /^\d{4}-\d{2}-\d{2}$/.test(r[12] || '') ? r[12] : null });
+    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null, done: !!r[11], due: /^\d{4}-\d{2}-\d{2}$/.test(r[12] || '') ? r[12] : null, cat: /^[ABCD]$/.test(r[13] || '') ? r[13] : null });
   if (!nodes.size) { const t = now(); nodes.set(1, { id: 1, parent: null, text: 'central idea', x: 0, y: 0, collapsed: false, created: t, updated: t }); }
   nextId = Math.max(0, ...nodes.keys()) + 1;
   const meta = Object.fromEntries((db.exec('SELECT key,value FROM meta')[0]?.values) || []);
@@ -1682,24 +1734,36 @@ function renderTable() {
   const keep = tvBox.scrollTop;
   const parents = new Set([...nodes.values()].map(n => n.parent).filter(p => p != null && nodes.has(p)));
   const near = n => n.due && daysUntil(n.due) <= DUE_TOP ? daysUntil(n.due) : null;
-  const rows = [...nodes.values()].filter(n => !parents.has(n.id) || n.due)   // leaf nodes, plus any node with a due date
+  const dueOf = n => n.due ? daysUntil(n.due) : Infinity;
+  const rows = [...nodes.values()].filter(n => !parents.has(n.id) || n.due || n.cat)   // leaves, plus any node with a due date or priority
     .sort((a, b) => {
+      // 1. due within 3 days (or overdue) first, soonest due first, then by priority
       const da = near(a), db = near(b);
-      if (da != null && db != null && da !== db) return da - db;            // soonest due first
-      if (da != null && db == null) return -1;
-      if (db != null && da == null) return 1;
-      return (b.created || '').localeCompare(a.created || '') || b.id - a.id;   // then newest first
+      if (da != null || db != null) {
+        if (da == null) return 1;
+        if (db == null) return -1;
+        if (da !== db) return da - db;
+        return catRank(a.cat) - catRank(b.cat) || (b.created || '').localeCompare(a.created || '');
+      }
+      // 2. then by priority A, B, C, D, none
+      const ca = catRank(a.cat) - catRank(b.cat); if (ca) return ca;
+      // 3. same priority: earlier due date first, then newest first
+      const dd = dueOf(a) - dueOf(b); if (dd && isFinite(dd)) return dd;
+      if (dueOf(a) !== dueOf(b)) return isFinite(dueOf(a)) ? -1 : 1;
+      return (b.created || '').localeCompare(a.created || '') || b.id - a.id;
     });
   const doneCount = rows.filter(n => n.done).length;
   const shown = tvShowDone ? rows : rows.filter(n => !n.done);   // done nodes are hidden unless asked for
-  tvBox.innerHTML = `<table id="tv"><thead><tr><th class="t">NODE</th><th class="u">UPDATED</th>` +
+  tvBox.innerHTML = `<table id="tv"><thead><tr><th class="t">NODE</th><th class="c" title="Priority A–D">PRI</th><th class="u">UPDATED</th>` +
     `<th class="d">DONE<small>${doneCount}/${rows.length}</small></th></tr></thead><tbody>` +
-    (shown.length ? '' : `<tr><td colspan="3" class="empty">${rows.length ? 'Everything is done.' : 'No leaf nodes yet.'}</td></tr>`) +
+    (shown.length ? '' : `<tr><td colspan="4" class="empty">${rows.length ? 'Everything is done.' : 'No leaf nodes yet.'}</td></tr>`) +
     shown.map(n => {
       const ec = effColor(n), title = n.text.split('\n')[0].trim() || '…';
       return `<tr class="${n.done ? 'done' : ''}${n.id === selectedId ? ' sel' : ''}${parents.has(n.id) ? ' parent' : ''}" style="${ec ? colorVars(ec) : ''}">` +
         `<td class="t"><button data-go="${n.id}" title="${escapeHtml(n.text)}">${escapeHtml(title)}</button>` +
         (n.due ? `<small class="due ${dueInfo(n.due).cls}">${dueInfo(n.due).text}</small>` : '') + `</td>` +
+        `<td class="c"><button data-cyc="${n.id}" class="${n.cat ? 'set' : ''}" ${n.cat ? `style="background:${catColor(n.cat)}"` : ''} ` +
+        `title="${n.cat ? CATS[n.cat].name : 'No priority'}. Tap to change" aria-label="Priority ${n.cat || 'none'}">${n.cat || '·'}</button></td>` +
         `<td class="u">${fmtShort(n.updated || n.created)}<small>${ago(n.updated || n.created)}</small></td>` +
         `<td class="d"><input type="checkbox" data-done="${n.id}"${n.done ? ' checked' : ''} aria-label="Mark done"></td></tr>`;
     }).join('') + '</tbody></table>' +
@@ -1748,6 +1812,15 @@ tvBtn.innerHTML = TABLE_ICON;
 tvBtn.addEventListener('click', () => toggleTable());
 tvBox.addEventListener('click', e => {
   if (e.target.closest('[data-showdone]')) { tvShowDone = !tvShowDone; tvHoldUntil = 0; renderTable(); return; }
+  const cy = e.target.closest('[data-cyc]');
+  if (cy) {                                   // tap cycles A → B → C → D → none
+    const n = nodes.get(+cy.dataset.cyc); if (!n) return;
+    const order = ['A', 'B', 'C', 'D', null];
+    tvHoldUntil = performance.now() + 700;    // let the row stay put for a moment before it re-sorts
+    setCat(n.id, order[(order.indexOf(n.cat || null) + 1) % order.length]);
+    cy.textContent = n.cat || '·'; cy.classList.toggle('set', !!n.cat); cy.style.background = n.cat ? catColor(n.cat) : '';
+    return;
+  }
   const b = e.target.closest('[data-go]'); if (!b) return;
   e.preventDefault();
   const id = +b.dataset.go;
@@ -1989,7 +2062,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 5.0 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 5.1 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
