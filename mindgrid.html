@@ -34,6 +34,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
 #ctx button{display:block;width:100%;text-align:left;padding:10px 12px;font-size:15px}
 #ctx button.danger{color:#ff6b6b}
 #ctx hr{border:0;border-top:1px solid var(--g-dim);margin:3px 0}
+#ctx .botrow{display:flex;align-items:center;gap:6px}
+#ctx .botrow button{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ctx .donebox{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 10px;border:1px solid var(--g-dim);cursor:pointer;
+  white-space:nowrap;font-size:15px;color:var(--g)}
+#ctx .donebox input{width:22px;height:22px;margin:0;accent-color:var(--g);cursor:pointer}
 #ctx .fsrow{display:flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;font-size:15px}
 #ctx .fsrow span:first-child{flex:1;white-space:nowrap;padding-right:6px}
 #ctx .fsrow button{display:inline-block;width:auto;min-width:40px;text-align:center;padding:8px 8px;border:1px solid var(--g-dim)}
@@ -117,10 +122,10 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 #status span{margin-right:14px;white-space:nowrap;display:inline-block}
 #status .dirty{color:var(--warn)}
 #sbtns{display:flex;gap:6px;flex:none;align-items:flex-start}
-#tableBtn{font-size:13px;color:var(--g);padding:2px 10px;margin:-3px 0;border:1px solid var(--g-dim)}
+#tableBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
 #tableBtn.on{background:rgba(var(--rgb),.18);color:var(--g-hi);border-color:var(--g-mid)}
 #tableView{position:fixed;left:0;right:0;top:50px;bottom:40px;z-index:8;display:none;overflow:auto;
-  background:var(--panel);-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  background:var(--panel);overscroll-behavior:contain;touch-action:pan-y}
 body.tableview #tableView{display:block}
 body.tableview #stage,body.tableview #mini,body.tableview #log{visibility:hidden}
 #tv{width:100%;border-collapse:collapse;font-size:15px}
@@ -138,7 +143,7 @@ body.tableview #stage,body.tableview #mini,body.tableview #log{visibility:hidden
 #tv tr.done td.t button{text-decoration:line-through;opacity:.55}
 #tv tr.sel td{background:rgba(var(--rgb),.1)}
 .node.done .txt{text-decoration:line-through;opacity:.6}
-#searchBtn{font-size:13px;color:var(--g);padding:2px 10px;margin:-3px 0;border:1px solid var(--g-dim)}
+#searchBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
 #search{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 56px);transform:translateX(-50%);z-index:21;
   width:min(520px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);padding:8px;display:none}
 #search.show{display:block}
@@ -154,7 +159,8 @@ body.tableview #stage,body.tableview #mini,body.tableview #log{visibility:hidden
 mark{background:rgba(var(--rgb),.35);color:var(--g-hi);padding:0 1px}
 body.searching .node.miss{opacity:.22}
 body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
-#hint{font-size:13px;color:var(--g);padding:2px 10px;margin:-3px -6px -3px 0;border:1px solid var(--g-dim)}
+#hint{font-size:18px;line-height:1;color:var(--g);padding:7px 14px;margin:-4px -6px -4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
+#sbtns svg{width:20px;height:20px;vertical-align:-4px}
 #help .close{position:sticky;top:0;float:right;margin:-6px -8px 0 0;font-size:16px}
 #log{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 40px);z-index:9;font-size:13px;
   pointer-events:none;max-width:min(560px,90vw)}
@@ -253,7 +259,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 4.1</p>
+  <p style="margin:-4px 0 8px">Version 4.3</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -984,14 +990,18 @@ function openMenu(id, x, y) {
     ['link', 'Connect to another node…'],
     hasParent ? ['detach', 'Disconnect from parent'] : null,
     '-',
-    ['delete', count > 1 ? `Delete node + ${count - 1} below` : 'Delete node', 'danger']
+    'bottom'
   ].filter(Boolean);
+  const delLabel = count > 1 ? `Delete node + ${count - 1} below` : 'Delete node';
   const cr = fmtTime(n.created), up = fmtTime(n.updated);
   ctx.innerHTML = `<div class="ttl">${escapeHtml(short(n.text))}` +
     (cr ? `<small>created ${cr}</small>` : '') + (up ? `<small>updated ${up}</small>` : '') + `</div>` + items.map(it => it === '-' ? '<hr>' : it === 'fs' ?
     `<div class="fsrow"><span>Text size</span><button data-fs="-1" title="Smaller" aria-label="Smaller text">A−</button>` +
     `<span class="fsval">${fontSizeOf(n)}</span><button data-fs="1" title="Bigger" aria-label="Bigger text">A+</button>` +
     `<button data-fs="0" class="def" title="Back to the default size">default</button></div>` :
+    it === 'bottom' ?
+    `<div class="botrow"><button data-m="delete" class="danger" role="menuitem">${delLabel}</button>` +
+    `<label class="donebox"><input type="checkbox" data-mdone${n.done ? ' checked' : ''}>done</label></div>` :
     `<button data-m="${it[0]}" class="${it[2] || ''}" role="menuitem">${it[1]}</button>`).join('');
   ctx.classList.add('show');
   // measure without the opening animation's scale, then place it 50px left / 50px up of the old spot
@@ -1003,6 +1013,13 @@ function openMenu(id, x, y) {
   navigator.vibrate?.(12);
 }
 function closeMenu() { ctx.classList.remove('show'); ctxId = null; }
+ctx.addEventListener('change', e => {
+  const c = e.target.closest('[data-mdone]'); if (!c) return;
+  const n = nodes.get(ctxId); if (!n) return;
+  pushUndo(); n.done = c.checked; n.updated = now();
+  renderAll(); markDirty(); refreshMenuTimes(n);
+  log(c.checked ? `Done: “${short(n.text)}”` : `Not done: “${short(n.text)}”`);
+});
 ctx.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.fs != null) { changeFontSize(ctxId, +b.dataset.fs); return; }   // menu stays open
@@ -1104,6 +1121,7 @@ function detach(id) {
 const pts = new Map();
 let drag = null, pinch = null, lastTap = { t: 0, id: undefined, x: 0, y: 0 };
 stage.addEventListener('pointerdown', e => {
+  if (tableOn || performance.now() < ignoreStageUntil) return;
   if (e.isPrimary) { pts.clear(); pinch = null; }
   pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (pts.size >= 2) {
@@ -1582,10 +1600,20 @@ function renderTable() {
   tvBox.scrollTop = keep;
 }
 function scheduleTable() { if (tableOn) { clearTimeout(tvTimer); tvTimer = setTimeout(renderTable, 80); } }
+let ignoreStageUntil = 0;
+function resetTouchState() {
+  pts.clear(); pinch = null; drag = null;
+  lastTap = { t: 0, id: undefined, x: 0, y: 0 };
+  clearTimeout(lpTimer); clearTimeout(diveTimer);
+  editStart = { id: null, t: 0 };
+  stage.classList.remove('panning');
+}
 function toggleTable(force) {
   tableOn = force ?? !tableOn;
-  if (editingId != null) commitEdit();
-  closeMenu(); closeNodeColor();
+  try { if (editingId != null) commitEdit(); } catch (err) { editingId = null; console.error(err); }
+  try { closeMenu(); closeNodeColor(); } catch (err) { console.error(err); }
+  if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+  resetTouchState();
   if (tableOn && searchOpen()) closeSearch();
   ['#help', '#theme', '#rainPanel'].forEach(q => $(q).classList.remove('show'));
   document.body.classList.toggle('tableview', tableOn);
@@ -1594,7 +1622,12 @@ function toggleTable(force) {
   tvBtn.title = tableOn ? 'Back to the map' : 'Table view';
   tvBtn.setAttribute('aria-label', tvBtn.title);
   if (tableOn) { layoutTable(); renderTable(); tvBox.scrollTop = 0; }
-  else scheduleMini();
+  else {
+    tvBox.innerHTML = '';                              // remove the list completely while on the map
+    ignoreStageUntil = performance.now() + 400;        // the finger that tapped the list must not also tap the map
+    if (scrollX || scrollY) scrollTo(0, 0);
+    scheduleMini();
+  }
 }
 function goToNode(id) {
   const n = nodes.get(id); if (!n) return;
@@ -1607,7 +1640,9 @@ tvBtn.innerHTML = TABLE_ICON;
 tvBtn.addEventListener('click', () => toggleTable());
 tvBox.addEventListener('click', e => {
   const b = e.target.closest('[data-go]'); if (!b) return;
-  const id = +b.dataset.go; toggleTable(false); goToNode(id);
+  e.preventDefault();
+  const id = +b.dataset.go;
+  setTimeout(() => { toggleTable(false); goToNode(id); }, 0);   // finish this tap before the map appears
 });
 tvBox.addEventListener('change', e => {
   const c = e.target.closest('[data-done]'); if (!c) return;
@@ -1834,7 +1869,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 4.1 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 4.3 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');

@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 4.1
+**Current version:** 4.3
 
-![new in 4.1](https://img.shields.io/badge/new_in-4.1-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 4.3](https://img.shields.io/badge/new_in-4.3-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -16,7 +16,7 @@ No install, no account, no server. Everything runs in your browser.
 
 - Free-form mind maps with branches, multi-line nodes, indentation and bullets
 - Full-text search across all nodes, with highlighted matches
-- Table view: $\color{#00FF41}\textsf{every leaf node (a node without children)}$ in a list, newest first, with its updated time and a done checkbox ![new in 4.1](https://img.shields.io/badge/new_in-4.1-00ff41?labelColor=000000)
+- Table view: every leaf node (a node without children) in a list, newest first, with its updated time and a done checkbox
 - Smooth zoom into any node, overview of the whole map, and a radar minimap
 - Hold a node (or right-click it) for a menu with color, connect, disconnect and delete
 - Per-node colors, interface color themes, and a night/day theme
@@ -126,13 +126,13 @@ If a match is inside a folded branch, the branch opens so you can see it. This d
 
 ### Table view
 
-Tap the table button in the bottom-right corner, next to the magnifier, to see your $\color{#00FF41}\textsf{leaf nodes (the nodes at the ends of branches, with no children)}$ as a list. Tap it again (it now shows a small map icon) to go back to the map.
+Tap the table button in the bottom-right corner, next to the magnifier, to see your leaf nodes (the nodes at the ends of branches, with no children) as a list. Tap it again (it now shows a small map icon) to go back to the map.
 
 | Column | What it shows |
 |---|---|
 | NODE | The first line of the node's text, in the node's color. A thin bar on the left shows the color too |
 | UPDATED | When the node was last updated, and how long ago |
-| DONE | A checkbox to mark the node as done. The header counts how many $\color{#00FF41}\textsf{leaf nodes}$ are done, for example 3/12 |
+| DONE | A checkbox to mark the node as done. The header counts how many leaf nodes are done, for example 3/12 |
 
 - Rows are sorted with the newest node (most recently created) at the top.
 - Tap a node's name to jump back to the map and zoom to that node. Folded branches open if needed.
@@ -141,7 +141,7 @@ Tap the table button in the bottom-right corner, next to the magnifier, to see y
 
 ### Node menu (hold a node or right-click)
 
-The top of the menu shows when the node was created and last updated. $\color{#00FF41}\textsf{The menu opens a little up and to the left of your finger and always stays fully on screen.}$
+The top of the menu shows when the node was created and last updated. The menu opens a little up and to the left of your finger and always stays fully on screen.
 
 | Item | What it does |
 |---|---|
@@ -156,6 +156,7 @@ The top of the menu shows when the node was created and last updated. $\color{#0
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
 | Delete node | Delete the node and everything below it |
+| $\color{#00FF41}\textsf{done (bottom right)}$ | $\color{#00FF41}\textsf{Tick to mark the node done, untick to undo it. The menu stays open. Done nodes are struck through on the map and in the table}$ |
 
 Every change can be undone with **undo**.
 
@@ -242,6 +243,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 **A file won't open.** The message at the bottom left tells you why. Make sure you pick a `.sqlite` file saved from MINDGRID, and that it isn't empty (0 bytes).
 
+**After using the table view, taps on the map do nothing.** Fixed in 4.2. Make sure the startup screen says 4.2 or later.
+
 **Nodes overlap after many changes.** Press **T** or tap **tidy** to rearrange them.
 
 **I deleted something by mistake.** Tap **undo**. If you've already closed the app, open your last saved `.sqlite` file.
@@ -252,7 +255,9 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{4.1}$ | $\color{#00FF41}\textsf{Table view lists only leaf nodes; node menu opens 50px further left and up and never runs off the screen edge}$ |
+| $\color{#00FF41}\textsf{4.3}$ | $\color{#00FF41}\textsf{done checkbox in the node menu (bottom right); bigger search, table and ? buttons}$ |
+| 4.2 | Bug fix: after jumping from the table to a node on iPhone, the map could stop responding to taps and the table button |
+| 4.1 | Table view lists only leaf nodes; node menu opens 50px further left and up and never runs off the screen edge |
 | 4.0 | Newest-child dots use the node's color; only the newest node in the whole map gets a matrix-green dot |
 | 3.9 | Table view (title, updated, done) with its own button next to the magnifier; done nodes struck through on the map; the help button is now just ? |
 | 3.8 | Latest-update highlight no longer overrides a color you picked; newest-child dot is always matrix green |
