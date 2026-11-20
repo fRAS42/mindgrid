@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 4.3
+**Current version:** 4.4
 
-![new in 4.3](https://img.shields.io/badge/new_in-4.3-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 4.4](https://img.shields.io/badge/new_in-4.4-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -19,7 +19,7 @@ No install, no account, no server. Everything runs in your browser.
 - Table view: every leaf node (a node without children) in a list, newest first, with its updated time and a done checkbox
 - Smooth zoom into any node, overview of the whole map, and a radar minimap
 - Hold a node (or right-click it) for a menu with color, connect, disconnect and delete
-- Per-node colors, interface color themes, and a night/day theme
+- Per-node colors, interface color themes, and a night/day theme $\color{#00FF41}\textsf{(toggle in the bottom-right corner)}$ ![new in 4.4](https://img.shields.io/badge/new_in-4.4-00ff41?labelColor=000000)
 - Separate color for the digital rain
 - Adjustable node widths
 - Text size per node, from the node menu
@@ -70,6 +70,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Matrix-green dot on the left edge of a node | This is the newest node in the whole map |
 | Tap ? (bottom right) | Show all controls; tap ✕ or the map to close |
 | Tap the table button (bottom right, next to the magnifier) | Switch to the table view; tap it again to go back to the map |
+| $\color{#00FF41}\textsf{Tap the sun / moon button (bottom right)}$ | $\color{#00FF41}\textsf{Switch between the night and day theme}$ |
 | Tap the magnifier (bottom right or toolbar) | Open search |
 
 ### Keyboard (when not editing)
@@ -156,7 +157,7 @@ The top of the menu shows when the node was created and last updated. The menu o
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
 | Delete node | Delete the node and everything below it |
-| $\color{#00FF41}\textsf{done (bottom right)}$ | $\color{#00FF41}\textsf{Tick to mark the node done, untick to undo it. The menu stays open. Done nodes are struck through on the map and in the table}$ |
+| done (bottom right) | Tick to mark the node done, untick to undo it. The menu stays open. Done nodes are struck through on the map and in the table |
 
 Every change can be undone with **undo**.
 
@@ -255,7 +256,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{4.3}$ | $\color{#00FF41}\textsf{done checkbox in the node menu (bottom right); bigger search, table and ? buttons}$ |
+| $\color{#00FF41}\textsf{4.4}$ | $\color{#00FF41}\textsf{Day/night toggle (sun / moon) in the bottom-right buttons next to search and table}$ |
+| 4.3 | done checkbox in the node menu (bottom right); bigger search, table and ? buttons |
 | 4.2 | Bug fix: after jumping from the table to a node on iPhone, the map could stop responding to taps and the table button |
 | 4.1 | Table view lists only leaf nodes; node menu opens 50px further left and up and never runs off the screen edge |
 | 4.0 | Newest-child dots use the node's color; only the newest node in the whole map gets a matrix-green dot |

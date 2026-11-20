@@ -122,6 +122,7 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 #status span{margin-right:14px;white-space:nowrap;display:inline-block}
 #status .dirty{color:var(--warn)}
 #sbtns{display:flex;gap:6px;flex:none;align-items:flex-start}
+#modeBtn2{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
 #tableBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
 #tableBtn.on{background:rgba(var(--rgb),.18);color:var(--g-hi);border-color:var(--g-mid)}
 #tableView{position:fixed;left:0;right:0;top:50px;bottom:40px;z-index:8;display:none;overflow:auto;
@@ -259,7 +260,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 4.3</p>
+  <p style="margin:-4px 0 8px">Version 4.4</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -338,7 +339,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="linkbar"><span id="linkmsg"></span><button id="linkCancel">cancel</button></div>
 <div id="mini" title="Click or drag to navigate"><canvas></canvas><div class="lbl">radar</div></div>
 <div id="log"></div>
-<div id="statusbar"><div id="status"></div><div id="sbtns"><button id="searchBtn" type="button" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button><button id="tableBtn" type="button" title="Table view" aria-label="Table view"></button><button id="hint" type="button" title="Show all controls" aria-label="Show all controls">?</button></div></div>
+<div id="statusbar"><div id="status"></div><div id="sbtns"><button id="searchBtn" type="button" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button><button id="tableBtn" type="button" title="Table view" aria-label="Table view"></button><button id="modeBtn2" type="button" title="Switch to day theme" aria-label="Switch to day theme"></button><button id="hint" type="button" title="Show all controls" aria-label="Show all controls">?</button></div></div>
 <div id="scan"></div>
 <div id="dropzone">DROP .SQLITE FILE TO LOAD</div>
 <div id="boot"><pre id="bootText"></pre></div>
@@ -1755,6 +1756,14 @@ function applyTheme() {
   document.querySelectorAll('#swatches .sw').forEach(b => b.classList.toggle('on', b.dataset.color === prefs.color));
   document.querySelectorAll('.seg [data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === prefs.mode));
   $('#modeBtn').textContent = day ? '☾ night' : '☀ day';
+  const mb2 = $('#modeBtn2');
+  if (mb2) {
+    mb2.innerHTML = day
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>'
+      : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>';
+    mb2.title = day ? 'Switch to night theme' : 'Switch to day theme';
+    mb2.setAttribute('aria-label', mb2.title);
+  }
   if ($('#rainSwatches')) syncRainPanel();
   $('#modeBtn').title = day ? 'Switch to night theme' : 'Switch to day theme';
   if (typeof renderAll === 'function' && nodes.size) renderAll();   // nodes with their own color re-shade
@@ -1811,6 +1820,7 @@ $('#theme').addEventListener('click', e => {
 $('#customColor').addEventListener('input', e => { prefs.color = e.target.value; applyTheme(); });
 $('#customColor').addEventListener('change', savePrefs);
 $('#rainLevel').addEventListener('input', e => { prefs.rain = +e.target.value; applyTheme(); savePrefs(); });
+$('#modeBtn2').addEventListener('click', () => setMode(prefs.mode === 'day' ? 'night' : 'day'));
 $('#rainSwatches').innerHTML =
   `<button class="sw def" data-color="" title="same as interface"><i></i>interface</button>` +
   PRESETS.map(([n, c]) => `<button class="sw" data-color="${c}" title="${n}"><i style="background:${c};box-shadow:0 0 8px ${c}"></i>${n}</button>`).join('');
@@ -1869,7 +1879,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 4.3 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 4.4 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
