@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 3.6
+**Current version:** 3.8
 
-![new in 3.6](https://img.shields.io/badge/new_in-3.6-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 3.8](https://img.shields.io/badge/new_in-3.8-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -24,8 +24,8 @@ No install, no account, no server. Everything runs in your browser.
 - Text size per node, from the node menu
 - Recoloring or resizing the text of a node counts as an update; moving nodes around does not
 - How long ago the selected node was updated, shown above it (for example 2 days 3 hours 14 mins ago) in text 2 sizes bigger than the node's own text; full created and updated dates in the node menu
-- The most recently updated node glows in matrix green, so you can always see where you left off
-- The newest child of every node has a small dot on its left edge
+- The most recently updated node glows in matrix green, so you can always see where you left off. $\color{#00FF41}\textsf{A node you colored yourself keeps its own color}$ ![new in 3.8](https://img.shields.io/badge/new_in-3.8-00ff41?labelColor=000000)
+- The newest child of every node has a small $\color{#00FF41}\textsf{matrix-green}$ dot on its left edge
 - Fold and unfold branches; focus on one topic by folding everything else
 - Undo and redo
 - Auto-arrange (tidy) layout
@@ -65,7 +65,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Tap a node while zoomed far out | Zoom into that node |
 | Tap or drag on the radar minimap | Fly to that part of the map |
 | Tap the **+N** badge on a folded node | Unfold the branch |
-| Dot on the left edge of a node | This is the newest child of its parent |
+| $\color{#00FF41}\textsf{Matrix-green}$ dot on the left edge of a node | This is the newest child of its parent |
 | Tap **? controls** (bottom right) | Show all controls; tap ✕ or the map to close |
 | Tap the magnifier (bottom right or toolbar) | Open search |
 
@@ -102,6 +102,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Tap or click outside the node | Save the text |
 | Ctrl/⌘ + Enter or **✓** | Save the text |
 | Esc or **✕** | Cancel your changes |
+| New node | When you add a node and start typing, the view moves the node 50px up so it stays clear of the iPhone keyboard. The node's position on the map does not change |
 | Tab or **⇥** | Indent the current line(s) |
 | Shift + Tab or **⇤** | Outdent the current line(s) |
 | **•** | Add or remove a bullet on the current line(s) |
@@ -175,9 +176,9 @@ Your map is stored in a SQLite database file (`.sqlite`).
 
 The status bar shows **(unsaved)** when you have changes that aren't in the file yet.
 
-$\color{#00FF41}\textsf{The status bar also shows how long ago the map was last saved to a file, for example saved 2 hours 5 mins ago, or not saved to a file yet for a new map. The time is stored in the file, so it is still right after you open the file again.}$ ![new in 3.6](https://img.shields.io/badge/new_in-3.6-00ff41?labelColor=000000)
+The status bar also shows how long ago the map was last saved to a file, for example saved 2 hours 5 mins ago, or not saved to a file yet for a new map. The time is stored in the file, so it is still right after you open the file again.
 
-The status bar reads, from left to right: the file name, the number of nodes (including hidden ones), $\color{#00FF41}\textsf{the zoom level (zoom 100% = normal size)}$, and $\color{#00FF41}\textsf{how long ago it was saved}$.
+The status bar reads, from left to right: the file name, the number of nodes (including hidden ones), the zoom level (zoom 100% = normal size), and how long ago it was saved.
 
 ### What's inside the file
 
@@ -198,7 +199,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | created_at | When the node was created (ISO 8601, UTC) |
 | updated_at | When the node's text, color, width, text size or connection last changed (ISO 8601, UTC). Moving nodes, folding, focusing and tidy do not change it |
 
-**`meta`** holds map settings: the view position and zoom, the selected node, $\color{#00FF41}\textsf{when the map was last saved to a file (file_saved_at)}$, and the interface theme (color, rain brightness, rain color, tint, night/day, latest-update highlight).
+**`meta`** holds map settings: the view position and zoom, the selected node, when the map was last saved to a file (file_saved_at), and the interface theme (color, rain brightness, rain color, tint, night/day, latest-update highlight).
 
 The matrix-green highlight is not stored on the node itself. The app picks the node with the newest `updated_at` each time, and the node keeps its own `color`.
 
@@ -232,7 +233,9 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{3.6}$ | $\color{#00FF41}\textsf{Status bar shows how long ago the map was saved to a file; zoom level is labelled zoom}$ |
+| $\color{#00FF41}\textsf{3.8}$ | $\color{#00FF41}\textsf{Latest-update highlight no longer overrides a color you picked; newest-child dot is always matrix green}$ |
+| 3.7 | Typing into a new node lifts it 50px higher on screen |
+| 3.6 | Status bar shows how long ago the map was saved to a file; zoom level is labelled zoom |
 | 3.5 | Node menu: Focus (fold everything else) and Unfold everything |
 | 3.4 | Full-text search (magnifier button, Ctrl+F or /) with highlighted matches, a results list and next/previous |
 | 3.3 | Moving nodes no longer changes their updated time (rearranging the map is not an edit) |
