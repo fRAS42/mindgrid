@@ -293,7 +293,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 5.2</p>
+  <p style="margin:-4px 0 8px">Version 5.3</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -675,9 +675,7 @@ function updateEl(n, el = els.get(n.id), idx) {
     if (n.cat) { if (!ct) { ct = document.createElement('div'); ct.className = 'cat'; el.appendChild(ct); }
       ct.textContent = n.cat; ct.style.background = catColor(n.cat); ct.title = CATS[n.cat].name; }
     else ct?.remove(); }
-  { let du = el.querySelector('.due'); const info = dueInfo(n.due);
-    if (info) { if (!du) { du = document.createElement('div'); el.appendChild(du); } du.className = 'due ' + info.cls; du.textContent = info.text; }
-    else du?.remove(); }
+  el.querySelector('.due')?.remove();   // due dates are shown in the menu and the table, not on the map
   if (idx) updateStamp(n.id);
   el.style.display = isHidden(n) ? 'none' : '';
   const t = el.firstChild;
@@ -2074,7 +2072,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 5.2 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 5.3 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');

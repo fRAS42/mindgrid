@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 5.2
+**Current version:** 5.3
 
-![new in 5.2](https://img.shields.io/badge/new_in-5.2-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 5.3](https://img.shields.io/badge/new_in-5.3-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -22,7 +22,7 @@ No install, no account, no server. Everything runs in your browser.
 - Per-node colors, interface color themes, and a night/day theme (toggle in the bottom-right corner)
 - Separate color for the digital rain
 - Adjustable node widths
-- Due dates for leaf nodes, shown under the node and used to sort the table
+- Due dates for leaf nodes, $\color{#00FF41}\textsf{shown in the table view (not on the map, to keep it tidy)}$ and used to sort the table ![new in 5.3](https://img.shields.io/badge/new_in-5.3-00ff41?labelColor=000000)
 - Priority flags A, B, C, D (urgent / important), shown on the node and as a column in the table
 - Text size per node, from the node menu
 - Recoloring or resizing the text of a node counts as an update; moving nodes around does not
@@ -115,7 +115,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 
 ### Due dates
 
-Hold a leaf node (one without children) and pick a date in the Due date row of the menu. The date appears in a small label under the node:
+Hold a leaf node (one without children) and pick a date in the Due date row of the menu. $\color{#00FF41}\textsf{The map stays clean: the date is shown in the table view, under the node's name:}$
 
 | Label | Meaning |
 |---|---|
@@ -124,7 +124,7 @@ Hold a leaf node (one without children) and pick a date in the Due date row of t
 | due tomorrow / due today (yellow) | Due within 2 days |
 | overdue 2 days (red) | The due date has passed |
 
-Done nodes show their due date struck through. Setting or removing a due date counts as an update and can be undone. Labels update by themselves when the day changes.
+Setting or removing a due date counts as an update and can be undone. Labels update by themselves when the day changes.
 
 ### Priority
 
@@ -188,7 +188,7 @@ The top of the menu shows when the node was created and last updated. The menu o
 | Priority: A / B / C / D / ✕ | Flag the node (see Priority below). Tap the active letter again or ✕ to remove it. The menu stays open |
 | Text size: A− / A+ / default | Make the node's text smaller or bigger in steps of 2, or back to the default size. The menu stays open so you can tap several times |
 | Fold / Unfold branch | Hide or show everything below the node |
-| $\color{#00FF41}\textsf{Tidy children}$ | $\color{#00FF41}\textsf{Neatly arrange everything below this node, leaving the node itself and the rest of the map where they are. Shown when the node has visible children}$ ![new in 5.2](https://img.shields.io/badge/new_in-5.2-00ff41?labelColor=000000) |
+| Tidy children | Neatly arrange everything below this node, leaving the node itself and the rest of the map where they are. Shown when the node has visible children |
 | Focus: fold everything else | Fold every branch except this node's own branch and the path leading to it, then zoom in on it. The status bar shows focus: and the node's name |
 | Exit focus (keep my folds) | Shown while focusing instead of Unfold everything. Opens only what focus folded, so branches you folded yourself stay folded. Focus is saved in the file |
 | Unfold everything | Open all folded branches again (shown when something is folded and you are not in focus mode) |
@@ -258,7 +258,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | due | The node's due date as YYYY-MM-DD (empty = no due date) |
 | category | Priority flag: A, B, C or D (empty = none) |
 | created_at | When the node was created (ISO 8601, UTC) |
-| updated_at | When the node's text, color, width, text size, done state, due date, priority or connection last changed (ISO 8601, UTC). Moving nodes, folding, focusing, tidy and $\color{#00FF41}\textsf{tidy children}$ do not change it |
+| updated_at | When the node's text, color, width, text size, done state, due date, priority or connection last changed (ISO 8601, UTC). Moving nodes, folding, focusing, tidy and tidy children do not change it |
 
 **`meta`** holds map settings: the view position and zoom, the selected node, when the map was last saved to a file (file_saved_at), and the interface theme (color, rain brightness, rain color, tint, night/day, latest-update highlight).
 
@@ -296,7 +296,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{5.2}$ | $\color{#00FF41}\textsf{Tidy children in the node menu: arrange only one branch}$ |
+| $\color{#00FF41}\textsf{5.3}$ | $\color{#00FF41}\textsf{Due dates are no longer shown under nodes on the map; they stay in the menu and the table}$ |
+| 5.2 | Tidy children in the node menu: arrange only one branch |
 | 5.1 | Priority flags A–D (Eisenhower) in the node menu, on the node and as a PRI column in the table; table sorting combines due dates and priority |
 | 5.0 | Nodes with children that have a due date are listed in the table too (marked ▸) and can still change or clear their due date in the menu |
 | 4.9 | Only nodes due within 3 days (or overdue) move to the top of the table |
