@@ -37,6 +37,26 @@ No install, no account, no server. Everything runs in your browser.
 
 ---
 
+## Try the demo
+
+$\color{#00FF41}\textsf{Download mindgrid-demo.sqlite from this repository, open the app, tap open and pick the file.}$
+
+- **Download:** [mindgrid-demo.sqlite](https://github.com/fras42/mindgrid/raw/main/mindgrid-demo.sqlite)
+- **On iPhone:** the file lands in **Files → Downloads**. In the app, tap **open** and choose it.
+
+$\color{#00FF41}\textsf{The demo is a plan for a year, MY 2027, and shows most of what the app can do:}$
+
+- $\color{#00FF41}\textsf{Colored branches (side app, learning, home, health) and the latest-updated node glowing in matrix green (Book flights)}$
+- $\color{#00FF41}\textsf{Priority letters A to D, due dates that are overdue, today, tomorrow and soon, and done tasks struck through}$
+- $\color{#00FF41}\textsf{A folded branch (Read 12 books) drawn as a stack of cards with a +5 badge}$
+- $\color{#00FF41}\textsf{A multi-line node with bullets and indentation, a wider node, and bigger text on the main topics}$
+- $\color{#00FF41}\textsf{Newest-child dots, and two separate floating maps: START HERE (quick tips) and IDEAS INBOX}$
+- $\color{#00FF41}\textsf{Tap the table button to see it as a to-do list, sorted by due date and priority}$
+
+$\color{#00FF41}\textsf{The due dates were set around November 20, 2026, so the longer you wait, the more of them will show as overdue.}$
+
+---
+
 ## Getting started
 
 1. Open the app link above, or download `mindgrid.html` and open it in your browser.
