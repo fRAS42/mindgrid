@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 3.4
+**Current version:** 3.5
 
-![new in 3.4](https://img.shields.io/badge/new_in-3.4-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 3.5](https://img.shields.io/badge/new_in-3.5-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -15,7 +15,7 @@ No install, no account, no server. Everything runs in your browser.
 ## Features
 
 - Free-form mind maps with branches, multi-line nodes, indentation and bullets
-- $\color{#00FF41}\textsf{Full-text search across all nodes, with highlighted matches}$ ![new in 3.4](https://img.shields.io/badge/new_in-3.4-00ff41?labelColor=000000)
+- Full-text search across all nodes, with highlighted matches
 - Smooth zoom into any node, overview of the whole map, and a radar minimap
 - Hold a node (or right-click it) for a menu with color, connect, disconnect and delete
 - Per-node colors, interface color themes, and a night/day theme
@@ -26,7 +26,7 @@ No install, no account, no server. Everything runs in your browser.
 - How long ago the selected node was updated, shown above it (for example 2 days 3 hours 14 mins ago) in text 2 sizes bigger than the node's own text; full created and updated dates in the node menu
 - The most recently updated node glows in matrix green, so you can always see where you left off
 - The newest child of every node has a small dot on its left edge
-- Fold and unfold branches
+- Fold and unfold branches; $\color{#00FF41}\textsf{focus on one topic by folding everything else}$ ![new in 3.5](https://img.shields.io/badge/new_in-3.5-00ff41?labelColor=000000)
 - Undo and redo
 - Auto-arrange (tidy) layout
 - Saves to a standard `.sqlite` file, which you can open in any SQLite tool
@@ -67,7 +67,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Tap the **+N** badge on a folded node | Unfold the branch |
 | Dot on the left edge of a node | This is the newest child of its parent |
 | Tap **? controls** (bottom right) | Show all controls; tap ✕ or the map to close |
-| $\color{#00FF41}\textsf{Tap the magnifier (bottom right or toolbar)}$ | $\color{#00FF41}\textsf{Open search}$ |
+| Tap the magnifier (bottom right or toolbar) | Open search |
 
 ### Keyboard (when not editing)
 
@@ -92,7 +92,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Ctrl/⌘ + S | Save |
 | Ctrl/⌘ + Shift + S | Save as a new file |
 | Ctrl/⌘ + O | Open a `.sqlite` file |
-| $\color{#00FF41}\textsf{Ctrl/⌘ + F or /}$ | $\color{#00FF41}\textsf{Search the text of all nodes}$ |
+| Ctrl/⌘ + F or / | Search the text of all nodes |
 
 ### While editing a node's text
 
@@ -108,17 +108,17 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 
 ### Search
 
-$\color{#00FF41}\textsf{Type to search the text of every node. Matches light up and are highlighted inside the nodes; everything else fades out.}$
+Type to search the text of every node. Matches light up and are highlighted inside the nodes; everything else fades out.
 
 | Key / button | What it does |
 |---|---|
-| $\color{#00FF41}\textsf{Type words}$ | $\color{#00FF41}\textsf{Find nodes that contain all the words, ignoring upper/lower case and accents (cafe finds Café)}$ |
-| $\color{#00FF41}\textsf{Enter or ▼}$ | $\color{#00FF41}\textsf{Fly to the next match}$ |
-| $\color{#00FF41}\textsf{Shift + Enter or ▲}$ | $\color{#00FF41}\textsf{Fly to the previous match}$ |
-| $\color{#00FF41}\textsf{Tap a result in the list}$ | $\color{#00FF41}\textsf{Fly to that node}$ |
-| $\color{#00FF41}\textsf{Esc or ✕}$ | $\color{#00FF41}\textsf{Close search and clear the highlights}$ |
+| Type words | Find nodes that contain all the words, ignoring upper/lower case and accents (cafe finds Café) |
+| Enter or ▼ | Fly to the next match |
+| Shift + Enter or ▲ | Fly to the previous match |
+| Tap a result in the list | Fly to that node |
+| Esc or ✕ | Close search and clear the highlights |
 
-$\color{#00FF41}\textsf{If a match is inside a folded branch, the branch opens so you can see it. This does not change any node's updated time.}$
+If a match is inside a folded branch, the branch opens so you can see it. This does not change any node's updated time.
 
 ### Node menu (hold a node or right-click)
 
@@ -132,6 +132,8 @@ The top of the menu shows when the node was created and last updated.
 | Change color… | Pick a color for the node, optionally for its whole branch |
 | Text size: A− / A+ / default | Make the node's text smaller or bigger in steps of 2, or back to the default size. The menu stays open so you can tap several times |
 | Fold / Unfold branch | Hide or show everything below the node |
+| $\color{#00FF41}\textsf{Focus: fold everything else}$ | $\color{#00FF41}\textsf{Fold every branch except this node's own branch and the path leading to it, then zoom in on it}$ |
+| $\color{#00FF41}\textsf{Unfold everything}$ | $\color{#00FF41}\textsf{Open all folded branches again (shown when something is folded)}$ |
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
 | Delete node | Delete the node and everything below it |
@@ -157,7 +159,7 @@ Every change can be undone with **undo**.
 | colors | Interface color, night/day, matrix-green highlight for the latest update, rain brightness, background tint |
 | rain | Turn the digital rain on or off |
 | rain color | Pick the rain color and brightness, separately from the interface |
-| $\color{#00FF41}\textsf{magnifier}$ | $\color{#00FF41}\textsf{Search the text of all nodes (also in the bottom-right corner)}$ |
+| magnifier | Search the text of all nodes (also in the bottom-right corner) |
 | ? | Controls panel (also **? controls** in the bottom-right corner) |
 
 ---
@@ -190,7 +192,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | color | The node's own color, such as `#ffb000` (empty = interface color) |
 | font_size | The node's text size in pixels (empty = default: 19 for a central node, 15 for others) |
 | created_at | When the node was created (ISO 8601, UTC) |
-| updated_at | When the node's text, color, width, text size or connection last changed (ISO 8601, UTC). Moving nodes, folding and tidy do not change it |
+| updated_at | When the node's text, color, width, text size or connection last changed (ISO 8601, UTC). Moving nodes, folding, focusing and tidy do not change it |
 
 **`meta`** holds map settings: the view position and zoom, the selected node, and the interface theme (color, rain brightness, rain color, tint, night/day, latest-update highlight).
 
@@ -226,7 +228,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{3.4}$ | $\color{#00FF41}\textsf{Full-text search (magnifier button, Ctrl+F or /) with highlighted matches, a results list and next/previous}$ |
+| $\color{#00FF41}\textsf{3.5}$ | $\color{#00FF41}\textsf{Node menu: Focus (fold everything else) and Unfold everything}$ |
+| 3.4 | Full-text search (magnifier button, Ctrl+F or /) with highlighted matches, a results list and next/previous |
 | 3.3 | Moving nodes no longer changes their updated time (rearranging the map is not an edit) |
 | 3.2 | Color and text size changes refresh the label and menu times straight away |
 | 3.1 | The how-long-ago label is 2px bigger than the node's text and follows the node's text size |
