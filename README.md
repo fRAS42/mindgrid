@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 4.6
+**Current version:** 4.7
 
-![new in 4.6](https://img.shields.io/badge/new_in-4.6-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 4.7](https://img.shields.io/badge/new_in-4.7-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -16,7 +16,7 @@ No install, no account, no server. Everything runs in your browser.
 
 - Free-form mind maps with branches, multi-line nodes, indentation and bullets
 - Full-text search across all nodes, with highlighted matches
-- Table view: every leaf node (a node without children) in a list, newest first, with its updated time and a done checkbox
+- Table view: every leaf node (a node without children) $\color{#00FF41}\textsf{that is not done yet}$ in a list, newest first, with its updated time and a done checkbox ![new in 4.7](https://img.shields.io/badge/new_in-4.7-00ff41?labelColor=000000)
 - Smooth zoom into any node, overview of the whole map, and a radar minimap
 - Hold a node (or right-click it) for a menu with color, connect, disconnect and delete
 - Per-node colors, interface color themes, and a night/day theme (toggle in the bottom-right corner)
@@ -27,7 +27,7 @@ No install, no account, no server. Everything runs in your browser.
 - How long ago the selected node was updated, shown above it (for example 2 days 3 hours 14 mins ago) in text 2 sizes bigger than the node's own text; full created and updated dates in the node menu
 - The most recently updated node glows in matrix green, so you can always see where you left off. A node you colored yourself keeps its own color
 - The newest child of every node has a small dot on its left edge in the node's own color; the newest node in the whole map gets a matrix-green dot. Dots appear only on leaf nodes (nodes without children)
-- Fold and unfold branches; focus on one topic by folding everything else. $\color{#00FF41}\textsf{Folded nodes look like a stack of cards with a bright +N badge, and leaving focus keeps your own folds}$ ![new in 4.6](https://img.shields.io/badge/new_in-4.6-00ff41?labelColor=000000)
+- Fold and unfold branches; focus on one topic by folding everything else. Folded nodes look like a stack of cards with a bright +N badge, and leaving focus keeps your own folds
 - Undo and redo
 - Auto-arrange (tidy) layout
 - Saves to a standard `.sqlite` file, which you can open in any SQLite tool
@@ -65,7 +65,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Mouse wheel / pinch | Zoom |
 | Tap a node while zoomed far out | Zoom into that node |
 | Tap or drag on the radar minimap | Fly to that part of the map |
-| Tap the **+N** badge on a folded node | Unfold the branch. $\color{#00FF41}\textsf{Folded nodes are drawn as a stack of cards, and the bright badge shows how many nodes are hidden}$ |
+| Tap the **+N** badge on a folded node | Unfold the branch. Folded nodes are drawn as a stack of cards, and the bright badge shows how many nodes are hidden |
 | Dot on the left edge of a node, in the node's color | This is the newest child of its parent and has no children of its own |
 | Matrix-green dot on the left edge of a node | This is the newest leaf node in the whole map |
 | Tap ? (bottom right) | Show all controls; tap ✕ or the map to close |
@@ -136,8 +136,9 @@ Tap the table button in the bottom-right corner, next to the magnifier, to see y
 | DONE | A checkbox to mark the node as done. The header counts how many leaf nodes are done, for example 3/12 |
 
 - Rows are sorted with the newest node (most recently created) at the top.
+- $\color{#00FF41}\textsf{Nodes marked done leave the list about a second after you tick them. Tap show N done at the bottom to list them again (and hide N done to hide them).}$
 - Tap a node's name to jump back to the map and zoom to that node. Folded branches open if needed.
-- Done nodes are struck through, both in the table and on the map. Ticking done counts as an update and can be undone.
+- Done nodes are struck through on the map $\color{#00FF41}\textsf{(and in the table when show done is on)}$. Ticking done counts as an update and can be undone. $\color{#00FF41}\textsf{The DONE count in the header always counts all leaf nodes, shown or not.}$
 - Esc also goes back to the map. Map shortcuts (like Delete) are switched off while the table is open.
 
 ### Node menu (hold a node or right-click)
@@ -152,9 +153,9 @@ The top of the menu shows when the node was created and last updated. The menu o
 | Change color… | Pick a color for the node, optionally for its whole branch |
 | Text size: A− / A+ / default | Make the node's text smaller or bigger in steps of 2, or back to the default size. The menu stays open so you can tap several times |
 | Fold / Unfold branch | Hide or show everything below the node |
-| Focus: fold everything else | Fold every branch except this node's own branch and the path leading to it, then zoom in on it. $\color{#00FF41}\textsf{The status bar shows focus: and the node's name}$ |
-| $\color{#00FF41}\textsf{Exit focus (keep my folds)}$ | $\color{#00FF41}\textsf{Shown while focusing instead of Unfold everything. Opens only what focus folded, so branches you folded yourself stay folded. Focus is saved in the file}$ |
-| Unfold everything | Open all folded branches again (shown when something is folded $\color{#00FF41}\textsf{and you are not in focus mode}$) |
+| Focus: fold everything else | Fold every branch except this node's own branch and the path leading to it, then zoom in on it. The status bar shows focus: and the node's name |
+| Exit focus (keep my folds) | Shown while focusing instead of Unfold everything. Opens only what focus folded, so branches you folded yourself stay folded. Focus is saved in the file |
+| Unfold everything | Open all folded branches again (shown when something is folded and you are not in focus mode) |
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
 | Delete node | Delete the node and everything below it |
@@ -257,7 +258,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{4.6}$ | $\color{#00FF41}\textsf{Exit focus keeps your own folds; folded nodes look like a stack of cards; high-contrast +N badge; focus shown in the status bar}$ |
+| $\color{#00FF41}\textsf{4.7}$ | $\color{#00FF41}\textsf{Table view hides done nodes, with a show done / hide done button at the bottom}$ |
+| 4.6 | Exit focus keeps your own folds; folded nodes look like a stack of cards; high-contrast +N badge; focus shown in the status bar |
 | 4.5 | Newest-child dots and the matrix-green newest dot only appear on leaf nodes |
 | 4.4 | Day/night toggle (sun / moon) in the bottom-right buttons next to search and table |
 | 4.3 | done checkbox in the node menu (bottom right); bigger search, table and ? buttons |

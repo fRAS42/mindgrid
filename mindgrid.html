@@ -147,6 +147,9 @@ body.tableview #stage,body.tableview #mini,body.tableview #log{visibility:hidden
 #tv input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--g);cursor:pointer}
 #tv tr.done td.t button{text-decoration:line-through;opacity:.55}
 #tv tr.sel td{background:rgba(var(--rgb),.1)}
+#tv tr.leaving{transition:opacity .6s .3s;opacity:0}
+#tv td.empty{text-align:center;color:var(--g-mid);padding:24px 8px;border-left:0}
+#tableView .tvdone{display:block;margin:14px auto 18px;padding:8px 16px;border:1px solid var(--g-dim);color:var(--g-mid);font-size:14px}
 .node.done .txt{text-decoration:line-through;opacity:.6}
 #searchBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
 #search{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 56px);transform:translateX(-50%);z-index:21;
@@ -264,7 +267,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 4.6</p>
+  <p style="margin:-4px 0 8px">Version 4.7</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
@@ -295,7 +298,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
     <tr><td>C</td><td>Fold / unfold branch</td></tr>
     <tr><td>T</td><td>Tidy layout</td></tr>
     <tr><td>Ctrl+F or /</td><td>Search the text of all nodes</td></tr>
-    <tr><td>Table button (bottom right)</td><td>Switch between the map and a table of the leaf nodes (nodes without children) with a done checkbox</td></tr>
+    <tr><td>Table button (bottom right)</td><td>Switch between the map and a table of the leaf nodes that are not done yet; “show done” at the bottom lists the done ones too</td></tr>
     <tr><td>Ctrl+Z / Ctrl+Y</td><td>Undo / redo</td></tr>
     <tr><td>Ctrl+S / Ctrl+Shift+S</td><td>Save / save as</td></tr>
     <tr><td>Ctrl+O</td><td>Open a .sqlite file</td></tr>
@@ -1625,18 +1628,22 @@ function renderTable() {
   const rows = [...nodes.values()].filter(n => !parents.has(n.id))          // leaf nodes only
     .sort((a, b) => (b.created || '').localeCompare(a.created || '') || b.id - a.id);
   const doneCount = rows.filter(n => n.done).length;
+  const shown = tvShowDone ? rows : rows.filter(n => !n.done);   // done nodes are hidden unless asked for
   tvBox.innerHTML = `<table id="tv"><thead><tr><th class="t">NODE</th><th class="u">UPDATED</th>` +
     `<th class="d">DONE<small>${doneCount}/${rows.length}</small></th></tr></thead><tbody>` +
-    rows.map(n => {
+    (shown.length ? '' : `<tr><td colspan="3" class="empty">${rows.length ? 'Everything is done.' : 'No leaf nodes yet.'}</td></tr>`) +
+    shown.map(n => {
       const ec = effColor(n), title = n.text.split('\n')[0].trim() || '…';
       return `<tr class="${n.done ? 'done' : ''}${n.id === selectedId ? ' sel' : ''}" style="${ec ? colorVars(ec) : ''}">` +
         `<td class="t"><button data-go="${n.id}" title="${escapeHtml(n.text)}">${escapeHtml(title)}</button></td>` +
         `<td class="u">${fmtShort(n.updated || n.created)}<small>${ago(n.updated || n.created)}</small></td>` +
         `<td class="d"><input type="checkbox" data-done="${n.id}"${n.done ? ' checked' : ''} aria-label="Mark done"></td></tr>`;
-    }).join('') + '</tbody></table>';
+    }).join('') + '</tbody></table>' +
+    (doneCount ? `<button class="tvdone" data-showdone>${tvShowDone ? `hide ${doneCount} done` : `show ${doneCount} done`}</button>` : '');
   tvBox.scrollTop = keep;
 }
-function scheduleTable() { if (tableOn) { clearTimeout(tvTimer); tvTimer = setTimeout(renderTable, 80); } }
+let tvShowDone = false, tvHoldUntil = 0;
+function scheduleTable() { if (tableOn) { clearTimeout(tvTimer); tvTimer = setTimeout(renderTable, Math.max(80, tvHoldUntil - performance.now())); } }
 let ignoreStageUntil = 0;
 function resetTouchState() {
   pts.clear(); pinch = null; drag = null;
@@ -1676,6 +1683,7 @@ function goToNode(id) {
 tvBtn.innerHTML = TABLE_ICON;
 tvBtn.addEventListener('click', () => toggleTable());
 tvBox.addEventListener('click', e => {
+  if (e.target.closest('[data-showdone]')) { tvShowDone = !tvShowDone; tvHoldUntil = 0; renderTable(); return; }
   const b = e.target.closest('[data-go]'); if (!b) return;
   e.preventDefault();
   const id = +b.dataset.go;
@@ -1685,7 +1693,9 @@ tvBox.addEventListener('change', e => {
   const c = e.target.closest('[data-done]'); if (!c) return;
   const n = nodes.get(+c.dataset.done); if (!n) return;
   pushUndo(); n.done = c.checked; n.updated = now();
-  c.closest('tr').classList.toggle('done', c.checked);
+  const tr = c.closest('tr');
+  tr.classList.toggle('done', c.checked);
+  if (c.checked && !tvShowDone) { tr.classList.add('leaving'); tvHoldUntil = performance.now() + 900; }   // let you see the tick, then hide it
   renderAll(); markDirty();
   log(c.checked ? `Done: “${short(n.text)}”` : `Not done: “${short(n.text)}”`);
 });
@@ -1915,7 +1925,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 4.6 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 4.7 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
