@@ -25,7 +25,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
 #scan{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:var(--scan);
   background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.18) 2px 3px)}
 #stage{position:fixed;inset:0;z-index:1;cursor:grab;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-#ctx{position:fixed;z-index:30;min-width:220px;max-height:calc(100% - 110px);overflow-y:auto;background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);
+#ctx{position:fixed;z-index:30;min-width:220px;max-width:calc(100vw - 20px);box-sizing:border-box;max-height:calc(100% - 110px);overflow-y:auto;background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);
   padding:4px;display:none;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 #ctx.show{display:block;animation:ctxIn .14s ease-out}
 @keyframes ctxIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
@@ -85,8 +85,9 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
   white-space:nowrap;pointer-events:none;text-shadow:none;letter-spacing:0;font-weight:normal;
   background:var(--panel);padding:1px 6px;border:1px solid var(--g-dim)}
 .node.editing .stamp{display:none}
-.node.newest::before{content:"";position:absolute;left:-5px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;
-  background:var(--matrix);box-shadow:0 0 6px rgba(var(--matrix-rgb),.85);pointer-events:none}
+.node.newest::before,.node.newest-all::before{content:"";position:absolute;left:-5px;top:50%;width:9px;height:9px;margin-top:-4.5px;
+  border-radius:50%;background:var(--g);box-shadow:0 0 6px rgba(var(--rgb),.85);pointer-events:none}
+.node.newest-all::before{background:var(--matrix);box-shadow:0 0 7px rgba(var(--matrix-rgb),.9)}
 .node.latest{box-shadow:0 0 0 1px var(--g),0 0 18px rgba(var(--rgb),.45)}
 .node.latest.sel{box-shadow:0 0 0 2px var(--g-hi),0 0 22px rgba(var(--rgb),.55)}
 #ctx .ttl small{display:block;margin-top:3px;font-size:11.5px;color:var(--g-dim)}
@@ -252,14 +253,15 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 3.9</p>
+  <p style="margin:-4px 0 8px">Version 4.1</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
     <tr><td>Drag node</td><td>Move branch (Shift: just the node)</td></tr>
     <tr><td>Drag empty / wheel</td><td>Pan / zoom (pinch on touch)</td></tr>
     <tr><td>Tab</td><td>Add child</td></tr>
-    <tr><td>Dot on a node’s left</td><td>Newest child of its parent</td></tr>
+    <tr><td>Dot on a node’s left</td><td>Newest child of its parent (in the node’s color)</td></tr>
+    <tr><td>Matrix-green dot</td><td>The newest node in the whole map</td></tr>
     <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
     <tr><td>Hold node / right-click</td><td>Menu: color, text size, delete, connect to another node, more</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
@@ -282,7 +284,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
     <tr><td>C</td><td>Fold / unfold branch</td></tr>
     <tr><td>T</td><td>Tidy layout</td></tr>
     <tr><td>Ctrl+F or /</td><td>Search the text of all nodes</td></tr>
-    <tr><td>Table button (bottom right)</td><td>Switch between the map and a table of all nodes with a done checkbox</td></tr>
+    <tr><td>Table button (bottom right)</td><td>Switch between the map and a table of the leaf nodes (nodes without children) with a done checkbox</td></tr>
     <tr><td>Ctrl+Z / Ctrl+Y</td><td>Undo / redo</td></tr>
     <tr><td>Ctrl+S / Ctrl+Shift+S</td><td>Save / save as</td></tr>
     <tr><td>Ctrl+O</td><td>Open a .sqlite file</td></tr>
@@ -570,12 +572,15 @@ function newestChildren(idx) {
   }
   return out;
 }
-let newestSet = new Set();
+let newestSet = new Set(), newestAllId = null;   // newest child of each parent / newest node in the whole map
 function renderAll() {
   latestId = findLatest();
   for (const [id, el] of els) if (!nodes.has(id)) { el.remove(); els.delete(id); }
   const idx = childIndex();
   newestSet = newestChildren(idx);
+  newestAllId = null;
+  { let best = null; for (const m of nodes.values()) if (!best || (m.created || '') > (best.created || '') || ((m.created || '') === (best.created || '') && m.id > best.id)) best = m;
+    if (best && nodes.size > 1) newestAllId = best.id; }
   for (const n of nodes.values()) {
     let el = els.get(n.id);
     if (!el) {
@@ -606,6 +611,7 @@ function updateEl(n, el = els.get(n.id), idx) {
   el.classList.toggle('root', n.parent == null || !nodes.has(n.parent));
   el.classList.toggle('sel', n.id === selectedId);
   el.classList.toggle('newest', newestSet.has(n.id));
+  el.classList.toggle('newest-all', n.id === newestAllId);
   el.classList.toggle('done', !!n.done);
   if (idx) updateStamp(n.id);
   el.style.display = isHidden(n) ? 'none' : '';
@@ -988,9 +994,12 @@ function openMenu(id, x, y) {
     `<button data-fs="0" class="def" title="Back to the default size">default</button></div>` :
     `<button data-m="${it[0]}" class="${it[2] || ''}" role="menuitem">${it[1]}</button>`).join('');
   ctx.classList.add('show');
-  const r = ctx.getBoundingClientRect();
-  ctx.style.left = clamp(x - 20, 8, innerWidth - r.width - 8) + 'px';
-  ctx.style.top = Math.max(60, Math.min(y + 12, innerHeight - r.height - 44)) + 'px';
+  // measure without the opening animation's scale, then place it 50px left / 50px up of the old spot
+  const w = ctx.offsetWidth, h = ctx.offsetHeight;
+  const topLimit = $('#bar').getBoundingClientRect().bottom + 6;
+  const bottomLimit = $('#statusbar').getBoundingClientRect().top - 6;
+  ctx.style.left = Math.max(10, Math.min(x - 70, innerWidth - w - 10)) + 'px';
+  ctx.style.top = Math.max(topLimit, Math.min(y - 38, bottomLimit - h)) + 'px';
   navigator.vibrate?.(12);
 }
 function closeMenu() { ctx.classList.remove('show'); ctxId = null; }
@@ -1557,7 +1566,9 @@ function layoutTable() {
 function renderTable() {
   if (!tableOn) return;
   const keep = tvBox.scrollTop;
-  const rows = [...nodes.values()].sort((a, b) => (b.created || '').localeCompare(a.created || '') || b.id - a.id);
+  const parents = new Set([...nodes.values()].map(n => n.parent).filter(p => p != null && nodes.has(p)));
+  const rows = [...nodes.values()].filter(n => !parents.has(n.id))          // leaf nodes only
+    .sort((a, b) => (b.created || '').localeCompare(a.created || '') || b.id - a.id);
   const doneCount = rows.filter(n => n.done).length;
   tvBox.innerHTML = `<table id="tv"><thead><tr><th class="t">NODE</th><th class="u">UPDATED</th>` +
     `<th class="d">DONE<small>${doneCount}/${rows.length}</small></th></tr></thead><tbody>` +
@@ -1823,7 +1834,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 3.9 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 4.1 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
