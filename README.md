@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 4.4
+**Current version:** 4.5
 
-![new in 4.4](https://img.shields.io/badge/new_in-4.4-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 4.5](https://img.shields.io/badge/new_in-4.5-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -19,14 +19,14 @@ No install, no account, no server. Everything runs in your browser.
 - Table view: every leaf node (a node without children) in a list, newest first, with its updated time and a done checkbox
 - Smooth zoom into any node, overview of the whole map, and a radar minimap
 - Hold a node (or right-click it) for a menu with color, connect, disconnect and delete
-- Per-node colors, interface color themes, and a night/day theme $\color{#00FF41}\textsf{(toggle in the bottom-right corner)}$ ![new in 4.4](https://img.shields.io/badge/new_in-4.4-00ff41?labelColor=000000)
+- Per-node colors, interface color themes, and a night/day theme (toggle in the bottom-right corner)
 - Separate color for the digital rain
 - Adjustable node widths
 - Text size per node, from the node menu
 - Recoloring or resizing the text of a node counts as an update; moving nodes around does not
 - How long ago the selected node was updated, shown above it (for example 2 days 3 hours 14 mins ago) in text 2 sizes bigger than the node's own text; full created and updated dates in the node menu
 - The most recently updated node glows in matrix green, so you can always see where you left off. A node you colored yourself keeps its own color
-- The newest child of every node has a small dot on its left edge in the node's own color; the newest node in the whole map gets a matrix-green dot
+- The newest child of every node has a small dot on its left edge in the node's own color; the newest node in the whole map gets a matrix-green dot. $\color{#00FF41}\textsf{Dots appear only on leaf nodes (nodes without children)}$ ![new in 4.5](https://img.shields.io/badge/new_in-4.5-00ff41?labelColor=000000)
 - Fold and unfold branches; focus on one topic by folding everything else
 - Undo and redo
 - Auto-arrange (tidy) layout
@@ -66,11 +66,11 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Tap a node while zoomed far out | Zoom into that node |
 | Tap or drag on the radar minimap | Fly to that part of the map |
 | Tap the **+N** badge on a folded node | Unfold the branch |
-| Dot on the left edge of a node, in the node's color | This is the newest child of its parent |
-| Matrix-green dot on the left edge of a node | This is the newest node in the whole map |
+| Dot on the left edge of a node, in the node's color | This is the newest child of its parent $\color{#00FF41}\textsf{and has no children of its own}$ |
+| Matrix-green dot on the left edge of a node | This is the newest $\color{#00FF41}\textsf{leaf}$ node in the whole map |
 | Tap ? (bottom right) | Show all controls; tap ✕ or the map to close |
 | Tap the table button (bottom right, next to the magnifier) | Switch to the table view; tap it again to go back to the map |
-| $\color{#00FF41}\textsf{Tap the sun / moon button (bottom right)}$ | $\color{#00FF41}\textsf{Switch between the night and day theme}$ |
+| Tap the sun / moon button (bottom right) | Switch between the night and day theme |
 | Tap the magnifier (bottom right or toolbar) | Open search |
 
 ### Keyboard (when not editing)
@@ -256,7 +256,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{4.4}$ | $\color{#00FF41}\textsf{Day/night toggle (sun / moon) in the bottom-right buttons next to search and table}$ |
+| $\color{#00FF41}\textsf{4.5}$ | $\color{#00FF41}\textsf{Newest-child dots and the matrix-green newest dot only appear on leaf nodes}$ |
+| 4.4 | Day/night toggle (sun / moon) in the bottom-right buttons next to search and table |
 | 4.3 | done checkbox in the node menu (bottom right); bigger search, table and ? buttons |
 | 4.2 | Bug fix: after jumping from the table to a node on iPhone, the map could stop responding to taps and the table button |
 | 4.1 | Table view lists only leaf nodes; node menu opens 50px further left and up and never runs off the screen edge |

@@ -260,15 +260,15 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="help">
   <button class="close" type="button" title="Close" aria-label="Close controls">✕</button>
   <h2>CONTROLS</h2>
-  <p style="margin:-4px 0 8px">Version 4.4</p>
+  <p style="margin:-4px 0 8px">Version 4.5</p>
   <table>
     <tr><td>Double-click node</td><td>Edit text</td></tr>
     <tr><td>Double-click empty</td><td>New child of selected, at that spot</td></tr>
     <tr><td>Drag node</td><td>Move branch (Shift: just the node)</td></tr>
     <tr><td>Drag empty / wheel</td><td>Pan / zoom (pinch on touch)</td></tr>
     <tr><td>Tab</td><td>Add child</td></tr>
-    <tr><td>Dot on a node’s left</td><td>Newest child of its parent (in the node’s color)</td></tr>
-    <tr><td>Matrix-green dot</td><td>The newest node in the whole map</td></tr>
+    <tr><td>Dot on a node’s left</td><td>Newest child of its parent, if it has no children (in the node’s color)</td></tr>
+    <tr><td>Matrix-green dot</td><td>The newest leaf node (no children) in the whole map</td></tr>
     <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
     <tr><td>Hold node / right-click</td><td>Menu: color, text size, delete, connect to another node, more</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
@@ -575,7 +575,7 @@ function newestChildren(idx) {
     for (const k of kids) {
       if (!best || (k.created || '') > (best.created || '') || ((k.created || '') === (best.created || '') && k.id > best.id)) best = k;
     }
-    if (best) out.add(best.id);
+    if (best && !idx.has(best.id)) out.add(best.id);   // only when that newest child is a leaf
   }
   return out;
 }
@@ -586,7 +586,7 @@ function renderAll() {
   const idx = childIndex();
   newestSet = newestChildren(idx);
   newestAllId = null;
-  { let best = null; for (const m of nodes.values()) if (!best || (m.created || '') > (best.created || '') || ((m.created || '') === (best.created || '') && m.id > best.id)) best = m;
+  { let best = null; for (const m of nodes.values()) if (idx.has(m.id)) continue; else if (!best || (m.created || '') > (best.created || '') || ((m.created || '') === (best.created || '') && m.id > best.id)) best = m;
     if (best && nodes.size > 1) newestAllId = best.id; }
   for (const n of nodes.values()) {
     let el = els.get(n.id);
@@ -1879,7 +1879,7 @@ async function typeLine(el, text, speed = 18) {
 async function boot() {
   const bt = $('#bootText');
   const fast = !rain.on;
-  await typeLine(bt, 'MINDGRID 4.4 // thought mapping terminal', fast ? 0 : 14);
+  await typeLine(bt, 'MINDGRID 4.5 // thought mapping terminal', fast ? 0 : 14);
   await typeLine(bt, 'loading sqlite engine ...', fast ? 0 : 14);
   try {
     if (typeof initSqlJs !== 'function') throw new Error('sql.js script did not load');
