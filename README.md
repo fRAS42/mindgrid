@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 6.5
+**Current version:** 6.6
 
-![new in 6.5](https://img.shields.io/badge/new_in-6.5-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 6.6](https://img.shields.io/badge/new_in-6.6-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -25,7 +25,7 @@ No install, no account, no server. Everything runs in your browser.
 - Adjustable node widths
 - Geotags: pin any node to a place and open it in Maps; see all located nodes on a world map (Places view)
 - Due dates for leaf nodes, shown in the table view (not on the map, to keep it tidy) and used to sort the table
-- Priority flags $\color{#00FF41}\textsf{A, B, C}$ (urgent / important), shown on the node and as a column in the table ![new in 6.5](https://img.shields.io/badge/new_in-6.5-00ff41?labelColor=000000)
+- Priority flags A, B, C (urgent / important), shown on the node and as a column in the table
 - Automatic text size: the more nodes a branch holds, the bigger its text, or set your own size per node from the node menu
 - Recoloring or resizing the text of a node counts as an update; moving nodes around does not
 - How long ago the selected node was updated, shown above it (for example 2 days 3 hours 14 mins ago) in text 2 sizes bigger than the node's own text; full created and updated dates in the node menu
@@ -49,7 +49,7 @@ Download mindgrid-demo.sqlite from this repository, open the app, tap open and p
 The demo is a plan for a year, MY 2027, and shows most of what the app can do:
 
 - Colored branches (side app, learning, home, health) and the latest-updated node glowing in matrix green (Book flights)
-- Priority letters $\color{#00FF41}\textsf{A to C}$, due dates that are overdue, today, tomorrow and soon, and done tasks struck through
+- Priority letters A to C, due dates that are overdue, today, tomorrow and soon, and done tasks struck through
 - A folded branch (Read 12 books) drawn as a stack of cards with a +5 badge
 - A multi-line node with bullets and indentation, a wider node, and bigger text on the main topics
 - Newest-child dots, and two separate floating maps: START HERE (quick tips) and IDEAS INBOX
@@ -173,7 +173,7 @@ Any node can be flagged with a priority letter from the node menu. It shows as a
 | B | Important, not urgent | amber |
 | C | Urgent, not important | blue |
 
-In the table, tap a row's PRI cell to cycle $\color{#00FF41}\textsf{A, B, C, none}$. $\color{#00FF41}\textsf{Anything that is neither urgent nor important simply gets no priority (maps from older versions that used D open with those nodes unflagged).}$ Changing priority counts as an update and can be undone.
+In the table, tap a row's PRI cell to cycle A, B, C, none. Anything that is neither urgent nor important simply gets no priority (maps from older versions that used D open with those nodes unflagged). Changing priority counts as an update and can be undone.
 
 ### Search
 
@@ -219,13 +219,13 @@ Tap the table button in the bottom-right corner, next to the magnifier, to see y
 | Column | What it shows |
 |---|---|
 | NODE | The first line of the node's text, in the node's color. A thin bar on the left shows the color too |
-| PRI | The priority letter. Tap it to cycle $\color{#00FF41}\textsf{A, B, C, none}$ |
+| PRI | The priority letter. Tap it to cycle A, B, C, none |
 | UPDATED | When the node was last updated, and how long ago |
 | DONE | A checkbox to mark the node as done. The header counts how many leaf nodes are done, for example 3/12 |
 
 - Sorting, from top to bottom:
   1. Overdue or due within 3 days, soonest due first (same day: by priority).
-  2. Then by priority: $\color{#00FF41}\textsf{A, B, C, then no priority.}$
+  2. Then by priority: A, B, C, then no priority.
   3. Within the same priority: earlier due date first, then the newest node first.
 - A node's due date is shown under its name: red when overdue, yellow when due within 2 days.
 - Nodes marked done leave the list about a second after you tick them. Tap show N done at the bottom to list them again (and hide N done to hide them).
@@ -245,7 +245,7 @@ The menu fades in, and shrinks away toward your finger when it closes. The top o
 | Change color… | Pick a color for the node, optionally for its whole branch |
 | Add location… / 📍 place | Pin the node to a place (see Locations below) |
 | Due date (leaf nodes, or any node that already has one) | Pick a date with the date picker; ✕ removes it. The menu stays open |
-| Priority: $\color{#00FF41}\textsf{A / B / C / ✕}$ | Flag the node (see Priority below). Tap the active letter again or ✕ to remove it. The menu stays open |
+| Priority: A / B / C / ✕ | Flag the node (see Priority below). Tap the active letter again or ✕ to remove it. The menu stays open |
 | Text size: A− / A+ / auto | Make the node's text smaller or bigger in steps of 2. auto (highlighted when active) goes back to the automatic size. The menu stays open so you can tap several times |
 | Fold / Unfold branch | Hide or show everything below the node |
 | Tidy children | Neatly arrange everything below this node, leaving the node itself and the rest of the map where they are. Shown when the node has visible children |
@@ -333,7 +333,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | font_size | The node's text size in pixels, when you set it yourself (empty = automatic size) |
 | done | 1 if the node is marked done in the table view, otherwise 0 |
 | due | The node's due date as YYYY-MM-DD (empty = no due date) |
-| category | Priority flag: $\color{#00FF41}\textsf{A, B or C}$ (empty = none) |
+| category | Priority flag: A, B or C (empty = none) |
 | lat, lon | The node's location in decimal degrees (empty = no location) |
 | place | The location's name (optional) |
 | created_at | When the node was created (ISO 8601, UTC) |
@@ -365,6 +365,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 **After using the table view, taps on the map do nothing.** Fixed in 4.2. Make sure the startup screen says 4.2 or later.
 
+**The app seemed frozen after rotating the phone** $\color{#00FF41}\textsf{(taps did nothing until you rotated again). Fixed in 6.6: the app now re-measures the screen after every rotation.}$
+
 **Nodes overlap after many changes.** Press **T** or tap **tidy** to rearrange them.
 
 **I deleted something by mistake.** Tap **undo**. If you've already closed the app, open your last saved `.sqlite` file.
@@ -375,7 +377,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{6.5}$ | $\color{#00FF41}\textsf{Priority D removed: A, B, C or no priority; fixed: a new hold or right-click right after closing the menu was ignored}$ |
+| $\color{#00FF41}\textsf{6.6}$ | $\color{#00FF41}\textsf{Fixed: after rotating an iPhone and switching views, the app could stop responding until rotated again}$ |
+| 6.5 | Priority D removed: A, B, C or no priority; fixed: a new hold or right-click right after closing the menu was ignored |
 | 6.4 | Dock buttons without borders; the active view keeps a soft highlight |
 | 6.3 | Places view uses OpenStreetMap tiles |
 | 6.2 | Places view: located nodes on a Leaflet world map; bottom buttons centered like a dock |

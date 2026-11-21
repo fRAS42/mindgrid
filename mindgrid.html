@@ -18,10 +18,10 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
+html,body{margin:0;height:100%;width:100%;max-width:100vw;overscroll-behavior:none;background:var(--bg);color:var(--g);
   font-family:'Share Tech Mono',ui-monospace,'Cascadia Mono','Courier New',monospace;overflow:hidden;
   -webkit-tap-highlight-color:transparent}
-#rain{position:fixed;inset:0;z-index:0;opacity:.32;pointer-events:none}
+#rain{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.32;pointer-events:none}
 #scan{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:var(--scan);
   background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.18) 2px 3px)}
 #stage{position:fixed;inset:0;z-index:1;cursor:grab;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
@@ -517,7 +517,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '6.5';
+const APP_VERSION = '6.6';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -2645,6 +2645,24 @@ $('#geoView').addEventListener('click', e => {
   else { if (orbitOn) toggleOrbit(false); goToNode(id); }
 });
 addEventListener('resize', () => { if (geoOn) layoutGeo(); });
+
+/* ---------- rotating the phone ----------
+   During a rotation iOS Safari briefly reports the old screen size. Re-measure a few times once it settles,
+   and put the page back in place if Safari shifted or zoomed it. */
+{
+  let timers = [];
+  const settle = () => {
+    timers.forEach(clearTimeout);
+    timers = [150, 400, 900].map(ms => setTimeout(() => {
+      if (scrollX || scrollY) scrollTo(0, 0);
+      dispatchEvent(new Event('mg-resize'));
+    }, ms));
+  };
+  addEventListener('orientationchange', settle);
+  screen.orientation?.addEventListener?.('change', settle);
+  window.visualViewport?.addEventListener('resize', () => { if (!document.activeElement?.matches?.('input,textarea')) settle(); });
+  addEventListener('mg-resize', () => dispatchEvent(new Event('resize')));
+}
 
 /* ---------- controls panel ---------- */
 function toggleAbout(force) {
