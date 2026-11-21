@@ -410,9 +410,9 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
     <tr><td>Dot on a node’s left</td><td>Newest child of its parent, if it has no children (in the node’s color)</td></tr>
     <tr><td>Matrix-green dot</td><td>The newest leaf node (no children) in the whole map</td></tr>
     <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
-    <tr><td>Hold node / right-click</td><td>Menu: color, text size, priority A–D, due date (leaf nodes), done, delete, connect, more</td></tr>
+    <tr><td>Hold node / right-click</td><td>Menu: color, text size, priority A–C, due date (leaf nodes), done, delete, connect, more</td></tr>
     <tr><td>Location (hold menu)</td><td>Pin a node to a place: your current location, coordinates or a maps link</td></tr>
-    <tr><td>Priority A / B / C / D</td><td>A urgent + important, B important, C urgent, D neither</td></tr>
+    <tr><td>Priority A / B / C</td><td>A urgent + important, B important, C urgent</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
     <tr><td>⇥ ⇤ • in editor</td><td>Indent, outdent, bullet the current lines</td></tr>
     <tr><td>Tab / Shift+Tab editing</td><td>Indent / outdent lines</td></tr>
@@ -517,7 +517,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '6.4';
+const APP_VERSION = '6.5';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -890,14 +890,13 @@ function ago(iso) {
 const CATS = {
   A: { color: '#ff3b3b', name: 'A: urgent and important' },
   B: { color: '#ffb000', name: 'B: important, not urgent' },
-  C: { color: '#00b7ff', name: 'C: urgent, not important' },
-  D: { color: '#9a9a9a', name: 'D: neither urgent nor important' }
+  C: { color: '#00b7ff', name: 'C: urgent, not important' }
 };
-const catRank = c => c ? 'ABCD'.indexOf(c) : 4;
+const catRank = c => c ? 'ABC'.indexOf(c) : 3;
 const catColor = c => pal(CATS[c].color).g;      // darker automatically in day mode
 function setCat(id, cat) {
   const n = nodes.get(id); if (!n) return;
-  cat = /^[ABCD]$/.test(cat || '') ? cat : null;
+  cat = /^[ABC]$/.test(cat || '') ? cat : null;
   if ((n.cat || null) === cat) return;
   pushUndo(); n.cat = cat; n.updated = now();
   renderAll(); markDirty();
@@ -1348,6 +1347,7 @@ function openMenu(id, x, y) {
   navigator.vibrate?.(12);
 }
 let ctxCloseTimer = 0;
+const menuOpen = () => ctx.classList.contains('show') && !ctx.classList.contains('closing');   // a closing menu counts as closed
 function closeMenu() {
   if (!ctx.classList.contains('show') || ctx.classList.contains('closing')) return;
   if (ctx.contains(document.activeElement)) document.activeElement.blur();
@@ -1387,11 +1387,11 @@ ctx.addEventListener('click', e => {
     case 'delete': deleteNode(id); break;
   }
 });
-addEventListener('pointerdown', e => { if (ctx.classList.contains('show') && !ctx.contains(e.target)) closeMenu(); }, true);
+addEventListener('pointerdown', e => { if (menuOpen() && !ctx.contains(e.target)) closeMenu(); }, true);
 stage.addEventListener('contextmenu', e => {
   e.preventDefault();
   const el = e.target.closest('.node');
-  if (el && linkFrom == null && !ctx.classList.contains('show')) openMenu(+el.dataset.id, e.clientX, e.clientY);
+  if (el && linkFrom == null && !menuOpen()) openMenu(+el.dataset.id, e.clientX, e.clientY);
 });
 
 /* ---------- per-node color ---------- */
@@ -1625,7 +1625,7 @@ document.addEventListener('keydown', e => {
     else if (k === 'Tab' && ta) { e.preventDefault(); shiftLines(ta, e.shiftKey ? 'outdent' : 'indent'); }
     return;
   }
-  if (k === 'Escape' && ctx.classList.contains('show')) { e.preventDefault(); closeMenu(); return; }   // also from the date field
+  if (k === 'Escape' && menuOpen()) { e.preventDefault(); closeMenu(); return; }   // also from the date field
   if (e.target.matches('input,textarea,[contenteditable="true"]')) return;
   if (mod && kl === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && kl === 'y') { e.preventDefault(); redo(); return; }
@@ -1644,7 +1644,7 @@ document.addEventListener('keydown', e => {
     case 'ArrowUp': e.preventDefault(); navigate(0, -1); break;
     case 'ArrowDown': e.preventDefault(); navigate(0, 1); break;
     case 'Escape':
-      if (ctx.classList.contains('show')) closeMenu();
+      if (menuOpen()) closeMenu();
       else if (ncId != null) closeNodeColor();
       else if (geoId != null) closeGeo();
       else if (linkFrom != null) { endLink(); log('Connect cancelled'); }
@@ -1686,7 +1686,7 @@ function loadFromDb() {
   nodes = new Map();
   const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size,done,due,category,lat,lon,place FROM nodes');
   if (res.length) for (const r of res[0].values)
-    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null, done: !!r[11], due: /^\d{4}-\d{2}-\d{2}$/.test(r[12] || '') ? r[12] : null, cat: /^[ABCD]$/.test(r[13] || '') ? r[13] : null,
+    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null, done: !!r[11], due: /^\d{4}-\d{2}-\d{2}$/.test(r[12] || '') ? r[12] : null, cat: /^[ABC]$/.test(r[13] || '') ? r[13] : null,   /* old D flags count as no priority */
       ...(isFinite(r[14]) && isFinite(r[15]) && r[14] != null && r[15] != null && Math.abs(r[14]) <= 90 && Math.abs(r[15]) <= 180 ? { lat: r[14], lon: r[15] } : {}), place: r[16] || null });
   if (!nodes.size) { const t = now(); nodes.set(1, { id: 1, parent: null, text: 'central idea', x: 0, y: 0, collapsed: false, created: t, updated: t }); }
   nextId = Math.max(0, ...nodes.keys()) + 1;
@@ -1966,7 +1966,7 @@ function renderTable() {
     });
   const doneCount = rows.filter(n => n.done).length;
   const shown = tvShowDone ? rows : rows.filter(n => !n.done);   // done nodes are hidden unless asked for
-  tvBox.innerHTML = `<table id="tv"><thead><tr><th class="t">NODE</th><th class="c" title="Priority A–D">PRI</th><th class="u">UPDATED</th>` +
+  tvBox.innerHTML = `<table id="tv"><thead><tr><th class="t">NODE</th><th class="c" title="Priority A–C">PRI</th><th class="u">UPDATED</th>` +
     `<th class="d">DONE<small>${doneCount}/${rows.length}</small></th></tr></thead><tbody>` +
     (shown.length ? '' : `<tr><td colspan="4" class="empty">${rows.length ? 'Everything is done.' : 'No leaf nodes yet.'}</td></tr>`) +
     shown.map(n => {
@@ -2028,9 +2028,9 @@ tvBtn.addEventListener('click', () => toggleTable());
 tvBox.addEventListener('click', e => {
   if (e.target.closest('[data-showdone]')) { tvShowDone = !tvShowDone; tvHoldUntil = 0; renderTable(); return; }
   const cy = e.target.closest('[data-cyc]');
-  if (cy) {                                   // tap cycles A → B → C → D → none
+  if (cy) {                                   // tap cycles A → B → C → none
     const n = nodes.get(+cy.dataset.cyc); if (!n) return;
-    const order = ['A', 'B', 'C', 'D', null];
+    const order = ['A', 'B', 'C', null];
     tvHoldUntil = performance.now() + 700;    // let the row stay put for a moment before it re-sorts
     setCat(n.id, order[(order.indexOf(n.cat || null) + 1) % order.length]);
     cy.textContent = n.cat || '·'; cy.classList.toggle('set', !!n.cat); cy.style.background = n.cat ? catColor(n.cat) : '';
@@ -2381,7 +2381,7 @@ function oHitTest(x, y) {
 }
 ocv.addEventListener('pointerdown', e => {
   if (oEdId != null) { orbitCommit(); return; }        // tapping outside the editor saves it
-  if (ctx.classList.contains('show')) return;
+  if (menuOpen()) return;
   const it = oHitTest(e.clientX, e.clientY);
   oPress = { x: e.clientX, y: e.clientY, it, moved: false, a0: Math.atan2(e.clientY - oGeo.cy, e.clientX - oGeo.cx), rot0: oRot, long: false };
   ocv.setPointerCapture(e.pointerId);
