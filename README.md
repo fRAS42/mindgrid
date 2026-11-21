@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 5.9
+**Current version:** 6.0
 
-![new in 5.9](https://img.shields.io/badge/new_in-5.9-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 6.0](https://img.shields.io/badge/new_in-6.0-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -15,6 +15,7 @@ No install, no account, no server. Everything runs in your browser.
 ## Features
 
 - Free-form mind maps with branches, multi-line nodes, indentation and bullets
+- $\color{#00FF41}\textsf{Orbit view: travel through your map one node at a time, with the nodes inside it orbiting around it}$ ![new in 6.0](https://img.shields.io/badge/new_in-6.0-00ff41?labelColor=000000)
 - Full-text search across all nodes, with highlighted matches
 - Table view: every leaf node (a node without children) and every node with a due date that is not done yet in a list,  newest first, with its updated time and a done checkbox
 - Smooth zoom into any node, overview of the whole map, and a radar minimap
@@ -91,6 +92,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Dot on the left edge of a node, in the node's color | This is the newest child of its parent and has no children of its own |
 | Matrix-green dot on the left edge of a node | This is the newest leaf node in the whole map |
 | Tap ? (bottom right) | Show all controls; tap ✕ or the map to close |
+| $\color{#00FF41}\textsf{Tap the orbit button (bottom right, next to the magnifier)}$ | $\color{#00FF41}\textsf{Switch between the map and the orbit view}$ |
 | Tap the table button (bottom right, next to the magnifier) | Switch to the table view; tap it again to go back to the map |
 | Tap the sun / moon button (bottom right) | Switch between the night and day theme |
 | Tap the magnifier (bottom right or toolbar) | Open search |
@@ -173,6 +175,29 @@ Type to search the text of every node. Matches light up and are highlighted insi
 
 If a match is inside a folded branch, the branch opens so you can see it. This does not change any node's updated time.
 
+### Orbit view
+
+$\color{#00FF41}\textsf{Tap the orbit button in the bottom-right corner (next to the magnifier) to travel through your map instead of panning around it. Tap it again to go back to the map; the selected node stays selected.}$
+
+- $\color{#00FF41}\textsf{The node you are in sits in the middle as a glowing core with its text inside. The nodes inside it orbit around it.}$
+- $\color{#00FF41}\textsf{A ring around the core shows how much of everything inside is done.}$
+- $\color{#00FF41}\textsf{Small moons around a node show the nodes inside it; the number on it counts everything inside.}$
+- $\color{#00FF41}\textsf{The node you came from waits as a small ↑ orb above the core. The path at the top shows where you are; tap any part of it to go back up.}$
+- $\color{#00FF41}\textsf{Pills at the bottom show how many nodes are inside, % done, due date, priority and when it was last updated.}$
+
+| $\color{#00FF41}\textsf{Action}$ | $\color{#00FF41}\textsf{What it does}$ |
+|---|---|
+| $\color{#00FF41}\textsf{Tap a node or a moon}$ | $\color{#00FF41}\textsf{Go inside it}$ |
+| $\color{#00FF41}\textsf{Tap the core}$ | $\color{#00FF41}\textsf{Edit its text (same editor as the map: ⇤ ⇥ • ✕ ✓)}$ |
+| $\color{#00FF41}\textsf{Tap the ↑ orb or the path}$ | $\color{#00FF41}\textsf{Go back up}$ |
+| $\color{#00FF41}\textsf{Hold a node or the core}$ | $\color{#00FF41}\textsf{The node menu (map-only options like fold and tidy are hidden; Zoom to node becomes Go inside)}$ |
+| $\color{#00FF41}\textsf{Drag anywhere / mouse wheel}$ | $\color{#00FF41}\textsf{Spin the orbit}$ |
+| $\color{#00FF41}\textsf{Arrow keys, Enter}$ | $\color{#00FF41}\textsf{Pick a node in the orbit, then go inside it}$ |
+| $\color{#00FF41}\textsf{Tab}$ | $\color{#00FF41}\textsf{Add a node inside the current one}$ |
+| $\color{#00FF41}\textsf{Backspace / Esc}$ | $\color{#00FF41}\textsf{Go back up}$ |
+
+$\color{#00FF41}\textsf{Search and the table view work in orbit view too: picking a result takes you to that node in the orbit. Your choice of view is remembered and saved in the file.}$
+
 ### Table view
 
 Tap the table button in the bottom-right corner, next to the magnifier, to see your leaf nodes (the nodes at the ends of branches, with no children) as a list, plus any node that has a due date or a priority even if it has children (marked with ▸). Tap it again (it now shows a small map icon) to go back to the map.
@@ -196,7 +221,7 @@ Tap the table button in the bottom-right corner, next to the magnifier, to see y
 
 ### Node menu (hold a node or right-click)
 
-$\color{#00FF41}\textsf{The menu fades in, and shrinks away toward your finger when it closes.}$ The top of the menu shows when the node was created and last updated. The menu opens a little up and to the left of your finger and always stays fully on screen.
+The menu fades in, and shrinks away toward your finger when it closes. The top of the menu shows when the node was created and last updated. The menu opens a little up and to the left of your finger and always stays fully on screen.
 
 | Item | What it does |
 |---|---|
@@ -333,7 +358,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{5.9}$ | $\color{#00FF41}\textsf{Hold menu simply fades in and shrinks out (scan line and ripple removed)}$ |
+| $\color{#00FF41}\textsf{6.0}$ | $\color{#00FF41}\textsf{Orbit view built into MINDGRID, with its own button next to the magnifier}$ |
+| 5.9 | Hold menu simply fades in and shrinks out (scan line and ripple removed) |
 | 5.8 | Slower, softer fade when deleting; hold menu appears with a scan-line effect and a ripple |
 | 5.7 | Deleted nodes fade out instead of disappearing at once |
 | 5.6 | Zoom to node fits whole nodes on narrow screens instead of cutting off the outer ones |

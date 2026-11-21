@@ -157,7 +157,10 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 #statusbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:space-between;gap:12px;
   padding:6px 12px calc(env(safe-area-inset-bottom,0px) + 6px);background:var(--panel);
   border-top:1px solid var(--g-dim);font-size:13px;color:var(--g-mid)}
-#status{min-width:0;line-height:1.45}
+#status{min-width:0;flex:1;overflow:hidden;line-height:1.45}
+#status span:first-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
+#status span:not(:first-child){white-space:normal}
+#sbtns{flex:none}
 #status .focusinfo{color:var(--g-hi)}
 #status span{margin-right:14px;white-space:nowrap;display:inline-block}
 #status .dirty{color:var(--warn)}
@@ -272,11 +275,40 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
   background:var(--panel);border:3px dashed var(--g);font-size:22px;text-shadow:var(--glow)}
 #dropzone.show{display:flex}
 @media (prefers-reduced-motion:reduce){.flow,.node.new,.cursor{animation:none}}
+/* ---------- orbit view ---------- */
+#orbitCv{position:fixed;inset:0;width:100%;height:100%;z-index:2;display:none;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+body.orbitview #orbitCv{display:block}
+body.orbitview #stage,body.orbitview #mini{visibility:hidden}
+#orbitBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
+#orbitBtn.on{background:rgba(var(--rgb),.18);color:var(--g-hi);border-color:var(--g-mid)}
+#sbtns svg{width:20px;height:20px;vertical-align:-4px}
+#otrail{position:fixed;left:0;right:0;z-index:6;display:none;flex-wrap:wrap;align-items:center;gap:2px;padding:8px 12px 0;font-size:13.5px}
+body.orbitview #otrail{display:flex}
+#otrail button{color:var(--g-mid);padding:4px 8px;border:1px solid transparent}
+#otrail button:hover{border-color:var(--g-dim);color:var(--g)}
+#otrail .here{color:var(--g-hi);padding:4px 8px;text-shadow:var(--ts)}
+#otrail .osep{color:var(--g-dim);padding:0 2px}
+#oinfo{position:fixed;left:50%;transform:translateX(-50%);z-index:6;display:none;flex-wrap:wrap;justify-content:center;gap:6px;
+  width:min(560px,calc(100% - 24px));pointer-events:none}
+body.orbitview #oinfo{display:flex}
+#oinfo span{font-size:12.5px;color:var(--g-mid);padding:3px 10px;border:1px solid var(--g-dim);background:var(--panel)}
+#oinfo .soon{color:var(--warn);border-color:var(--warn)}
+#oinfo .over{color:var(--err);border-color:var(--err)}
+body.tableview #orbitCv,body.tableview #otrail,body.tableview #oinfo{visibility:hidden}
+body.orbitview #log div.old{display:none}
+#oedit{position:fixed;z-index:16;display:none;width:min(360px,calc(100vw - 24px));background:var(--nodebg);border:1px dashed var(--g);
+  box-shadow:var(--glow);padding:10px 12px 12px}
+#oedit.show{display:block}
+#oedit .editbar{position:static;display:flex;gap:2px;margin:0 0 10px;padding:0;border:0;box-shadow:none;background:none}
+#oedit .editbar button{font-size:14px;padding:6px 10px;min-width:38px;border:1px solid var(--g-dim)}
+#oedText{display:block;width:100%;margin:0;padding:0;border:0;outline:none;resize:none;overflow:hidden;background:transparent;color:var(--g);
+  font:inherit;font-size:16px;line-height:1.4;text-shadow:var(--ts);min-height:2.8em;tab-size:4;caret-color:var(--g-hi);-webkit-user-select:text;user-select:text}
 </style>
 </head>
 <body>
 <canvas id="rain"></canvas>
 <div id="stage"><div id="world"><svg id="ghosts" aria-hidden="true"></svg><svg id="edges"></svg></div></div>
+<canvas id="orbitCv" aria-label="Orbit view: the selected node in the middle, the nodes inside it around it"></canvas>
 
 <div id="bar">
   <button id="logo" type="button" title="About MINDGRID" aria-label="About MINDGRID">MIND<b>GRID</b></button>
@@ -346,6 +378,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
     <tr><td>C</td><td>Fold / unfold branch</td></tr>
     <tr><td>T</td><td>Tidy layout</td></tr>
     <tr><td>Ctrl+F or /</td><td>Search the text of all nodes</td></tr>
+    <tr><td>Orbit button (bottom right)</td><td>Switch between the map and the orbit view: tap a node to travel into it</td></tr>
     <tr><td>Table button (bottom right)</td><td>Switch between the map and a table of the leaf nodes that are not done yet; “show done” at the bottom lists the done ones too</td></tr>
     <tr><td>Ctrl+Z / Ctrl+Y</td><td>Undo / redo</td></tr>
     <tr><td>Ctrl+S / Ctrl+Shift+S</td><td>Save / save as</td></tr>
@@ -383,6 +416,9 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
   <p>Built with plain JavaScript and <a href="https://github.com/sql-js/sql.js" target="_blank" rel="noopener">sql.js</a> (SQLite for the browser).</p>
   <div class="stats" id="aboutStats"></div>
 </div>
+<nav id="otrail" aria-label="Path"></nav>
+<div id="oinfo" aria-live="polite"></div>
+<div id="oedit" role="dialog" aria-label="Edit node"><div class="editbar"><button data-ed="outdent" title="Outdent (Shift+Tab)">⇤</button><button data-ed="indent" title="Indent (Tab)">⇥</button><button data-ed="bullet" title="Toggle bullet">•</button><button data-ed="cancel" title="Cancel changes (Esc)">✕</button><button data-ed="done" title="Save (Ctrl/⌘+Enter or tap outside)">✓</button></div><textarea id="oedText" aria-label="Node text"></textarea></div>
 <div id="search" role="search">
   <div class="srow">
     <input id="q" type="search" placeholder="Search all nodes…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
@@ -404,7 +440,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 <div id="linkbar"><span id="linkmsg"></span><button id="linkCancel">cancel</button></div>
 <div id="mini" title="Click or drag to navigate"><canvas></canvas><div class="lbl">radar</div></div>
 <div id="log"></div>
-<div id="statusbar"><div id="status"></div><div id="sbtns"><button id="searchBtn" type="button" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button><button id="tableBtn" type="button" title="Table view" aria-label="Table view"></button><button id="modeBtn2" type="button" title="Switch to day theme" aria-label="Switch to day theme"></button><button id="hint" type="button" title="Show all controls" aria-label="Show all controls">?</button></div></div>
+<div id="statusbar"><div id="status"></div><div id="sbtns"><button id="searchBtn" type="button" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button><button id="orbitBtn" type="button" title="Orbit view: travel through your nodes" aria-label="Orbit view"></button><button id="tableBtn" type="button" title="Table view" aria-label="Table view"></button><button id="modeBtn2" type="button" title="Switch to day theme" aria-label="Switch to day theme"></button><button id="hint" type="button" title="Show all controls" aria-label="Show all controls">?</button></div></div>
 <div id="scan"></div>
 <div id="dropzone">DROP .SQLITE FILE TO LOAD</div>
 <div id="boot"><pre id="bootText"></pre></div>
@@ -414,7 +450,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '5.9';
+const APP_VERSION = '6.0';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -570,7 +606,10 @@ function addNode(parentId, x = null, y = null, text = 'new thought') {
   return id;
 }
 const NEW_LIFT = 50;   // a brand-new node is shown this many px higher while you type its text
-function addAndEdit(pid) { const id = addNode(pid); startEdit(id, false, NEW_LIFT); }
+function addAndEdit(pid) {
+  if (orbitOn && pid !== oFocus) orbitSetFocus(pid);      // in orbit view, go inside first so the new node is visible
+  const id = addNode(pid); startEdit(id, false, NEW_LIFT);
+}
 /* move the view so node `id` sits `px` higher on screen (brought to the middle first if it's off screen) */
 function liftView(id, px) {
   const n = nodes.get(id); if (!n) return;
@@ -1039,6 +1078,7 @@ const IND = '    ';
 let editStart = { id: null, t: 0 }, barPress = 0;
 function autosize(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
 function startEdit(id, viaDoubleTap = false, lift = 0) {
+  if (orbitOn) { orbitEdit(id); return; }
   if (editingId != null) commitEdit();
   const el = els.get(id); if (!el) return;
   select(id); editingId = id;
@@ -1198,7 +1238,9 @@ function openMenu(id, x, y) {
     hasParent ? ['detach', 'Disconnect from parent'] : null,
     '-',
     'bottom'
-  ].filter(Boolean);
+  ].filter(Boolean).filter(it => !orbitOn || !['fs', 'fold', 'tidybranch', 'focus', 'unfoldall', 'exitfocus', 'link'].includes(Array.isArray(it) ? it[0] : it))
+   .map(it => orbitOn && Array.isArray(it) && it[0] === 'zoom' ? ['zoom', 'Go inside'] : it)
+   .filter((it, i, arr) => !(it === '-' && (i === 0 || arr[i - 1] === '-')));
   const delLabel = count > 1 ? `Delete node + ${count - 1} below` : 'Delete node';
   const cr = fmtTime(n.created), up = fmtTime(n.updated);
   ctx.innerHTML = `<div class="ttl">${escapeHtml(short(n.text))}` +
@@ -1257,7 +1299,7 @@ ctx.addEventListener('click', e => {
   switch (b.dataset.m) {
     case 'edit': startEdit(id); break;
     case 'child': addAndEdit(id); break;
-    case 'zoom': focusNode(id); break;
+    case 'zoom': if (orbitOn) orbitSetFocus(id); else focusNode(id); break;
     case 'focus': focusBranch(id); break;
     case 'tidybranch': tidy(id); break;
     case 'unfoldall': unfoldAll(); break;
@@ -1513,6 +1555,7 @@ document.addEventListener('keydown', e => {
   if (mod && kl === 'y') { e.preventDefault(); redo(); return; }
   if (mod || e.altKey) return;
   if (tableOn) { if (k === 'Escape') toggleTable(false); return; }   // map shortcuts are off in the table
+  if (orbitOn && orbitKey(e)) return;
   const sel = nodes.has(selectedId) ? selectedId : null;
   switch (k) {
     case 'Tab': e.preventDefault(); if (sel != null) addAndEdit(sel); break;
@@ -1618,6 +1661,7 @@ function newMap(silent = false) {
 const sqliteTypes = [{ description: 'SQLite database', accept: { 'application/x-sqlite3': ['.sqlite', '.sqlite3', '.db'] } }];
 async function saveFile(saveAs = false) {
   if (editingId != null) commitEdit();
+  orbitCommit();
   const prevSaved = lastSaved;
   lastSaved = now();
   try { writeToDb(); } catch (err) { lastSaved = prevSaved; return log('Save failed: ' + err.message, true); }
@@ -1672,7 +1716,7 @@ $('#fileIn').addEventListener('change', e => {
 });
 
 let cacheTimer = null;
-function markDirty() { scheduleTable(); if (searchOpen()) { clearTimeout(sTimer); sTimer = setTimeout(() => runSearch(true), 150); } refreshLatest(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
+function markDirty() { scheduleTable(); scheduleOrbit(); if (searchOpen()) { clearTimeout(sTimer); sTimer = setTimeout(() => runSearch(true), 150); } refreshLatest(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
 async function cacheSession() {
   if (!db) return;
   try {
@@ -1765,6 +1809,7 @@ function goHit(i) {
   if (!hits.length) return;
   hitIdx = (i + hits.length) % hits.length;
   const n = nodes.get(hits[hitIdx].id); if (!n) return;
+  if (orbitOn) { orbitShow(n.id); renderResults(); $('#sres .cur')?.scrollIntoView({ block: 'nearest' }); return; }
   // open folded branches that hide this match (a view change, not an edit)
   let p = nodes.get(n.parent), opened = false;
   while (p) { if (p.collapsed) { p.collapsed = false; opened = true; forgetFocusFold(p.id); } p = nodes.get(p.parent); }
@@ -1891,6 +1936,7 @@ function toggleTable(force) {
 }
 function goToNode(id) {
   const n = nodes.get(id); if (!n) return;
+  if (orbitOn) { orbitShow(id); return; }
   let p = nodes.get(n.parent), opened = false;
   while (p) { if (p.collapsed) { p.collapsed = false; opened = true; forgetFocusFold(p.id); } p = nodes.get(p.parent); }
   if (opened) { renderAll(); markDirty(); }
@@ -1926,6 +1972,415 @@ tvBox.addEventListener('change', e => {
 });
 addEventListener('resize', () => { if (tableOn) layoutTable(); });
 setInterval(() => { if (tableOn) renderTable(); }, 60000);
+
+/* ================= ORBIT view: travel through your thoughts ================= */
+const ocv = document.getElementById('orbitCv'), octx = ocv.getContext('2d');
+let orbitOn = false, oFocus = null, oItems = [], oAnim = new Map(), oRot = 0, oHl = -1, oDrawing = false;
+let oW = 0, oH = 0, oDPR = 1, oGeo = { cx: 0, cy: 0, rx: 0, ry: 0, rc: 60 };
+let oIdx = new Map(), oDesc = new Map(), oStats = new Map(), oBuildQueued = false;
+const ORBIT_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><ellipse cx="12" cy="12" rx="10" ry="4.6" transform="rotate(-25 12 12)"/><circle cx="20.2" cy="8" r="1.6" fill="currentColor" stroke="none"/></svg>';
+const MAP_ICON2 = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="9" width="7" height="6"/><rect x="14.5" y="3.5" width="7" height="5"/><rect x="14.5" y="15.5" width="7" height="5"/><path d="M9.5 12h2.5V6h2.5M12 12v6h2.5"/></svg>';
+
+function oIndex() {
+  oIdx = new Map(); oDesc = new Map(); oStats = new Map();
+  for (const n of nodes.values()) {
+    const p = nodes.has(n.parent) ? n.parent : null;
+    if (!oIdx.has(p)) oIdx.set(p, []); oIdx.get(p).push(n);
+  }
+  for (const l of oIdx.values()) l.sort((a, b) => (a.y - b.y) || (a.id - b.id));
+}
+const oKids = id => oIdx.get(id) || [];
+const oRoots = () => oKids(null);
+const oParent = n => (n && nodes.has(n.parent)) ? n.parent : null;
+const oTitle = n => n ? (n.text.split('\n')[0].trim() || '…') : fileName.replace(/\.(sqlite3?|db)$/i, '');
+function oDescCount(id) { if (oDesc.has(id)) return oDesc.get(id); let c = 0; for (const k of oKids(id)) c += 1 + oDescCount(k.id); oDesc.set(id, c); return c; }
+function oLeafStats(id) {
+  if (oStats.has(id)) return oStats.get(id);
+  const ks = oKids(id); let s;
+  if (!ks.length) { const n = nodes.get(id); s = { leaves: 1, done: n && n.done ? 1 : 0 }; }
+  else { s = { leaves: 0, done: 0 }; for (const k of ks) { const t = oLeafStats(k.id); s.leaves += t.leaves; s.done += t.done; } }
+  oStats.set(id, s); return s;
+}
+function oPath(id) { const p = []; let c = nodes.get(id), g = 0; while (c && g++ < 9999) { p.unshift(c); c = nodes.get(oParent(c)); } return p; }
+function oAgo(iso) {
+  const d = new Date(iso); if (!iso || isNaN(d)) return null;
+  const m = Math.floor((Date.now() - d) / 60000);
+  if (m < 1) return 'just now'; if (m < 60) return `${m} min ago`;
+  const h = Math.floor(m / 60); if (h < 24) return `${h} h ago`;
+  const days = Math.floor(h / 24); return days === 1 ? 'yesterday' : `${days} days ago`;
+}
+const cssVar = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function oRgba(hex, a) { const v = parseInt((hex || '#00ff41').slice(1), 16); return `rgba(${v >> 16 & 255},${v >> 8 & 255},${v & 255},${a})`; }
+const oColor = n => { const ec = effColor(n); return ec ? shades(ec).g : theme.g; };
+
+function orbitLayoutChrome() {
+  const barB = $('#bar').getBoundingClientRect().bottom, stT = $('#statusbar').getBoundingClientRect().top;
+  $('#otrail').style.top = barB + 'px';
+  $('#oinfo').style.bottom = (innerHeight - stT + 8) + 'px';
+  $('#log').style.bottom = orbitOn ? (innerHeight - stT + 14 + ($('#oinfo').offsetHeight || 26)) + 'px' : '';
+}
+function orbitResize() {
+  oDPR = Math.min(3, devicePixelRatio || 1); oW = innerWidth; oH = innerHeight;
+  ocv.width = Math.round(oW * oDPR); ocv.height = Math.round(oH * oDPR);
+  orbitBuild();
+}
+function scheduleOrbit() { if (!orbitOn || oBuildQueued) return; oBuildQueued = true; requestAnimationFrame(() => { oBuildQueued = false; orbitBuild(); }); }
+
+function orbitBuild() {
+  if (!orbitOn || !nodes.size) return;
+  oIndex();
+  if (oFocus != null && !nodes.has(oFocus)) oFocus = nodes.has(selectedId) ? (oKids(selectedId).length ? selectedId : oParent(nodes.get(selectedId))) : null;
+  if (oFocus == null && oRoots().length === 1) oFocus = oRoots()[0].id;
+  oRenderTrail(); oRenderInfo(); orbitLayoutChrome();
+  const top = $('#otrail').getBoundingClientRect().bottom + 6;
+  const bottom = $('#oinfo').getBoundingClientRect().top - 8;
+  const avail = Math.max(240, bottom - top), cx = oW / 2, cy = top + avail / 2;
+  const rc = clamp(Math.min(oW, avail) * .14, 46, 80);
+  const rx = clamp(Math.min(oW * .37, avail * .62), 110, 380), ry = clamp(avail * .36, 100, 300);
+  oGeo = { cx, cy, rx, ry, rc };
+  const next = [];
+  const center = oFocus == null ? null : nodes.get(oFocus);
+  next.push({ key: center ? 'n' + center.id : 'u', id: center ? center.id : null, role: 'center', x: cx, y: cy, r: rc });
+  let parentKey = null;
+  if (center) {
+    const p = oParent(center);
+    if (p != null || oRoots().length > 1) {
+      parentKey = p != null ? 'n' + p : 'u';
+      next.push({ key: parentKey, id: p, role: 'parent', x: cx, y: cy - rc - Math.max(40, (ry - rc) * .5), r: 14, from: next[0].key });
+    }
+  }
+  const ring = center ? oKids(center.id) : oRoots();
+  const n = ring.length, step = n ? Math.PI * 2 / n : 0, two = n > 11;
+  ring.forEach((k, i) => {
+    const a = -Math.PI / 2 + (parentKey ? step / 2 : 0) + i * step + oRot;
+    const f = two ? (i % 2 ? 1.08 : .8) : 1;
+    const r = clamp(16 + 5 * Math.log2(1 + oDescCount(k.id)), 16, 36) * (n > 7 ? Math.max(.68, 7 / n + .25) : 1);
+    const x = cx + rx * f * Math.cos(a), y = cy + ry * f * Math.sin(a);
+    next.push({ key: 'n' + k.id, id: k.id, role: 'child', x, y, r, a, idx: i, from: next[0].key });
+    const moons = oKids(k.id).slice(0, 12);
+    moons.forEach((m, j) => {
+      const ma = a + Math.PI + (j + .5) * (Math.PI * 2 / moons.length);
+      next.push({ key: 'n' + m.id, id: m.id, role: 'moon', x: x + (r + 10) * Math.cos(ma), y: y + (r + 10) * Math.sin(ma), r: 3.6, from: 'n' + k.id, first: j === 0 });
+    });
+  });
+  const keys = new Set(next.map(i => i.key));
+  for (const it of next) {
+    let a = oAnim.get(it.key);
+    if (!a) { const src = oAnim.get(it.from || next[0].key) || { x: cx, y: cy }; a = { x: src.x, y: src.y, r: 0, o: 0 }; oAnim.set(it.key, a); }
+    a.tx = it.x; a.ty = it.y; a.tr = it.r; a.to = 1; a.leaving = false;
+  }
+  for (const [k, a] of oAnim) if (!keys.has(k)) { a.leaving = true; a.to = 0; a.tr = 0; a.tx = a.x + (a.x - cx) * .35; a.ty = a.y + (a.y - cy) * .35; }
+  oItems = next;
+  oKick();
+}
+function oKick() { if (orbitOn && !oDrawing) { oDrawing = true; requestAnimationFrame(oFrame); } }
+function oFrame() {
+  const k = reduceMotion ? 1 : .2; let moving = false;
+  for (const [key, a] of oAnim) {
+    for (const [p, t] of [['x', 'tx'], ['y', 'ty'], ['r', 'tr'], ['o', 'to']]) {
+      const d = a[t] - a[p]; if (Math.abs(d) > .05) { a[p] += d * k; moving = true; } else a[p] = a[t];
+    }
+    if (a.leaving && a.o < .02) oAnim.delete(key);
+  }
+  oDraw();
+  if (moving && orbitOn) requestAnimationFrame(oFrame); else oDrawing = false;
+}
+function oWrap(text, maxW, maxLines) {
+  const lines = []; const words = text.replace(/\s+/g, ' ').trim().split(' '); let line = '';
+  for (let w of words) {
+    while (octx.measureText(w).width > maxW && w.length > 1) {
+      let cut = w.length; while (cut > 1 && octx.measureText(w.slice(0, cut)).width > maxW) cut--;
+      if (line) { lines.push(line); line = ''; } lines.push(w.slice(0, cut)); w = w.slice(cut);
+    }
+    const t = line ? line + ' ' + w : w;
+    if (octx.measureText(t).width <= maxW) line = t; else { lines.push(line); line = w; }
+  }
+  if (line) lines.push(line); if (!lines.length) lines.push('');
+  if (lines.length > maxLines) { lines.length = maxLines; let l = lines[maxLines - 1]; while (l.length && octx.measureText(l + '…').width > maxW) l = l.slice(0, -1); lines[maxLines - 1] = l.trimEnd() + '…'; }
+  return lines;
+}
+function oDraw() {
+  const c = octx, FONT = getComputedStyle(document.body).fontFamily, BG = cssVar('--bg') || '#000000';
+  c.setTransform(oDPR, 0, 0, oDPR, 0, 0); c.clearRect(0, 0, oW, oH);
+  const { cx, cy, rx, ry } = oGeo, A = k => oAnim.get(k);
+  // a calm pool of darkness behind the orbit so it reads well over the rain
+  const pool = c.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry) * 1.35);
+  pool.addColorStop(0, oRgba(BG, .82)); pool.addColorStop(.7, oRgba(BG, .55)); pool.addColorStop(1, oRgba(BG, 0));
+  c.fillStyle = pool; c.fillRect(0, 0, oW, oH);
+  c.save(); c.strokeStyle = oRgba(theme.g, .18); c.setLineDash([2, 7]); c.beginPath(); c.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c.stroke(); c.restore();
+  for (const it of oItems) {
+    const a = A(it.key); if (!a || a.o < .02) continue;
+    if (it.role === 'child') {
+      const s = A(it.from); if (!s) continue; const n = nodes.get(it.id), col = oColor(n);
+      const g = c.createLinearGradient(s.x, s.y, a.x, a.y); g.addColorStop(0, oRgba(theme.g, .06)); g.addColorStop(1, oRgba(col, .6 * a.o * (n.done ? .4 : 1)));
+      c.strokeStyle = g; c.lineWidth = 1.4; c.beginPath(); c.moveTo(s.x, s.y);
+      c.quadraticCurveTo((s.x + a.x) / 2 + (a.y - s.y) * .12, (s.y + a.y) / 2 - (a.x - s.x) * .12, a.x, a.y); c.stroke();
+    } else if (it.role === 'parent') {
+      const s = A(oItems[0].key); if (!s) continue;
+      c.save(); c.setLineDash([3, 5]); c.strokeStyle = oRgba(theme.mid, .7 * a.o); c.lineWidth = 1.2;
+      c.beginPath(); c.moveTo(a.x, a.y + a.r); c.lineTo(s.x, s.y - s.r - 14); c.stroke(); c.restore();
+    } else if (it.role === 'moon' && it.first) {
+      const p = A(it.from); if (!p) continue;
+      c.strokeStyle = oRgba(theme.g, .22 * a.o); c.lineWidth = 1; c.beginPath(); c.arc(p.x, p.y, p.r + 10, 0, Math.PI * 2); c.stroke();
+    }
+  }
+  for (const [, a] of oAnim) if (a.leaving && a.o > .02) { c.fillStyle = oRgba(theme.g, .22 * a.o); c.beginPath(); c.arc(a.x, a.y, Math.max(0, a.r), 0, Math.PI * 2); c.fill(); }
+  const order = { moon: 0, parent: 1, child: 2, center: 3 };
+  for (const it of oItems.slice().sort((p, q) => order[p.role] - order[q.role])) {
+    const a = A(it.key); if (!a || a.o < .02 || a.r < .5) continue;
+    if (it.role === 'moon') { const n = nodes.get(it.id), col = oColor(n); c.save(); c.globalAlpha = a.o * (n.done ? .45 : .95); c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 6; c.beginPath(); c.arc(a.x, a.y, a.r, 0, Math.PI * 2); c.fill(); c.restore(); }
+    else if (it.role === 'parent') oDrawParent(it, a, FONT, BG);
+    else if (it.role === 'child') oDrawChild(it, a, FONT, BG);
+    else oDrawCore(it, a, FONT);
+  }
+}
+function oOrb(x, y, r, col, al, done, glow = 14) {
+  const c = octx, BG = cssVar('--bg') || '#000000';
+  c.save(); c.globalAlpha = al;
+  const g = c.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r);
+  g.addColorStop(0, oRgba(col, done ? .12 : .45)); g.addColorStop(.72, oRgba(BG, .9)); g.addColorStop(1, oRgba(BG, .96));
+  c.shadowColor = oRgba(col, done ? .2 : .8); c.shadowBlur = done ? 4 : glow;
+  c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+  c.shadowBlur = 0; c.lineWidth = 1.5; c.strokeStyle = oRgba(col, done ? .35 : .95); c.stroke(); c.restore();
+}
+function oPri(x, y, cat, al, FONT) {
+  if (!cat) return; const c = octx;
+  c.save(); c.globalAlpha = al; c.fillStyle = catColor(cat); c.fillRect(x - 9, y - 9, 18, 18);
+  c.fillStyle = '#000'; c.font = `bold 11px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(cat, x, y + .5); c.restore();
+}
+function oDrawParent(it, a, FONT, BG) {
+  const c = octx, n = nodes.get(it.id);
+  oOrb(a.x, a.y, a.r, n ? oColor(n) : theme.mid, a.o * .85, false, 8);
+  c.save(); c.globalAlpha = a.o; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = theme.hi; c.font = `bold 13px ${FONT}`; c.fillText('↑', a.x, a.y + .5);
+  c.fillStyle = theme.mid; c.font = `12px ${FONT}`; c.textBaseline = 'bottom'; c.shadowColor = BG; c.shadowBlur = 6;
+  const lbl = short(oTitle(n), 26); c.fillText(lbl, a.x, a.y - a.r - 6);
+  const w = c.measureText(lbl).width; it.hit = { x: a.x - w / 2 - 6, y: a.y - a.r - 22, w: w + 12, h: 22 + a.r * 2 };
+  c.restore();
+}
+function oDrawChild(it, a, FONT, BG) {
+  const c = octx, n = nodes.get(it.id), col = oColor(n), al = a.o;
+  oOrb(a.x, a.y, a.r, col, al, n.done);
+  if (oHl === it.idx) { c.save(); c.globalAlpha = al; c.strokeStyle = theme.hi; c.lineWidth = 2; c.setLineDash([4, 4]); c.beginPath(); c.arc(a.x, a.y, a.r + 6, 0, Math.PI * 2); c.stroke(); c.restore(); }
+  c.save(); c.globalAlpha = al; c.textAlign = 'center'; c.textBaseline = 'middle';
+  if (n.done) { c.fillStyle = theme.hi; c.font = `bold ${Math.round(a.r * .8)}px ${FONT}`; c.fillText('✓', a.x, a.y + 1); }
+  else { const k = oDescCount(n.id); if (k) { c.fillStyle = theme.hi; c.font = `${clamp(Math.round(a.r * .62), 10, 16)}px ${FONT}`; c.fillText(String(k), a.x, a.y + .5); } }
+  const up = Math.sin(it.a) < -.2, maxW = clamp(oW * .3, 96, 170);
+  c.font = `14px ${FONT}`;
+  const lines = oWrap(oTitle(n), maxW, 2), due = !n.done && n.due ? dueInfo(n.due) : null;
+  const lh = 17, blockH = lines.length * lh + (due ? 15 : 0), gap = oKids(n.id).length ? 18 : 8;
+  let blockW = Math.max(...lines.map(l => c.measureText(l).width));
+  if (due) { c.font = `12px ${FONT}`; blockW = Math.max(blockW, c.measureText(due.text).width); c.font = `14px ${FONT}`; }
+  const lx = clamp(a.x, blockW / 2 + 8, oW - blockW / 2 - 8), ly = up ? a.y - a.r - gap - blockH : a.y + a.r + gap;
+  c.textBaseline = 'top'; c.shadowColor = BG; c.shadowBlur = 6;
+  c.fillStyle = n.done ? oRgba(theme.hi, .5) : theme.hi;
+  lines.forEach((l, i) => { c.fillText(l, lx, ly + i * lh); if (n.done) { const w = c.measureText(l).width; c.fillRect(lx - w / 2, ly + i * lh + 8, w, 1.2); } });
+  if (due) { c.font = `12px ${FONT}`; c.fillStyle = due.cls === 'over' ? cssVar('--err') : due.cls === 'soon' ? cssVar('--warn') : theme.mid; c.fillText(due.text, lx, ly + lines.length * lh + 1); }
+  c.restore();
+  oPri(a.x + a.r * .78, a.y - a.r * .78, n.cat, al, FONT);
+  it.hit = { x: lx - blockW / 2, y: Math.min(ly, a.y - a.r), w: blockW, h: Math.max(ly + blockH, a.y + a.r) - Math.min(ly, a.y - a.r) };
+}
+function oDrawCore(it, a, FONT) {
+  const c = octx, n = it.id == null ? null : nodes.get(it.id), col = n ? oColor(n) : theme.g;
+  const st = n ? oLeafStats(n.id) : oRoots().reduce((s, r) => { const t = oLeafStats(r.id); return { leaves: s.leaves + t.leaves, done: s.done + t.done }; }, { leaves: 0, done: 0 });
+  const frac = st.leaves ? st.done / st.leaves : 0;
+  c.save(); c.globalAlpha = a.o; c.lineCap = 'round';
+  c.strokeStyle = oRgba(theme.mid, .3); c.lineWidth = 5; c.beginPath(); c.arc(a.x, a.y, a.r + 12, 0, Math.PI * 2); c.stroke();
+  if (frac > 0) {
+    c.strokeStyle = theme.g; c.shadowColor = theme.g; c.shadowBlur = 12;
+    c.beginPath(); c.arc(a.x, a.y, a.r + 12, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac); c.stroke();
+  }
+  c.restore();
+  oOrb(a.x, a.y, a.r, col, a.o, n && n.done, 30);
+  c.save(); c.globalAlpha = a.o; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const text = n ? (n.text.trim() || '…') : oTitle(null), inner = a.r * 1.55;
+  const longest = text.split(/\s+/).reduce((m, w) => w.length > m.length ? w : m, '');
+  let size = 17, lines = [''];
+  for (; size >= 9; size--) {
+    c.font = `${size}px ${FONT}`;
+    if (c.measureText(longest).width > inner && size > 9) continue;
+    lines = oWrap(text, inner, 4); if (lines.length * size * 1.25 <= a.r * 1.45) break;
+  }
+  const lh = size * 1.25, y0 = a.y - (lines.length - 1) * lh / 2;
+  c.fillStyle = n && n.done ? oRgba(theme.hi, .55) : theme.hi; c.shadowColor = theme.g; c.shadowBlur = 6;
+  lines.forEach((l, i) => c.fillText(l, a.x, y0 + i * lh));
+  c.restore();
+  if (n) oPri(a.x + a.r * .72, a.y - a.r * .72, n.cat, a.o, FONT);
+}
+
+/* path at the top, pills at the bottom */
+function oRenderTrail() {
+  const t = $('#otrail'); t.innerHTML = '';
+  const parts = [];
+  if (oRoots().length > 1) parts.push({ id: null, label: 'All maps' });
+  if (oFocus != null) oPath(oFocus).forEach(n => parts.push({ id: n.id, label: short(oTitle(n), 22) }));
+  if (!parts.length) parts.push({ id: null, label: oTitle(null) });
+  const from = Math.max(0, parts.length - 4);
+  if (from) t.insertAdjacentHTML('beforeend', '<span class="osep">…</span>');
+  parts.slice(from).forEach((p, i, arr) => {
+    if (i) t.insertAdjacentHTML('beforeend', '<span class="osep">/</span>');
+    if (i === arr.length - 1) { const s = document.createElement('span'); s.className = 'here'; s.textContent = p.label; t.appendChild(s); }
+    else { const b = document.createElement('button'); b.textContent = p.label; b.addEventListener('click', () => orbitSetFocus(p.id)); t.appendChild(b); }
+  });
+}
+function oRenderInfo() {
+  const n = oFocus == null ? null : nodes.get(oFocus), pills = [];
+  if (!n) { pills.push(`${oRoots().length} maps`); pills.push(`${nodes.size} nodes`); }
+  else {
+    const k = oDescCount(n.id), st = oLeafStats(n.id);
+    if (k) pills.push(`${k} inside`);
+    if (k && st.leaves) pills.push(`${Math.round(100 * st.done / st.leaves)}% done`);
+    if (n.due && !n.done) { const d = dueInfo(n.due); pills.push([d.text, d.cls]); }
+    if (n.cat) pills.push(`priority ${n.cat}`);
+    if (n.done) pills.push('done');
+    const u = oAgo(n.updated); if (u) pills.push(`updated ${u}`);
+  }
+  $('#oinfo').innerHTML = pills.map(p => Array.isArray(p) ? `<span class="${p[1]}">${escapeHtml(p[0])}</span>` : `<span>${escapeHtml(p)}</span>`).join('');
+}
+setInterval(() => { if (orbitOn) oRenderInfo(); }, 30000);
+
+/* moving around */
+function orbitSetFocus(id) {
+  if (id != null && !nodes.has(id)) return;
+  oFocus = id; oRot = 0; oHl = -1;
+  if (id != null) select(id);
+  orbitBuild();
+}
+function orbitUp() {
+  if (oFocus == null) return;
+  const p = oParent(nodes.get(oFocus));
+  if (p != null) orbitSetFocus(p); else if (oRoots().length > 1) orbitSetFocus(null);
+}
+function orbitShow(id) {                      // bring a node into view: go inside it, or into its parent with it highlighted
+  const n = nodes.get(id); if (!n) return;
+  oIndex();
+  const target = oKids(id).length ? id : (oParent(n) ?? (oRoots().length > 1 ? null : id));
+  orbitSetFocus(target); select(id);
+  const it = oItems.find(i => i.id === id && i.role === 'child'); if (it) { oHl = it.idx; oKick(); }
+}
+function toggleOrbit(force) {
+  const on = force ?? !orbitOn;
+  if (on === orbitOn && force != null) { if (on) orbitBuild(); return; }
+  if (editingId != null) commitEdit();
+  orbitCommit(); closeMenu();
+  if (tableOn) toggleTable(false);
+  if (searchOpen()) closeSearch();
+  orbitOn = on;
+  document.body.classList.toggle('orbitview', on);
+  const b = $('#orbitBtn'); b.innerHTML = on ? MAP_ICON2 : ORBIT_ICON; b.classList.toggle('on', on);
+  b.title = on ? 'Back to the map view' : 'Orbit view: travel through your nodes'; b.setAttribute('aria-label', b.title);
+  if (prefs.view !== (on ? 'orbit' : 'map')) { prefs.view = on ? 'orbit' : 'map'; savePrefs(false); }
+  if (on) {
+    oIndex(); oAnim.clear();
+    const s = nodes.get(selectedId);
+    oFocus = s ? (oKids(s.id).length ? s.id : oParent(s)) : null;
+    orbitResize();
+    if (s && !oKids(s.id).length) { const it = oItems.find(i => i.id === s.id); if (it) { oHl = it.idx; oKick(); } }
+  } else {
+    $('#log').style.bottom = '';
+    if (oFocus != null && nodes.has(oFocus)) { select(nodes.has(selectedId) ? selectedId : oFocus); centerOn(selectedId); }
+    scheduleMini();
+  }
+}
+
+/* touch and mouse on the orbit */
+let oPress = null;
+function oHitTest(x, y) {
+  for (const role of ['center', 'child', 'moon', 'parent']) for (const it of oItems) {
+    if (it.role !== role) continue;
+    const a = oAnim.get(it.key); if (!a || a.o < .3) continue;
+    const d = Math.hypot(x - a.x, y - a.y);
+    if (role === 'moon') { if (d <= 13) return it; continue; }
+    if (d <= a.r + (role === 'center' ? 12 : 8)) return it;
+    if (it.hit && x >= it.hit.x && x <= it.hit.x + it.hit.w && y >= it.hit.y && y <= it.hit.y + it.hit.h) return it;
+  }
+  return null;
+}
+ocv.addEventListener('pointerdown', e => {
+  if (oEdId != null) { orbitCommit(); return; }        // tapping outside the editor saves it
+  if (ctx.classList.contains('show')) return;
+  const it = oHitTest(e.clientX, e.clientY);
+  oPress = { x: e.clientX, y: e.clientY, it, moved: false, a0: Math.atan2(e.clientY - oGeo.cy, e.clientX - oGeo.cx), rot0: oRot, long: false };
+  ocv.setPointerCapture(e.pointerId);
+  if (it && it.id != null) oPress.timer = setTimeout(() => {
+    if (oPress && !oPress.moved) { oPress.long = true; select(it.id); openMenu(it.id, oPress.x, oPress.y); navigator.vibrate?.(10); }
+  }, 480);
+});
+ocv.addEventListener('pointermove', e => {
+  if (!oPress) return;
+  if (!oPress.moved && Math.hypot(e.clientX - oPress.x, e.clientY - oPress.y) < (e.pointerType === 'mouse' ? 4 : 10)) return;
+  oPress.moved = true; clearTimeout(oPress.timer);
+  let d = Math.atan2(e.clientY - oGeo.cy, e.clientX - oGeo.cx) - oPress.a0;
+  if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2;
+  oRot = oPress.rot0 + d; orbitBuild();                // dragging spins the orbit
+});
+ocv.addEventListener('pointerup', () => {
+  if (!oPress) return; const p = oPress; oPress = null; clearTimeout(p.timer);
+  if (p.moved || p.long || !p.it) return;
+  if (p.it.role === 'center') { if (p.it.id != null) startEdit(p.it.id); else log('Pick a map to go inside'); }
+  else orbitSetFocus(p.it.id);
+});
+ocv.addEventListener('pointercancel', () => { if (oPress) clearTimeout(oPress.timer); oPress = null; });
+ocv.addEventListener('contextmenu', e => { e.preventDefault(); const it = oHitTest(e.clientX, e.clientY); if (it && it.id != null) { select(it.id); openMenu(it.id, e.clientX, e.clientY); } });
+ocv.addEventListener('wheel', e => { e.preventDefault(); oRot += (e.deltaY + e.deltaX) * .0025; orbitBuild(); }, { passive: false });
+function orbitKey(e) {
+  const k = e.key, ring = oItems.filter(i => i.role === 'child');
+  if (k === 'ArrowRight' || k === 'ArrowDown') { e.preventDefault(); if (ring.length) { oHl = (oHl + 1) % ring.length; select(ring.find(i => i.idx === oHl).id); oKick(); } return true; }
+  if (k === 'ArrowLeft' || k === 'ArrowUp') { e.preventDefault(); if (ring.length) { oHl = (oHl - 1 + ring.length) % ring.length; select(ring.find(i => i.idx === oHl).id); oKick(); } return true; }
+  if (k === 'Enter') { e.preventDefault(); const t = ring.find(i => i.idx === oHl); if (t) orbitSetFocus(t.id); else if (oFocus != null) startEdit(oFocus); return true; }
+  if (k === 'Tab') { e.preventDefault(); if (oFocus != null) addAndEdit(oFocus); return true; }
+  if (k === ' ' || k === 'F2') { e.preventDefault(); if (oFocus != null) startEdit(oFocus); return true; }
+  if (k === 'Backspace') { e.preventDefault(); orbitUp(); return true; }
+  if (k === 'Escape') { if ($('#help.show,#theme.show,#rainPanel.show,#about.show') || linkFrom != null || ncId != null) return false; orbitUp(); return true; }
+  if (['c', 't', 'f', 'o', 'z', '[', ']', '\\'].includes(k.toLowerCase())) return true;   // map-only keys do nothing here
+  return false;
+}
+
+/* editing text in orbit view: MINDGRID's editor, floating over the core */
+let oEdId = null;
+function orbitEdit(id) {
+  const n = nodes.get(id); if (!n) return;
+  closeMenu(); oEdId = id; select(id);
+  if (oFocus !== id && !oItems.some(i => i.id === id)) orbitShow(id);
+  const box = $('#oedit'), ta = $('#oedText');
+  ta.value = n.text; box.classList.add('show');
+  const w = box.offsetWidth;
+  box.style.left = clamp(oGeo.cx - w / 2, 12, innerWidth - w - 12) + 'px';
+  box.style.top = clamp(oGeo.cy - 70, $('#bar').getBoundingClientRect().bottom + 8, innerHeight - 260) + 'px';
+  ta.focus({ preventScroll: true }); autosize(ta); ta.setSelectionRange(0, ta.value.length);
+}
+function orbitCommit(cancel = false) {
+  if (oEdId == null) return;
+  const id = oEdId, n = nodes.get(id), ta = $('#oedText');
+  oEdId = null; $('#oedit').classList.remove('show'); ta.blur();
+  requestAnimationFrame(() => { if (scrollX || scrollY) scrollTo(0, 0); });
+  if (!n || cancel) return;
+  let txt = ta.value.replace(/\u00a0/g, ' ').replace(/^(\s*\n)+/, '').replace(/\s+$/, '').replace(/\n{3,}/g, '\n\n');
+  if (!txt.trim()) txt = '…';
+  if (txt === n.text) return;
+  pushUndo(); n.text = txt; n.updated = now(); renderAll(); markDirty();
+}
+$('#oedText').addEventListener('input', e => autosize(e.target));
+$('#oedText').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); orbitCommit(); }
+  else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); orbitCommit(true); }
+  else if (e.key === 'Tab') { e.preventDefault(); shiftLines(e.target, e.shiftKey ? 'outdent' : 'indent'); }
+});
+{
+  const bar = $('#oedit .editbar');
+  const keep = e => { e.preventDefault(); e.stopPropagation(); };
+  bar.addEventListener('mousedown', keep); bar.addEventListener('touchstart', keep, { passive: false });
+  bar.addEventListener('pointerdown', e => {
+    keep(e); const b = e.target.closest('button'); if (!b) return;
+    const act = b.dataset.ed;
+    if (act === 'done') return orbitCommit();
+    if (act === 'cancel') return orbitCommit(true);
+    shiftLines($('#oedText'), act); $('#oedText').focus();
+  });
+}
+document.addEventListener('pointerdown', e => { if (oEdId != null && !e.target.closest('#oedit') && e.target !== ocv) orbitCommit(); }, true);
+$('#orbitBtn').innerHTML = ORBIT_ICON;
+$('#orbitBtn').addEventListener('click', () => toggleOrbit());
+addEventListener('resize', () => { if (orbitOn) orbitResize(); });
 
 /* ---------- controls panel ---------- */
 function toggleAbout(force) {
@@ -1991,7 +2446,7 @@ const PRESETS = [
   ['magenta', '#ff2bd6'], ['red', '#ff3b3b'], ['violet', '#a77bff'], ['gold', '#ffe14d']
 ];
 const theme = { g: '#00ff41', hi: '#c8ffd6', mid: '#00b82e', dim: '#0a5c1c', rgb: '0,255,65' };
-const prefs = { color: '#00ff41', rain: 32, tint: 0, mode: 'night', latest: true, rainColor: null };
+const prefs = { color: '#00ff41', rain: 32, tint: 0, mode: 'night', latest: true, rainColor: null, view: 'map' };
 const hexToRgb = h => { const v = parseInt(h.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; };
 const toHex = a => '#' + a.map(v => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0')).join('');
 const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
@@ -2018,6 +2473,7 @@ function pal(hex, mode = prefs.mode) {
 }
 const shades = hex => pal(hex);
 function applyTheme() {
+  if (typeof oKick === 'function' && orbitOn) setTimeout(oKick, 0);
   const day = prefs.mode === 'day', c = hexToRgb(prefs.color), t = prefs.tint / 100;
   const p = pal(prefs.color);
   Object.assign(theme, { g: p.g, hi: p.hi, mid: p.mid, dim: p.dim, rgb: p.rgb });
@@ -2090,6 +2546,7 @@ function loadThemeFrom(json) {
   if (isFinite(t.tint)) prefs.tint = clamp(+t.tint, 0, 30);
   if (t.mode === 'day' || t.mode === 'night') prefs.mode = t.mode;
   if (typeof t.latest === 'boolean') prefs.latest = t.latest;
+  if (t.view === 'orbit' || t.view === 'map') prefs.view = t.view;
   prefs.rainColor = /^#[0-9a-f]{6}$/i.test(t.rainColor || '') ? t.rainColor.toLowerCase() : null;
   applyTheme(); savePrefs(false);
 }
@@ -2182,6 +2639,7 @@ async function boot() {
     if (s?.bytes) restored = loadBytes(new Uint8Array(s.bytes), s.name, { silent: true, fromCache: true, dirty: s.dirty, handle: s.handle });
   } catch {}
   if (!restored) newMap(true);
+  if (prefs.view === 'orbit') toggleOrbit(true);
   await typeLine(bt, 'ready.', fast ? 0 : 30);
   bt.insertAdjacentHTML('beforeend', '<span class="cursor">&nbsp;</span>');
   setTimeout(() => $('#boot').classList.add('gone'), fast ? 150 : 500);
