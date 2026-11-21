@@ -4,15 +4,17 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 6.6
+**Current version:** 6.8
 
-![new in 6.6](https://img.shields.io/badge/new_in-6.6-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 6.8](https://img.shields.io/badge/new_in-6.8-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
 ---
 
 ## Features
+
+- $\color{#00FF41}\textsf{Fast with big maps: smooth panning and dragging and a quiet processor at rest, tested with 3,000 nodes}$ ![new in 6.8](https://img.shields.io/badge/new_in-6.8-00ff41?labelColor=000000)
 
 - Free-form mind maps with branches, multi-line nodes, indentation and bullets
 - Orbit view: travel through your map one node at a time, with the nodes inside it orbiting around it
@@ -305,11 +307,12 @@ A central node starts at 19 and grows up to 30. Sizes change by themselves as yo
 Your map is stored in a SQLite database file (`.sqlite`).
 
 - **Chrome and Edge on a computer:** **save** asks for a location the first time. After that, it writes straight back to the same file.
-- **Safari, Firefox and iPhone/iPad:** **save** downloads a fresh copy of the file each time. On iPhone, look in **Files → Downloads**. If you save more than once, the newest copy has the highest number, such as `mindmap-3.sqlite`.
+- **iPhone and iPad:** **save** opens the share sheet. Tap Save to Files, pick your folder (for example iCloud Drive), and tap Replace to update the same file. No more mindmap-2, mindmap-3 copies.
+- **Safari and Firefox on a computer:** **save** downloads a fresh copy of the file each time; the newest copy has the highest number, such as `mindmap-3.sqlite`.
 - **open** loads a `.sqlite` file. On a computer you can also drag a file onto the window.
 - Work in progress is also kept in your browser between visits, so you don't lose anything if you close the tab. This is only a safety net, because browsers (especially Safari) can clear it. **Your `.sqlite` file is your real backup, so save often.**
 
-The status bar shows **(unsaved)** when you have changes that aren't in the file yet.
+The status bar shows **(unsaved)** when you have changes that aren't in the file yet. If those changes have not been saved to a file for 2 days or more, it warns: ⚠ not saved to a file for 3 days. Safari can clear a website's stored data after about a week without a visit, so save to a file regularly. The app also asks the browser to keep its stored data permanently where that is supported.
 
 The status bar also shows how long ago the map was last saved to a file, for example saved 2 hours 5 mins ago, or not saved to a file yet for a new map. The time is stored in the file, so it is still right after you open the file again.
 
@@ -365,7 +368,7 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 **After using the table view, taps on the map do nothing.** Fixed in 4.2. Make sure the startup screen says 4.2 or later.
 
-**The app seemed frozen after rotating the phone** $\color{#00FF41}\textsf{(taps did nothing until you rotated again). Fixed in 6.6: the app now re-measures the screen after every rotation.}$
+**The app seemed frozen after rotating the phone** (taps did nothing until you rotated again). Fixed in 6.6: the app now re-measures the screen after every rotation.
 
 **Nodes overlap after many changes.** Press **T** or tap **tidy** to rearrange them.
 
@@ -377,7 +380,9 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{6.6}$ | $\color{#00FF41}\textsf{Fixed: after rotating an iPhone and switching views, the app could stop responding until rotated again}$ |
+| $\color{#00FF41}\textsf{6.8}$ | $\color{#00FF41}\textsf{Speed for big maps: lines and nodes far off screen are skipped, dashes pause while moving, fewer redundant updates, faster search}$ |
+| 6.7 | iPhone saving through the share sheet with Replace; warning after 2 days unsaved; persistent storage; code clean-up (shared panel and dock styles, merged helpers, leftovers removed, table of contents); fixed: two floating panels could be open on top of each other |
+| 6.6 | Fixed: after rotating an iPhone and switching views, the app could stop responding until rotated again |
 | 6.5 | Priority D removed: A, B, C or no priority; fixed: a new hold or right-click right after closing the menu was ignored |
 | 6.4 | Dock buttons without borders; the active view keeps a soft highlight |
 | 6.3 | Places view uses OpenStreetMap tiles |
@@ -429,6 +434,22 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 ---
 
 ## Tech
+
+$\color{#00FF41}\textsf{Speed on big maps (6.8):}$
+
+- $\color{#00FF41}\textsf{Connection lines are drawn only near the screen, one combined line per color, instead of two elements per link.}$
+- $\color{#00FF41}\textsf{Nodes far off screen are not painted; they keep their size, so tidy and layout are unaffected.}$
+- $\color{#00FF41}\textsf{The flowing dashes pause while the map moves, and stop when zoomed out below 50% or when another view covers the map.}$
+- $\color{#00FF41}\textsf{A node refresh only writes what changed; search remembers each node's searchable text.}$
+
+| $\color{#00FF41}\textsf{Measured on 3,000 nodes}$ | $\color{#00FF41}\textsf{6.7}$ | $\color{#00FF41}\textsf{6.8}$ |
+|---|---|---|
+| $\color{#00FF41}\textsf{Processor busy at rest}$ | $\color{#00FF41}\textsf{100%}$ | $\color{#00FF41}\textsf{6–8%}$ |
+| $\color{#00FF41}\textsf{Panning}$ | $\color{#00FF41}\textsf{6 fps}$ | $\color{#00FF41}\textsf{51–54 fps}$ |
+| $\color{#00FF41}\textsf{Dragging one node}$ | $\color{#00FF41}\textsf{18 fps}$ | $\color{#00FF41}\textsf{38 fps}$ |
+| $\color{#00FF41}\textsf{Adding a node}$ | $\color{#00FF41}\textsf{865 ms}$ | $\color{#00FF41}\textsf{205 ms}$ |
+| $\color{#00FF41}\textsf{Opening the file}$ | $\color{#00FF41}\textsf{1.5 s}$ | $\color{#00FF41}\textsf{0.7 s}$ |
+
 
 - Leaflet 1.9.4 (loaded on demand) with OpenStreetMap map tiles for the Places view
 

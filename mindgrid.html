@@ -64,11 +64,13 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
 /* deleted nodes and their lines fade out */
 .node.fading{transition:opacity .9s ease,transform .9s ease,filter .9s ease;opacity:0;
   transform:translate(-50%,-50%) scale(.82);filter:blur(4px);pointer-events:none}
-#ghosts path{transition:opacity .9s ease}
-#ghosts path.fading{opacity:0}
-@media (prefers-reduced-motion:reduce){.node.fading,#ghosts path{transition:none}}
+#ghosts g{transition:opacity .9s ease}
+#ghosts g.fading{opacity:0}
+@media (prefers-reduced-motion:reduce){.node.fading,#ghosts g{transition:none}}
 .edge{fill:none;stroke:var(--g-dim);stroke-width:2.2}
 .flow{fill:none;stroke:var(--g);stroke-width:1.4;stroke-dasharray:3 15;opacity:.85;animation:flow 1.1s linear infinite}
+#stage.far .flow,body.orbitview .flow,body.tableview .flow,body.geoview .flow{animation:none}
+#stage.moving .flow{animation-play-state:paused}    /* frozen while panning, zooming or dragging */
 @keyframes flow{to{stroke-dashoffset:-18}}
 
 .node{position:absolute;transform:translate(-50%,-50%);width:max-content;min-width:80px;max-width:320px;padding:8px 14px;
@@ -97,13 +99,6 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
   background:var(--panel);border:1px solid var(--g-mid);box-shadow:var(--glow);white-space:nowrap;cursor:default}
 .editbar button{font-size:14px;padding:6px 10px;min-width:38px}
 .node .txt{outline:none;min-height:1.35em}
-.node .txt[contenteditable="true"]{user-select:text;-webkit-user-select:text;caret-color:var(--g-hi)}
-.node .due{position:absolute;left:-1px;top:calc(100% + 5px);font-size:calc(1em - 1px);line-height:1.3;white-space:nowrap;
-  pointer-events:none;text-shadow:none;letter-spacing:0;color:var(--g-mid);background:var(--panel);padding:1px 6px;border:1px solid var(--g-dim)}
-.node .due.soon{color:var(--warn);border-color:var(--warn)}
-.node .due.over{color:var(--err);border-color:var(--err);font-weight:bold}
-.node.done .due{opacity:.5;text-decoration:line-through;font-weight:normal}
-.node.folded .due{top:calc(100% + 14px)}
 #ctx .duerow{display:flex;align-items:center;gap:6px;padding:4px 4px 4px 12px;font-size:15px}
 #ctx .duerow span{flex:1;white-space:nowrap}
 #ctx .duerow input{font:inherit;font-size:16px;background:var(--bg);color:var(--g);border:1px solid var(--g-mid);padding:6px 6px;
@@ -161,14 +156,15 @@ button.on{color:var(--g-hi);text-shadow:var(--glow)}
 #status span:first-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
 #status span:not(:first-child){white-space:normal}
 #status{text-align:center}
-#sbtns{flex:none}
 #status .focusinfo{color:var(--g-hi)}
 #status span{margin-right:14px;white-space:nowrap;display:inline-block}
 #status .dirty{color:var(--warn)}
+/* ---------- dock: search, orbit, places, table, day/night, help ---------- */
 #sbtns{display:flex;gap:6px;flex:none;align-items:flex-start;justify-content:center}
-#modeBtn2{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
-#tableBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
-#tableBtn.on{background:rgba(var(--rgb),.18);color:var(--g-hi);border-color:var(--g-mid)}
+#sbtns button{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid transparent;min-height:38px;min-width:46px}
+#sbtns button:hover{background:rgba(var(--rgb),.1)}
+#sbtns button.on{background:rgba(var(--rgb),.18);color:var(--g-hi)}
+#sbtns svg{width:20px;height:20px;vertical-align:-4px}
 #tableView{position:fixed;left:0;right:0;top:50px;bottom:40px;z-index:8;display:none;overflow:auto;
   background:var(--panel);overscroll-behavior:contain;touch-action:pan-y}
 body.tableview #tableView{display:block}
@@ -192,7 +188,6 @@ body.tableview #stage,body.tableview #mini,body.tableview #log{visibility:hidden
 #tv td.empty{text-align:center;color:var(--g-mid);padding:24px 8px;border-left:0}
 #tableView .tvdone{display:block;margin:14px auto 18px;padding:8px 16px;border:1px solid var(--g-dim);color:var(--g-mid);font-size:14px}
 .node.done .txt{text-decoration:line-through;opacity:.6}
-#searchBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
 #search{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 56px);transform:translateX(-50%);z-index:21;
   width:min(520px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);padding:8px;display:none}
 #search.show{display:block}
@@ -208,8 +203,7 @@ body.tableview #stage,body.tableview #mini,body.tableview #log{visibility:hidden
 mark{background:rgba(var(--rgb),.35);color:var(--g-hi);padding:0 1px}
 body.searching .node.miss{opacity:.22}
 body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
-#hint{font-size:18px;line-height:1;color:var(--g);padding:7px 14px;margin:-4px -6px -4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
-#sbtns svg{width:20px;height:20px;vertical-align:-4px}
+#sbtns #hint{font-size:18px;line-height:1;margin-right:-6px}
 #help .close{position:sticky;top:0;float:right;margin:-6px -8px 0 0;font-size:16px}
 #log{position:fixed;left:12px;bottom:calc(var(--sbh,60px) + 8px);z-index:9;font-size:13px;
   pointer-events:none;max-width:min(560px,90vw)}
@@ -217,13 +211,17 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 #log div.old{opacity:.35}
 #log div.err{color:var(--err);text-shadow:none}
 
-#help{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(360px,calc(100vw - 24px));
-  max-height:calc(100% - 130px);overflow:auto;background:var(--panel);border:1px solid var(--g-mid);
-  padding:14px 16px;font-size:13.5px;line-height:1.6;box-shadow:var(--glow);display:none}
-#help.show,#theme.show,#nodeColor.show,#rainPanel.show,#about.show{display:block}
-#about{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:22;width:min(360px,calc(100vw - 24px));
-  max-height:calc(100% - 130px);overflow:auto;background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);
-  padding:16px 18px;font-size:14px;line-height:1.6;display:none}
+/* ---------- floating panels: help, about, colors, rain color, node color, location ---------- */
+#help,#about,#theme,#rainPanel,#nodeColor,#geoPanel{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;
+  width:min(320px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;
+  box-shadow:var(--glow);display:none}
+#help.show,#about.show,#theme.show,#rainPanel.show,#nodeColor.show,#geoPanel.show{display:block}
+#help,#about{width:min(360px,calc(100vw - 24px));max-height:calc(100% - 130px);overflow:auto;line-height:1.6}
+#about{left:12px;right:auto;z-index:22;border-color:var(--g);padding:16px 18px;font-size:14px}
+#nodeColor,#geoPanel{z-index:25}
+#geoPanel{width:min(340px,calc(100vw - 24px))}
+#theme h2,#rainPanel h2,#nodeColor h2,#geoPanel h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #about h2{margin:0;font-size:22px;font-weight:normal;letter-spacing:.18em;text-shadow:var(--glow)}
 #about h2 b{color:var(--g-hi);font-weight:normal}
 #about .ver{color:var(--g-mid);margin:2px 0 12px}
@@ -231,15 +229,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 #about a{color:var(--g-hi)}
 #about .stats{border-top:1px solid var(--g-dim);padding-top:10px;margin-top:12px;color:var(--g-mid)}
 #about .close{float:right;margin:-8px -10px 0 0;font-size:16px}
-#rainPanel{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(320px,calc(100vw - 24px));
-  background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
-#rainPanel h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em}
-#rainPanel .sw.def i{background:repeating-linear-gradient(45deg,var(--g) 0 3px,var(--bg) 3px 6px)}
 .chip{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6px;vertical-align:1px;border:1px solid var(--g-dim)}
-#geoPanel{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:25;width:min(340px,calc(100vw - 24px));
-  background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
-#geoPanel.show{display:block}
-#geoPanel h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #geoNow{color:var(--g-mid);margin-bottom:4px;min-height:1.4em}
 #geoNow.err{color:var(--err)}
 #geoPanel .gfield{display:block;margin-top:12px}
@@ -253,14 +243,8 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
   background:var(--bg);border:1px solid var(--g);border-radius:50% 50% 50% 0;transform:rotate(-45deg);pointer-events:none;box-shadow:0 0 6px rgba(var(--rgb),.5)}
 .node .geo::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--g)}
 #tv td.t small.place{display:block;font-size:12px;margin-top:2px;color:var(--g-mid)}
-#nodeColor{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:25;width:min(320px,calc(100vw - 24px));
-  background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
-#nodeColor h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#nodeColor .sw.def i{background:repeating-linear-gradient(45deg,var(--g) 0 3px,var(--bg) 3px 6px)}
+#nodeColor .sw.def i,#rainPanel .sw.def i{background:repeating-linear-gradient(45deg,var(--g) 0 3px,var(--bg) 3px 6px)}
 .trow input[type=checkbox]{width:20px;height:20px;accent-color:var(--g)}
-#theme{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:11;width:min(320px,calc(100vw - 24px));
-  background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
-#theme h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em}
 #swatches,.swgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .sw{height:44px;border:1px solid var(--g-dim);background:var(--bg);color:var(--g);cursor:pointer;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:2px;font-size:11px;padding:0}
@@ -297,9 +281,6 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 #orbitCv{position:fixed;inset:0;width:100%;height:100%;z-index:2;display:none;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 body.orbitview #orbitCv{display:block}
 body.orbitview #stage,body.orbitview #mini{visibility:hidden}
-#orbitBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
-#orbitBtn.on{background:rgba(var(--rgb),.18);color:var(--g-hi);border-color:var(--g-mid)}
-#sbtns svg{width:20px;height:20px;vertical-align:-4px}
 #otrail{position:fixed;left:0;right:0;z-index:6;display:none;flex-wrap:wrap;align-items:center;gap:2px;padding:8px 12px 0;font-size:13.5px}
 body.orbitview #otrail{display:flex}
 #otrail button{color:var(--g-mid);padding:4px 8px;border:1px solid transparent}
@@ -322,8 +303,6 @@ body.orbitview #log div.old,body.geoview #log div.old,body.geoview #mini{display
 #oedText{display:block;width:100%;margin:0;padding:0;border:0;outline:none;resize:none;overflow:hidden;background:transparent;color:var(--g);
   font:inherit;font-size:16px;line-height:1.4;text-shadow:var(--ts);min-height:2.8em;tab-size:4;caret-color:var(--g-hi);-webkit-user-select:text;user-select:text}
 /* ---------- places view (Leaflet) ---------- */
-#geoBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
-#geoBtn.on{background:rgba(var(--rgb),.18);color:var(--g-hi);border-color:var(--g-mid)}
 #geoView{position:fixed;left:0;right:0;top:50px;bottom:60px;z-index:8;display:none;background:var(--bg)}
 body.geoview #geoView{display:block}
 body.geoview #stage,body.geoview #mini,body.geoview #orbitCv,body.geoview #otrail,body.geoview #oinfo{visibility:hidden}
@@ -355,8 +334,7 @@ body.geoview #stage,body.geoview #mini,body.geoview #orbitCv,body.geoview #otrai
 #geoView .leaflet-container{background:var(--bg)}
 body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.55)}
 /* dock buttons: no borders; the active view is shown by a soft highlight */
-#sbtns button{border-color:transparent!important}
-#sbtns button:hover{background:rgba(var(--rgb),.1)}
+#status .stale{color:var(--warn)}
 </style>
 </head>
 <body>
@@ -514,10 +492,46 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 <input type="file" id="fileIn" style="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0" tabindex="-1" aria-hidden="true">
 
 <script>
+/* MINDGRID: a mind map in one HTML file.
+   Sections of this script, in order:
+   - terminal log
+   - IndexedDB session cache
+   - model helpers
+   - undo
+   - mutations
+   - rendering
+   - most recently updated node shows in matrix green
+   - last-updated stamp above the selected node
+   - priority (A urgent + important, B important, C urgent)
+   - due dates (leaf nodes)
+   - view
+   - radar minimap
+   - editing (textarea editor + indent bar)
+   - node menu (long press / right-click)
+   - per-node text size
+   - floating panels: only one open at a time
+   - per-node color
+   - pointer: drag, pan, pinch, double-tap
+   - keyboard
+   - SQLite persistence
+   - drag & drop file
+   - full-text search
+   - table view (title, updated, done)
+   - orbit view: travel through your thoughts
+   - geotags: pin a node to a place
+   - places view: geotagged nodes on a real map (Leaflet, loaded on first use)
+   - rotating the phone
+   - controls panel
+   - toolbar
+   - interface colors
+   - rain color (separate from the interface color)
+   - digital rain
+   - boot
+   Data lives in a SQLite file (sql.js); see 'SQLite persistence' for the schema. */
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '6.6';
+const APP_VERSION = '6.8';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -549,7 +563,8 @@ let nodes = new Map();          // id -> {id,parent,text,x,y,collapsed,created,u
 const els = new Map();          // id -> element
 let nextId = 1, selectedId = null, editingId = null;
 let fileHandle = null, fileName = 'mindmap.sqlite', dirty = false;
-let lastSaved = null;   // when the map was last written to a .sqlite file
+let lastSaved = null;
+let dirtySince = null;  // when the current unsaved changes began (for the save reminder)   // when the map was last written to a .sqlite file
 const view = { x: 0, y: 0, s: 1 };
 const undoStack = [], redoStack = [];
 const now = () => new Date().toISOString();
@@ -698,12 +713,14 @@ function addSibling() {
 /* the removed nodes are taken off the map right away (so undo works at once) and their look fades out */
 function fadeOut(ids) {
   const ghosts = document.getElementById('ghosts');
-  const set = new Set(ids.map(String));
-  const lines = [...edgesSvg.querySelectorAll('path[data-c]')].filter(p => set.has(p.dataset.c)).map(p => p.cloneNode());
-  lines.forEach(p => ghosts.appendChild(p));
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.innerHTML = ids.map(i => { const n = nodes.get(i), p = n && nodes.get(n.parent);
+    return p && !isHidden(n) ? edgeSvg(edgePath(p, n), effColor(n)) : ''; }).join('');
+  ghosts.appendChild(g);
+  const lines = [g];
   const els2 = ids.map(i => els.get(i)).filter(Boolean);
   ids.forEach(i => els.delete(i));                       // renderAll will no longer touch these elements
-  els2.forEach(el => { el.classList.remove('sel'); el.querySelector('.stamp')?.remove(); el.style.display = el.style.display; });
+  els2.forEach(el => { el.classList.remove('sel'); el.querySelector('.stamp')?.remove(); });
   void document.body.offsetWidth;                         // start the fade from fully visible
   els2.forEach(el => el.classList.add('fading'));
   lines.forEach(p => p.classList.add('fading'));
@@ -815,10 +832,14 @@ function renderAll() {
   }
   drawEdges(); updateStatus();
 }
+/* Write a style only when its value changed: a full refresh of 1000 nodes used to rewrite every position,
+   size and title, which made the browser restyle all of them after each edit. */
+function setStyle(el, prop, v) { const c = el._st || (el._st = {}); if (c[prop] !== v) { c[prop] = v; el.style[prop] = v; } }
+function setAttr(el, name, v) { if (el.getAttribute(name) !== v) el.setAttribute(name, v); }
 function updateEl(n, el = els.get(n.id), idx) {
-  el.style.left = n.x + 'px'; el.style.top = n.y + 'px';
-  el.style.width = n.w ? n.w + 'px' : '';
-  if (idx || n.fs) el.style.fontSize = (n.fs || autoFS.get(n.id) || autoFontSize(n)) + 'px';
+  setStyle(el, 'left', n.x + 'px'); setStyle(el, 'top', n.y + 'px');
+  setStyle(el, 'width', n.w ? n.w + 'px' : '');
+  if (idx || n.fs) setStyle(el, 'fontSize', (n.fs || autoFS.get(n.id) || autoFontSize(n)) + 'px');
   el.classList.toggle('fixed', !!n.w);
   const ec = effColor(n);
   el.classList.toggle('latest', n.id === latestId && prefs.latest !== false);
@@ -836,15 +857,14 @@ function updateEl(n, el = els.get(n.id), idx) {
   el.classList.toggle('newest-all', n.id === newestAllId);
   el.classList.toggle('done', !!n.done);
   { let gp = el.querySelector('.geo');
-    if (n.lat != null) { if (!gp) { gp = document.createElement('div'); gp.className = 'geo'; el.appendChild(gp); } gp.title = n.place || fmtCoords(n); }
+    if (n.lat != null) { if (!gp) { gp = document.createElement('div'); gp.className = 'geo'; el.appendChild(gp); } setAttr(gp, 'title', n.place || fmtCoords(n)); }
     else gp?.remove(); }
   { let ct = el.querySelector('.cat');
     if (n.cat) { if (!ct) { ct = document.createElement('div'); ct.className = 'cat'; el.appendChild(ct); }
-      ct.textContent = n.cat; ct.style.background = catColor(n.cat); ct.title = CATS[n.cat].name; }
+      if (ct.textContent !== n.cat) ct.textContent = n.cat; setStyle(ct, 'background', catColor(n.cat)); setAttr(ct, 'title', CATS[n.cat].name); }
     else ct?.remove(); }
-  el.querySelector('.due')?.remove();   // due dates are shown in the menu and the table, not on the map
   if (idx) updateStamp(n.id);
-  el.style.display = isHidden(n) ? 'none' : '';
+  setStyle(el, 'display', isHidden(n) ? 'none' : '');
   const t = el.firstChild;
   if (editingId !== n.id && t.textContent !== n.text) t.textContent = n.text;
   if (idx) {
@@ -852,41 +872,72 @@ function updateEl(n, el = els.get(n.id), idx) {
     if (n.collapsed && idx.has(n.id)) {
       if (!b) { b = document.createElement('div'); b.className = 'badge'; b.title = 'Unfold'; el.appendChild(b); }
       const c = descendants(n.id, idx).length;
-      b.textContent = '+' + c; b.title = `${c} hidden node${c > 1 ? 's' : ''}. Tap to unfold`;
+      if (b.textContent !== '+' + c) b.textContent = '+' + c; setAttr(b, 'title', `${c} hidden node${c > 1 ? 's' : ''}. Tap to unfold`);
     } else if (b) b.remove();
     el.classList.toggle('folded', !!(n.collapsed && idx.has(n.id)));
   }
 }
+function edgePath(p, n) { const dx = (n.x - p.x) * 0.5; return `M${p.x},${p.y}C${p.x + dx},${p.y} ${n.x - dx},${n.y} ${n.x},${n.y}`; }
+function edgeSvg(d, color) {          // a base line and its flowing dashes, in a node's color or the interface color
+  const st = color ? shades(color) : null;
+  return st ? `<path class="edge" d="${d}" style="stroke:${st.dim}"/><path class="flow" d="${d}" style="stroke:${st.g}"/>`
+            : `<path class="edge" d="${d}"/><path class="flow" d="${d}"/>`;
+}
+/* Links are drawn only near the screen (the visible area plus one screen on every side), one combined path per
+   color. Panning redraws them once the view leaves that area. Zoomed out below 50% the dashes stop flowing:
+   they are smaller than a pixel there, and animating them along hundreds of links kept the processor busy. */
+let edgeWin = null;                    // the world area the current links were drawn for
+function viewRect(margin) {            // visible area in world coordinates, grown by `margin` screens on each side
+  const w = innerWidth / view.s, h = innerHeight / view.s, x = -view.x / view.s, y = -view.y / view.s;
+  return { x0: x - w * margin, y0: y - h * margin, x1: x + w * (1 + margin), y1: y + h * (1 + margin) };
+}
 function drawEdges() {
-  let s = '';
+  const r = edgeWin = viewRect(1), groups = new Map();
   for (const n of nodes.values()) {
     const p = nodes.get(n.parent);
-    if (!p || isHidden(n)) continue;
-    const dx = (n.x - p.x) * 0.5;
-    const d = `M${p.x},${p.y} C${p.x + dx},${p.y} ${n.x - dx},${n.y} ${n.x},${n.y}`;
-    const ec = effColor(n), st = ec ? shades(ec) : null;
-    s += st ? `<path class="edge" data-c="${n.id}" d="${d}" style="stroke:${st.dim}"/><path class="flow" data-c="${n.id}" d="${d}" style="stroke:${st.g}"/>`
-            : `<path class="edge" data-c="${n.id}" d="${d}"/><path class="flow" data-c="${n.id}" d="${d}"/>`;
+    if (!p) continue;
+    if (Math.max(p.x, n.x) < r.x0 || Math.min(p.x, n.x) > r.x1 || Math.max(p.y, n.y) < r.y0 || Math.min(p.y, n.y) > r.y1) continue;
+    if (isHidden(n)) continue;
+    const key = effColor(n) || '';
+    groups.set(key, (groups.get(key) || '') + edgePath(p, n));
   }
+  let s = '';
+  for (const [color, d] of groups) s += edgeSvg(d, color);
   edgesSvg.innerHTML = s;
+  cullNodes(r);
   scheduleMini();
+}
+/* Nodes far outside the screen are not painted (visibility only, so they keep their size for tidy and layout).
+   On big maps this is what keeps panning smooth: the browser no longer walks every node on every frame. */
+function cullNodes(r) {
+  const m = 400;                                   // generous margin in world units for wide or tall nodes
+  for (const [id, el] of els) {
+    const n = nodes.get(id); if (!n) continue;
+    const out = n.x < r.x0 - m || n.x > r.x1 + m || n.y < r.y0 - m || n.y > r.y1 + m;
+    setStyle(el, 'visibility', out ? 'hidden' : '');
+  }
+}
+let edgesQueued = false;
+function edgesFollowView() {           // called on every pan/zoom frame; cheap unless the view left the drawn area
+  stage.classList.toggle('far', view.s < 0.5);
+  const v = viewRect(0), w = edgeWin;
+  if (w && v.x0 >= w.x0 && v.y0 >= w.y0 && v.x1 <= w.x1 && v.y1 <= w.y1 && (w.x1 - w.x0) < 6 * (v.x1 - v.x0)) return;
+  if (!edgesQueued) { edgesQueued = true; requestAnimationFrame(() => { edgesQueued = false; drawEdges(); }); }
 }
 /* ---------- last-updated stamp above the selected node ---------- */
 function fmtTime(iso) {
   const d = new Date(iso); if (!iso || isNaN(d)) return null;
   return d.toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
-function ago(iso) {
+function ago(iso) {              // short form: "just now", "5 min ago", "3 h ago", "yesterday", "12 days ago"
   const d = new Date(iso); if (!iso || isNaN(d)) return '';
-  const m = Math.round((Date.now() - d) / 60000);
+  const m = Math.floor((Date.now() - d) / 60000);
   if (m < 1) return 'just now';
-  if (m < 60) return m + ' min ago';
-  const h = Math.round(m / 60); if (h < 24) return h + ' h ago';
-  const days = Math.round(h / 24); if (days === 1) return 'yesterday';
-  if (days < 30) return days + ' days ago';
-  return '';
+  if (m < 60) return `${m} min ago`;
+  const h = Math.floor(m / 60); if (h < 24) return `${h} h ago`;
+  const days = Math.floor(h / 24); return days === 1 ? 'yesterday' : `${days} days ago`;
 }
-/* ---------- priority category (Eisenhower: A urgent+important, B important, C urgent, D neither) ---------- */
+/* ---------- priority (A urgent + important, B important, C urgent) ---------- */
 const CATS = {
   A: { color: '#ff3b3b', name: 'A: urgent and important' },
   B: { color: '#ffb000', name: 'B: important, not urgent' },
@@ -965,13 +1016,25 @@ function updateStatus() {
     `<span class="${dirty ? 'dirty' : ''}">${escapeHtml(fileName)}${dirty ? ' (unsaved)' : ''}</span>` +
     `<span>${nodes.size} nodes</span><span>zoom ${Math.round(view.s * 100)}%</span>` +
     (focusState && nodes.has(focusState.id) ? `<span class="focusinfo">focus: ${escapeHtml(short(nodes.get(focusState.id).text))}</span>` : '') +
+    (staleSave() ? `<span class="stale" title="Safari can clear stored data after about a week. Save to a file.">⚠ not saved to a file for ${staleSave()}</span>` : '') +
     `<span title="${escapeHtml(lastSaved ? fmtTime(lastSaved) || '' : '')}">${lastSaved ? 'saved ' + agoLong(lastSaved) : 'not saved to a file yet'}</span>`;
 }
 setInterval(updateStatus, 30000);
+/* unsaved changes older than 2 days: how long (else '') */
+function staleSave() {
+  if (!dirty || !dirtySince) return '';
+  const days = Math.floor((Date.now() - dirtySince) / 86400000);
+  return days >= 2 ? `${days} days` : '';
+}
 const escapeHtml = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /* ---------- view ---------- */
-function applyView() { world.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.s})`; updateStatus(); scheduleMini(); }
+/* The flowing dashes pause while the map moves and continue 0.3 s after it stops:
+   animating them during a pan halved the frame rate on big maps. */
+let movingTimer = 0;
+function markMoving() { stage.classList.add('moving'); clearTimeout(movingTimer); movingTimer = setTimeout(() => stage.classList.remove('moving'), 300); }
+function applyView() {
+  markMoving(); edgesFollowView(); world.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.s})`; updateStatus(); scheduleMini(); }
 
 /* animated camera: flies to world point (cx,cy) at scale s */
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1140,7 +1203,6 @@ function ensureVisible(id) {
   const sx = n.x * view.s + view.x, sy = n.y * view.s + view.y, m = 120;
   if (sx < m || sx > innerWidth - m || sy < m || sy > innerHeight - m) centerOn(id);
 }
-const fitAll = overview;
 function zoomStep(f) {
   const cx = (innerWidth / 2 - view.x) / view.s, cy = (innerHeight / 2 - view.y) / view.s;
   flyTo(cx, cy, view.s * f, 220);
@@ -1394,11 +1456,18 @@ stage.addEventListener('contextmenu', e => {
   if (el && linkFrom == null && !menuOpen()) openMenu(+el.dataset.id, e.clientX, e.clientY);
 });
 
+/* ---------- floating panels: only one open at a time ---------- */
+function closePanels(keep) {
+  for (const q of ['#help', '#theme', '#rainPanel', '#about']) if (q !== keep) $(q).classList.remove('show');
+  if (keep !== '#nodeColor') closeNodeColor();
+  if (keep !== '#geoPanel') closeGeo();
+}
+
 /* ---------- per-node color ---------- */
 let ncId = null, ncUndo = false;
 function openNodeColor(id) {
   const n = nodes.get(id); if (!n) return;
-  $('#help').classList.remove('show'); $('#theme').classList.remove('show');
+  closePanels('#nodeColor');
   ncId = id; ncUndo = false;
   $('#ncTitle').textContent = 'COLOR: ' + short(n.text);
   $('#ncSwatches').innerHTML =
@@ -1544,7 +1613,11 @@ stage.addEventListener('pointermove', e => {
     n.w = clamp(Math.round(drag.w0 + 2 * dx / view.s), 80, 800);
     updateEl(n); drawEdges();
   } else if (drag.type === 'node') {
-    for (const [i, ox, oy] of drag.orig) { const n = nodes.get(i); n.x = ox + dx / view.s; n.y = oy + dy / view.s; updateEl(n); }
+    markMoving();
+    for (const [i, ox, oy] of drag.orig) {            // only positions change while dragging
+      const n = nodes.get(i); n.x = ox + dx / view.s; n.y = oy + dy / view.s;
+      const el = els.get(i); if (el) { setStyle(el, 'left', n.x + 'px'); setStyle(el, 'top', n.y + 'px'); }
+    }
     drawEdges();
   } else { view.x = drag.vx + dx; view.y = drag.vy + dy; applyView(); }
 });
@@ -1648,7 +1721,7 @@ document.addEventListener('keydown', e => {
       else if (ncId != null) closeNodeColor();
       else if (geoId != null) closeGeo();
       else if (linkFrom != null) { endLink(); log('Connect cancelled'); }
-      else if ($('#help.show,#theme.show,#rainPanel.show,#about.show')) { ['#help', '#theme', '#rainPanel', '#about'].forEach(q => $(q).classList.remove('show')); }
+      else if ($('#help.show,#theme.show,#rainPanel.show,#about.show')) closePanels();
       else overview();
       break;
     case '+': case '=': zoomStep(1.35); break;
@@ -1719,7 +1792,7 @@ function loadBytes(bytes, name, opts = {}) {
   for (const el of els.values()) el.remove(); els.clear();
   renderAll();
   let v = null; try { v = JSON.parse(meta.view || 'null'); } catch {}
-  if (v && isFinite(v.s)) { Object.assign(view, v); applyView(); } else fitAll();
+  if (v && isFinite(v.s)) { Object.assign(view, v); applyView(); } else overview();
   dirty = !!opts.dirty; updateStatus();
   if (!opts.silent) log(`Opened ${fileName}: ${nodes.size} nodes`);
   if (!opts.fromCache) cacheSession();
@@ -1745,6 +1818,22 @@ async function saveFile(saveAs = false) {
   lastSaved = now();
   try { writeToDb(); } catch (err) { lastSaved = prevSaved; return log('Save failed: ' + err.message, true); }
   const data = db.export();
+  // phones and tablets: the share sheet's "Save to Files" can replace the same file (no more name-2, name-3 copies).
+  // This must run before any await, while the tap still counts as a user gesture.
+  if (!window.showSaveFilePicker && navigator.canShare && matchMedia('(pointer: coarse)').matches) {
+    const file = ['application/x-sqlite3', 'application/octet-stream'].map(t => new File([data], fileName, { type: t }))
+      .find(f => { try { return navigator.canShare({ files: [f] }); } catch { return false; } });
+    if (file) {
+      try {
+        await navigator.share({ files: [file] });
+        dirty = false; updateStatus(); cacheSession();
+        return log(`Shared ${fileName}. In Files, pick your folder and choose Replace to update it.`);
+      } catch (err) {
+        if (err.name === 'AbortError') { lastSaved = prevSaved; updateStatus(); return log('Save cancelled'); }
+        log('Sharing did not work, downloading instead');
+      }
+    }
+  }
   if (window.showSaveFilePicker) {
     try {
       if (!fileHandle || saveAs) {
@@ -1795,12 +1884,12 @@ $('#fileIn').addEventListener('change', e => {
 });
 
 let cacheTimer = null;
-function markDirty() { scheduleTable(); scheduleOrbit(); scheduleGeo(); if (searchOpen()) { clearTimeout(sTimer); sTimer = setTimeout(() => runSearch(true), 150); } refreshLatest(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
+function markDirty() { scheduleTable(); scheduleOrbit(); scheduleGeo(); if (searchOpen()) { clearTimeout(sTimer); sTimer = setTimeout(() => runSearch(true), 150); } refreshLatest(); if (!dirty || !dirtySince) dirtySince = Date.now(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
 async function cacheSession() {
   if (!db) return;
   try {
     writeToDb();
-    const rec = { bytes: db.export(), name: fileName, dirty };
+    const rec = { bytes: db.export(), name: fileName, dirty, dirtySince };
     try { await IDB.set('session', { ...rec, handle: fileHandle }); }
     catch { await IDB.set('session', rec); }
   } catch { /* browser cache unavailable — file saves still work */ }
@@ -1823,10 +1912,13 @@ const sBox = $('#search'), qIn = $('#q');
 let hits = [], hitIdx = -1, sTimer = 0;
 const searchOpen = () => sBox.classList.contains('show');
 const foldChar = ch => ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const normCache = new Map();          // text -> its search-ready form (rebuilt only when a node's text changes)
 function normMap(text) {             // normalized text + map back to original positions
+  const hit = normCache.get(text); if (hit) return hit;
+  if (normCache.size > 20000) normCache.clear();
   let out = ''; const map = [];
   for (let i = 0; i < text.length; i++) for (const c of foldChar(text[i])) { out += c; map.push(i); }
-  return { out, map };
+  const r = { out, map }; normCache.set(text, r); return r;
 }
 function findRanges(text, terms) {
   const { out, map } = normMap(text), r = [];
@@ -1848,12 +1940,11 @@ function markHtml(text, ranges, from = 0, to = text.length) {
   }
   return h + escapeHtml(text.slice(p, to));
 }
+let markedIds = new Set();            // nodes whose text currently shows <mark> highlights
 function clearMarks() {
-  for (const [id, el] of els) {
-    el.classList.remove('hit', 'miss', 'cur');
-    const n = nodes.get(id), t = el.firstChild;
-    if (n && t.querySelector('mark')) t.textContent = n.text;
-  }
+  if (document.body.classList.contains('searching')) for (const el of els.values()) el.classList.remove('hit', 'miss', 'cur');
+  for (const id of markedIds) { const n = nodes.get(id), el = els.get(id); if (n && el) el.firstChild.textContent = n.text; }
+  markedIds = new Set();
 }
 function runSearch(keepIdx = false) {
   if (!searchOpen()) return;
@@ -1867,7 +1958,7 @@ function runSearch(keepIdx = false) {
   document.body.classList.add('searching');
   const hitSet = new Set(hits.map(h => h.id));
   for (const [id, el] of els) el.classList.add(hitSet.has(id) ? 'hit' : 'miss');
-  for (const h of hits) { const el = els.get(h.id); if (el && editingId !== h.id) el.firstChild.innerHTML = markHtml(nodes.get(h.id).text, h.r); }
+  for (const h of hits) { const el = els.get(h.id); if (el && editingId !== h.id) { el.firstChild.innerHTML = markHtml(nodes.get(h.id).text, h.r); markedIds.add(h.id); } }
   hitIdx = keepIdx && prevId != null ? hits.findIndex(h => h.id === prevId) : -1;
   renderResults();
 }
@@ -1900,7 +1991,7 @@ function goHit(i) {
 }
 function openSearch() {
   if (tableOn) toggleTable(false);
-  ['#help', '#theme', '#rainPanel'].forEach(q => $(q).classList.remove('show')); closeNodeColor();
+  closePanels();
   if (editingId != null) commitEdit();
   sBox.classList.add('show'); qIn.focus(); qIn.select();
   if (qIn.value) runSearch(true);
@@ -1924,7 +2015,7 @@ $('#searchBtn').addEventListener('click', () => searchOpen() ? closeSearch() : o
 
 /* ---------- table view (title, updated, done) ---------- */
 const TABLE_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="16"/><path d="M3 9h18M3 14.5h18M10 9v11"/></svg>';
-const MAP_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="vertical-align:-2px"><circle cx="5" cy="12" r="2.6"/><circle cx="19" cy="5" r="2.6"/><circle cx="19" cy="19" r="2.6"/><path d="M7.4 11 16.6 6M7.4 13l9.2 5"/></svg>';
+const MAP_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="9" width="7" height="6"/><rect x="14.5" y="3.5" width="7" height="5"/><rect x="14.5" y="15.5" width="7" height="5"/><path d="M9.5 12h2.5V6h2.5M12 12v6h2.5"/></svg>';   // shown on the table and orbit buttons: back to the map
 const tvBox = $('#tableView'), tvBtn = $('#tableBtn');
 let tableOn = false, tvTimer = 0;
 function fmtShort(iso) {
@@ -2001,7 +2092,7 @@ function toggleTable(force) {
   if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
   resetTouchState();
   if (tableOn && searchOpen()) closeSearch();
-  ['#help', '#theme', '#rainPanel'].forEach(q => $(q).classList.remove('show'));
+  closePanels();
   document.body.classList.toggle('tableview', tableOn);
   tvBtn.innerHTML = tableOn ? MAP_ICON : TABLE_ICON;
   tvBtn.classList.toggle('on', tableOn);
@@ -2054,13 +2145,12 @@ tvBox.addEventListener('change', e => {
 addEventListener('resize', () => { if (tableOn) layoutTable(); });
 setInterval(() => { if (tableOn) renderTable(); }, 60000);
 
-/* ================= ORBIT view: travel through your thoughts ================= */
+/* ---------- orbit view: travel through your thoughts ---------- */
 const ocv = document.getElementById('orbitCv'), octx = ocv.getContext('2d');
 let orbitOn = false, oFocus = null, oItems = [], oAnim = new Map(), oRot = 0, oHl = -1, oDrawing = false;
 let oW = 0, oH = 0, oDPR = 1, oGeo = { cx: 0, cy: 0, rx: 0, ry: 0, rc: 60 };
 let oIdx = new Map(), oDesc = new Map(), oStats = new Map(), oBuildQueued = false;
 const ORBIT_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><ellipse cx="12" cy="12" rx="10" ry="4.6" transform="rotate(-25 12 12)"/><circle cx="20.2" cy="8" r="1.6" fill="currentColor" stroke="none"/></svg>';
-const MAP_ICON2 = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="9" width="7" height="6"/><rect x="14.5" y="3.5" width="7" height="5"/><rect x="14.5" y="15.5" width="7" height="5"/><path d="M9.5 12h2.5V6h2.5M12 12v6h2.5"/></svg>';
 
 function oIndex() {
   oIdx = new Map(); oDesc = new Map(); oStats = new Map();
@@ -2083,15 +2173,8 @@ function oLeafStats(id) {
   oStats.set(id, s); return s;
 }
 function oPath(id) { const p = []; let c = nodes.get(id), g = 0; while (c && g++ < 9999) { p.unshift(c); c = nodes.get(oParent(c)); } return p; }
-function oAgo(iso) {
-  const d = new Date(iso); if (!iso || isNaN(d)) return null;
-  const m = Math.floor((Date.now() - d) / 60000);
-  if (m < 1) return 'just now'; if (m < 60) return `${m} min ago`;
-  const h = Math.floor(m / 60); if (h < 24) return `${h} h ago`;
-  const days = Math.floor(h / 24); return days === 1 ? 'yesterday' : `${days} days ago`;
-}
 const cssVar = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-function oRgba(hex, a) { const v = parseInt((hex || '#00ff41').slice(1), 16); return `rgba(${v >> 16 & 255},${v >> 8 & 255},${v & 255},${a})`; }
+function rgbaOf(hex, a) { const [r, g, b] = hexToRgb(hex || '#00ff41'); return `rgba(${r},${g},${b},${a})`; }
 const oColor = n => { const ec = effColor(n); return ec ? shades(ec).g : theme.g; };
 
 function orbitLayoutChrome() {
@@ -2186,26 +2269,26 @@ function oDraw() {
   const { cx, cy, rx, ry } = oGeo, A = k => oAnim.get(k);
   // a calm pool of darkness behind the orbit so it reads well over the rain
   const pool = c.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry) * 1.35);
-  pool.addColorStop(0, oRgba(BG, .82)); pool.addColorStop(.7, oRgba(BG, .55)); pool.addColorStop(1, oRgba(BG, 0));
+  pool.addColorStop(0, rgbaOf(BG, .82)); pool.addColorStop(.7, rgbaOf(BG, .55)); pool.addColorStop(1, rgbaOf(BG, 0));
   c.fillStyle = pool; c.fillRect(0, 0, oW, oH);
-  c.save(); c.strokeStyle = oRgba(theme.g, .18); c.setLineDash([2, 7]); c.beginPath(); c.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c.stroke(); c.restore();
+  c.save(); c.strokeStyle = rgbaOf(theme.g, .18); c.setLineDash([2, 7]); c.beginPath(); c.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c.stroke(); c.restore();
   for (const it of oItems) {
     const a = A(it.key); if (!a || a.o < .02) continue;
     if (it.role === 'child') {
       const s = A(it.from); if (!s) continue; const n = nodes.get(it.id), col = oColor(n);
-      const g = c.createLinearGradient(s.x, s.y, a.x, a.y); g.addColorStop(0, oRgba(theme.g, .06)); g.addColorStop(1, oRgba(col, .6 * a.o * (n.done ? .4 : 1)));
+      const g = c.createLinearGradient(s.x, s.y, a.x, a.y); g.addColorStop(0, rgbaOf(theme.g, .06)); g.addColorStop(1, rgbaOf(col, .6 * a.o * (n.done ? .4 : 1)));
       c.strokeStyle = g; c.lineWidth = 1.4; c.beginPath(); c.moveTo(s.x, s.y);
       c.quadraticCurveTo((s.x + a.x) / 2 + (a.y - s.y) * .12, (s.y + a.y) / 2 - (a.x - s.x) * .12, a.x, a.y); c.stroke();
     } else if (it.role === 'parent') {
       const s = A(oItems[0].key); if (!s) continue;
-      c.save(); c.setLineDash([3, 5]); c.strokeStyle = oRgba(theme.mid, .7 * a.o); c.lineWidth = 1.2;
+      c.save(); c.setLineDash([3, 5]); c.strokeStyle = rgbaOf(theme.mid, .7 * a.o); c.lineWidth = 1.2;
       c.beginPath(); c.moveTo(a.x, a.y + a.r); c.lineTo(s.x, s.y - s.r - 14); c.stroke(); c.restore();
     } else if (it.role === 'moon' && it.first) {
       const p = A(it.from); if (!p) continue;
-      c.strokeStyle = oRgba(theme.g, .22 * a.o); c.lineWidth = 1; c.beginPath(); c.arc(p.x, p.y, p.r + 10, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = rgbaOf(theme.g, .22 * a.o); c.lineWidth = 1; c.beginPath(); c.arc(p.x, p.y, p.r + 10, 0, Math.PI * 2); c.stroke();
     }
   }
-  for (const [, a] of oAnim) if (a.leaving && a.o > .02) { c.fillStyle = oRgba(theme.g, .22 * a.o); c.beginPath(); c.arc(a.x, a.y, Math.max(0, a.r), 0, Math.PI * 2); c.fill(); }
+  for (const [, a] of oAnim) if (a.leaving && a.o > .02) { c.fillStyle = rgbaOf(theme.g, .22 * a.o); c.beginPath(); c.arc(a.x, a.y, Math.max(0, a.r), 0, Math.PI * 2); c.fill(); }
   const order = { moon: 0, parent: 1, child: 2, center: 3 };
   for (const it of oItems.slice().sort((p, q) => order[p.role] - order[q.role])) {
     const a = A(it.key); if (!a || a.o < .02 || a.r < .5) continue;
@@ -2219,10 +2302,10 @@ function oOrb(x, y, r, col, al, done, glow = 14) {
   const c = octx, BG = cssVar('--bg') || '#000000';
   c.save(); c.globalAlpha = al;
   const g = c.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r);
-  g.addColorStop(0, oRgba(col, done ? .12 : .45)); g.addColorStop(.72, oRgba(BG, .9)); g.addColorStop(1, oRgba(BG, .96));
-  c.shadowColor = oRgba(col, done ? .2 : .8); c.shadowBlur = done ? 4 : glow;
+  g.addColorStop(0, rgbaOf(col, done ? .12 : .45)); g.addColorStop(.72, rgbaOf(BG, .9)); g.addColorStop(1, rgbaOf(BG, .96));
+  c.shadowColor = rgbaOf(col, done ? .2 : .8); c.shadowBlur = done ? 4 : glow;
   c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
-  c.shadowBlur = 0; c.lineWidth = 1.5; c.strokeStyle = oRgba(col, done ? .35 : .95); c.stroke(); c.restore();
+  c.shadowBlur = 0; c.lineWidth = 1.5; c.strokeStyle = rgbaOf(col, done ? .35 : .95); c.stroke(); c.restore();
 }
 function oPri(x, y, cat, al, FONT) {
   if (!cat) return; const c = octx;
@@ -2253,7 +2336,7 @@ function oDrawChild(it, a, FONT, BG) {
   if (due) { c.font = `12px ${FONT}`; blockW = Math.max(blockW, c.measureText(due.text).width); c.font = `14px ${FONT}`; }
   const lx = clamp(a.x, blockW / 2 + 8, oW - blockW / 2 - 8), ly = up ? a.y - a.r - gap - blockH : a.y + a.r + gap;
   c.textBaseline = 'top'; c.shadowColor = BG; c.shadowBlur = 6;
-  c.fillStyle = n.done ? oRgba(theme.hi, .5) : theme.hi;
+  c.fillStyle = n.done ? rgbaOf(theme.hi, .5) : theme.hi;
   lines.forEach((l, i) => { c.fillText(l, lx, ly + i * lh); if (n.done) { const w = c.measureText(l).width; c.fillRect(lx - w / 2, ly + i * lh + 8, w, 1.2); } });
   if (due) { c.font = `12px ${FONT}`; c.fillStyle = due.cls === 'over' ? cssVar('--err') : due.cls === 'soon' ? cssVar('--warn') : theme.mid; c.fillText(due.text, lx, ly + lines.length * lh + 1); }
   c.restore();
@@ -2266,7 +2349,7 @@ function oDrawCore(it, a, FONT) {
   const st = n ? oLeafStats(n.id) : oRoots().reduce((s, r) => { const t = oLeafStats(r.id); return { leaves: s.leaves + t.leaves, done: s.done + t.done }; }, { leaves: 0, done: 0 });
   const frac = st.leaves ? st.done / st.leaves : 0;
   c.save(); c.globalAlpha = a.o; c.lineCap = 'round';
-  c.strokeStyle = oRgba(theme.mid, .3); c.lineWidth = 5; c.beginPath(); c.arc(a.x, a.y, a.r + 12, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = rgbaOf(theme.mid, .3); c.lineWidth = 5; c.beginPath(); c.arc(a.x, a.y, a.r + 12, 0, Math.PI * 2); c.stroke();
   if (frac > 0) {
     c.strokeStyle = theme.g; c.shadowColor = theme.g; c.shadowBlur = 12;
     c.beginPath(); c.arc(a.x, a.y, a.r + 12, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac); c.stroke();
@@ -2283,7 +2366,7 @@ function oDrawCore(it, a, FONT) {
     lines = oWrap(text, inner, 4); if (lines.length * size * 1.25 <= a.r * 1.45) break;
   }
   const lh = size * 1.25, y0 = a.y - (lines.length - 1) * lh / 2;
-  c.fillStyle = n && n.done ? oRgba(theme.hi, .55) : theme.hi; c.shadowColor = theme.g; c.shadowBlur = 6;
+  c.fillStyle = n && n.done ? rgbaOf(theme.hi, .55) : theme.hi; c.shadowColor = theme.g; c.shadowBlur = 6;
   lines.forEach((l, i) => c.fillText(l, a.x, y0 + i * lh));
   c.restore();
   if (n) oPri(a.x + a.r * .72, a.y - a.r * .72, n.cat, a.o, FONT);
@@ -2315,7 +2398,7 @@ function oRenderInfo() {
     if (n.cat) pills.push(`priority ${n.cat}`);
     if (n.lat != null) pills.push(`📍 ${short(n.place || fmtCoords(n), 24)}`);
     if (n.done) pills.push('done');
-    const u = oAgo(n.updated); if (u) pills.push(`updated ${u}`);
+    const u = ago(n.updated); if (u) pills.push(`updated ${u}`);
   }
   $('#oinfo').innerHTML = pills.map(p => Array.isArray(p) ? `<span class="${p[1]}">${escapeHtml(p[0])}</span>` : `<span>${escapeHtml(p)}</span>`).join('');
 }
@@ -2350,7 +2433,7 @@ function toggleOrbit(force) {
   if (searchOpen()) closeSearch();
   orbitOn = on;
   document.body.classList.toggle('orbitview', on);
-  const b = $('#orbitBtn'); b.innerHTML = on ? MAP_ICON2 : ORBIT_ICON; b.classList.toggle('on', on);
+  const b = $('#orbitBtn'); b.innerHTML = on ? MAP_ICON : ORBIT_ICON; b.classList.toggle('on', on);
   b.title = on ? 'Back to the map view' : 'Orbit view: travel through your nodes'; b.setAttribute('aria-label', b.title);
   if (prefs.view !== (on ? 'orbit' : 'map')) { prefs.view = on ? 'orbit' : 'map'; savePrefs(false); }
   if (on) {
@@ -2509,7 +2592,7 @@ function showGeo(n) {
 }
 function openGeo(id) {
   const n = nodes.get(id); if (!n) return;
-  ['#help', '#theme', '#rainPanel', '#about'].forEach(q => $(q).classList.remove('show')); closeNodeColor();
+  closePanels('#geoPanel');
   geoId = id; geoUndo = false;
   $('#geoTitle').textContent = 'LOCATION: ' + short(n.text.split('\n')[0], 26);
   $('#geoPlace').value = n.place || ''; $('#geoCoords').value = fmtCoords(n);
@@ -2664,11 +2747,14 @@ addEventListener('resize', () => { if (geoOn) layoutGeo(); });
   addEventListener('mg-resize', () => dispatchEvent(new Event('resize')));
 }
 
+/* ask the browser to keep this app's stored data (fewer surprises on iPhone) */
+navigator.storage?.persist?.().catch(() => {});
+
 /* ---------- controls panel ---------- */
 function toggleAbout(force) {
   const box = $('#about'), show = force ?? !box.classList.contains('show');
   if (show) {
-    ['#help', '#theme', '#rainPanel'].forEach(q => $(q).classList.remove('show')); closeNodeColor(); closeMenu();
+    closePanels('#about'); closeMenu();
     const all = [...nodes.values()], done = all.filter(n => n.done).length;
     const first = all.map(n => n.created).filter(Boolean).sort()[0];
     $('#aboutStats').textContent = `This map: ${fileName}, ${all.length} node${all.length === 1 ? '' : 's'}, ${done} done` +
@@ -2681,7 +2767,7 @@ $('#about .close').addEventListener('click', () => toggleAbout(false));
 stage.addEventListener('pointerdown', () => { if ($('#about').classList.contains('show')) toggleAbout(false); }, true);
 function toggleHelp(force) {
   const show = force ?? !$('#help').classList.contains('show');
-  $('#theme').classList.remove('show'); $('#rainPanel').classList.remove('show'); $('#about').classList.remove('show'); closeNodeColor();
+  closePanels('#help');
   $('#help').classList.toggle('show', show);
 }
 $('#hint').addEventListener('click', () => toggleHelp());
@@ -2716,7 +2802,7 @@ $('#bar').addEventListener('click', e => {
     case 'rain': rain.toggle(); b.classList.toggle('on', rain.on); break;
     case 'help': toggleHelp(); break;
     case 'mode': setMode(prefs.mode === 'day' ? 'night' : 'day'); break;
-    case 'theme': closeNodeColor(); $('#help').classList.remove('show'); $('#rainPanel').classList.remove('show'); $('#theme').classList.toggle('show'); break;
+    case 'theme': closePanels('#theme'); $('#theme').classList.toggle('show'); break;
     case 'raincolor': toggleRainPanel(); break;
     case 'search': searchOpen() ? closeSearch() : openSearch(); break;
   }
@@ -2804,7 +2890,7 @@ function syncRainPanel() {
 }
 function toggleRainPanel(force) {
   const show = force ?? !$('#rainPanel').classList.contains('show');
-  $('#help').classList.remove('show'); $('#theme').classList.remove('show'); closeNodeColor();
+  closePanels('#rainPanel');
   $('#rainPanel').classList.toggle('show', show);
   if (show && !rain.on) { rain.toggle(); $('#rainBtn').classList.add('on'); }
 }
@@ -2920,7 +3006,7 @@ async function boot() {
   let restored = false;
   try {
     const s = await IDB.get('session');
-    if (s?.bytes) restored = loadBytes(new Uint8Array(s.bytes), s.name, { silent: true, fromCache: true, dirty: s.dirty, handle: s.handle });
+    if (s?.bytes) { restored = loadBytes(new Uint8Array(s.bytes), s.name, { silent: true, fromCache: true, dirty: s.dirty, handle: s.handle }); if (restored && s.dirty) dirtySince = s.dirtySince || Date.now(); }
   } catch {}
   if (!restored) newMap(true);
   if (prefs.view === 'orbit') toggleOrbit(true);
