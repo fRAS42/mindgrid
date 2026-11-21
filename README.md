@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 6.0
+**Current version:** 6.2
 
-![new in 6.0](https://img.shields.io/badge/new_in-6.0-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 6.2](https://img.shields.io/badge/new_in-6.2-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -15,7 +15,7 @@ No install, no account, no server. Everything runs in your browser.
 ## Features
 
 - Free-form mind maps with branches, multi-line nodes, indentation and bullets
-- $\color{#00FF41}\textsf{Orbit view: travel through your map one node at a time, with the nodes inside it orbiting around it}$ ![new in 6.0](https://img.shields.io/badge/new_in-6.0-00ff41?labelColor=000000)
+- Orbit view: travel through your map one node at a time, with the nodes inside it orbiting around it
 - Full-text search across all nodes, with highlighted matches
 - Table view: every leaf node (a node without children) and every node with a due date that is not done yet in a list,  newest first, with its updated time and a done checkbox
 - Smooth zoom into any node, overview of the whole map, and a radar minimap
@@ -23,6 +23,7 @@ No install, no account, no server. Everything runs in your browser.
 - Per-node colors, interface color themes, and a night/day theme (toggle in the bottom-right corner)
 - Separate color for the digital rain
 - Adjustable node widths
+- Geotags: pin any node to a place and open it in Maps; $\color{#00FF41}\textsf{see all located nodes on a world map (Places view)}$ ![new in 6.2](https://img.shields.io/badge/new_in-6.2-00ff41?labelColor=000000)
 - Due dates for leaf nodes, shown in the table view (not on the map, to keep it tidy) and used to sort the table
 - Priority flags A, B, C, D (urgent / important), shown on the node and as a column in the table
 - Automatic text size: the more nodes a branch holds, the bigger its text, or set your own size per node from the node menu
@@ -92,7 +93,8 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Dot on the left edge of a node, in the node's color | This is the newest child of its parent and has no children of its own |
 | Matrix-green dot on the left edge of a node | This is the newest leaf node in the whole map |
 | Tap ? (bottom right) | Show all controls; tap ✕ or the map to close |
-| $\color{#00FF41}\textsf{Tap the orbit button (bottom right, next to the magnifier)}$ | $\color{#00FF41}\textsf{Switch between the map and the orbit view}$ |
+| Tap the orbit button (bottom right, next to the magnifier) | Switch between the map and the orbit view |
+| $\color{#00FF41}\textsf{Tap the pin button (dock)}$ | $\color{#00FF41}\textsf{Places: every located node on a world map}$ |
 | Tap the table button (bottom right, next to the magnifier) | Switch to the table view; tap it again to go back to the map |
 | Tap the sun / moon button (bottom right) | Switch between the night and day theme |
 | Tap the magnifier (bottom right or toolbar) | Open search |
@@ -148,6 +150,19 @@ Hold a leaf node (one without children) and pick a date in the Due date row of t
 
 Setting or removing a due date counts as an update and can be undone. Labels update by themselves when the day changes.
 
+### Locations
+
+Hold a node and tap Add location… to pin it to a place:
+
+- use my current location: your phone or browser asks for permission once, then fills in the coordinates
+- Place name: any name you like, for example Kyoto station
+- Coordinates or a maps link: type 35.0116, 135.7681, or paste a link from Google Maps or Apple Maps
+- open in maps opens the place in Apple Maps on iPhone and Mac, Google Maps elsewhere; remove clears it
+
+$\color{#00FF41}\textsf{Tap the pin button in the dock to open Places: a world map (Leaflet, with OpenStreetMap / CARTO tiles, dark at night and light by day) showing every located node as a glowing marker in its color. Tap a marker for its details and jump to it on the mind map, in orbit view, or in your Maps app. The map loads the first time you open Places and needs an internet connection.}$
+
+A geotagged node shows a small pin on its bottom-left corner on the map and on its planet in orbit view, a 📍 line in the table, a 📍 pill in orbit view, and its place name in the node menu. Changing a location counts as an update and can be undone.
+
 ### Priority
 
 Any node can be flagged with a priority letter from the node menu. It shows as a small colored letter on the node's bottom-right corner and in the table's PRI column.
@@ -177,26 +192,26 @@ If a match is inside a folded branch, the branch opens so you can see it. This d
 
 ### Orbit view
 
-$\color{#00FF41}\textsf{Tap the orbit button in the bottom-right corner (next to the magnifier) to travel through your map instead of panning around it. Tap it again to go back to the map; the selected node stays selected.}$
+Tap the orbit button in the bottom-right corner (next to the magnifier) to travel through your map instead of panning around it. Tap it again to go back to the map; the selected node stays selected.
 
-- $\color{#00FF41}\textsf{The node you are in sits in the middle as a glowing core with its text inside. The nodes inside it orbit around it.}$
-- $\color{#00FF41}\textsf{A ring around the core shows how much of everything inside is done.}$
-- $\color{#00FF41}\textsf{Small moons around a node show the nodes inside it; the number on it counts everything inside.}$
-- $\color{#00FF41}\textsf{The node you came from waits as a small ↑ orb above the core. The path at the top shows where you are; tap any part of it to go back up.}$
-- $\color{#00FF41}\textsf{Pills at the bottom show how many nodes are inside, % done, due date, priority and when it was last updated.}$
+- The node you are in sits in the middle as a glowing core with its text inside. The nodes inside it orbit around it.
+- A ring around the core shows how much of everything inside is done.
+- Small moons around a node show the nodes inside it; the number on it counts everything inside.
+- The node you came from waits as a small ↑ orb above the core. The path at the top shows where you are; tap any part of it to go back up.
+- Pills at the bottom show how many nodes are inside, % done, due date, priority and when it was last updated.
 
-| $\color{#00FF41}\textsf{Action}$ | $\color{#00FF41}\textsf{What it does}$ |
+| Action | What it does |
 |---|---|
-| $\color{#00FF41}\textsf{Tap a node or a moon}$ | $\color{#00FF41}\textsf{Go inside it}$ |
-| $\color{#00FF41}\textsf{Tap the core}$ | $\color{#00FF41}\textsf{Edit its text (same editor as the map: ⇤ ⇥ • ✕ ✓)}$ |
-| $\color{#00FF41}\textsf{Tap the ↑ orb or the path}$ | $\color{#00FF41}\textsf{Go back up}$ |
-| $\color{#00FF41}\textsf{Hold a node or the core}$ | $\color{#00FF41}\textsf{The node menu (map-only options like fold and tidy are hidden; Zoom to node becomes Go inside)}$ |
-| $\color{#00FF41}\textsf{Drag anywhere / mouse wheel}$ | $\color{#00FF41}\textsf{Spin the orbit}$ |
-| $\color{#00FF41}\textsf{Arrow keys, Enter}$ | $\color{#00FF41}\textsf{Pick a node in the orbit, then go inside it}$ |
-| $\color{#00FF41}\textsf{Tab}$ | $\color{#00FF41}\textsf{Add a node inside the current one}$ |
-| $\color{#00FF41}\textsf{Backspace / Esc}$ | $\color{#00FF41}\textsf{Go back up}$ |
+| Tap a node or a moon | Go inside it |
+| Tap the core | Edit its text (same editor as the map: ⇤ ⇥ • ✕ ✓) |
+| Tap the ↑ orb or the path | Go back up |
+| Hold a node or the core | The node menu (map-only options like fold and tidy are hidden; Zoom to node becomes Go inside) |
+| Drag anywhere / mouse wheel | Spin the orbit |
+| Arrow keys, Enter | Pick a node in the orbit, then go inside it |
+| Tab | Add a node inside the current one |
+| Backspace / Esc | Go back up |
 
-$\color{#00FF41}\textsf{Search and the table view work in orbit view too: picking a result takes you to that node in the orbit. Your choice of view is remembered and saved in the file.}$
+Search and the table view work in orbit view too: picking a result takes you to that node in the orbit. Your choice of view is remembered and saved in the file.
 
 ### Table view
 
@@ -229,6 +244,7 @@ The menu fades in, and shrinks away toward your finger when it closes. The top o
 | Add child node | Add a branch and start typing |
 | Zoom to node | Zoom into the node and its branches, fitting their full width so nothing is cut off on a phone |
 | Change color… | Pick a color for the node, optionally for its whole branch |
+| Add location… / 📍 place | Pin the node to a place (see Locations below) |
 | Due date (leaf nodes, or any node that already has one) | Pick a date with the date picker; ✕ removes it. The menu stays open |
 | Priority: A / B / C / D / ✕ | Flag the node (see Priority below). Tap the active letter again or ✕ to remove it. The menu stays open |
 | Text size: A− / A+ / auto | Make the node's text smaller or bigger in steps of 2. auto (highlighted when active) goes back to the automatic size. The menu stays open so you can tap several times |
@@ -298,7 +314,7 @@ The status bar shows **(unsaved)** when you have changes that aren't in the file
 
 The status bar also shows how long ago the map was last saved to a file, for example saved 2 hours 5 mins ago, or not saved to a file yet for a new map. The time is stored in the file, so it is still right after you open the file again.
 
-The status bar reads, from left to right: the file name, the number of nodes (including hidden ones), the zoom level (zoom 100% = normal size), and how long ago it was saved.
+The status bar sits under the $\color{#00FF41}\textsf{dock, the centered row of}$ search, orbit, $\color{#00FF41}\textsf{places}$, table, day/night and ? buttons, and reads: the file name, the number of nodes (including hidden ones), the zoom level (zoom 100% = normal size), and how long ago it was saved.
 
 ### What's inside the file
 
@@ -319,6 +335,8 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | done | 1 if the node is marked done in the table view, otherwise 0 |
 | due | The node's due date as YYYY-MM-DD (empty = no due date) |
 | category | Priority flag: A, B, C or D (empty = none) |
+| lat, lon | The node's location in decimal degrees (empty = no location) |
+| place | The location's name (optional) |
 | created_at | When the node was created (ISO 8601, UTC) |
 | updated_at | When the node's text, color, width, text size, done state, due date, priority or connection last changed (ISO 8601, UTC). Moving nodes, folding, focusing, tidy and tidy children do not change it |
 
@@ -358,7 +376,9 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{6.0}$ | $\color{#00FF41}\textsf{Orbit view built into MINDGRID, with its own button next to the magnifier}$ |
+| $\color{#00FF41}\textsf{6.2}$ | $\color{#00FF41}\textsf{Places view: located nodes on a Leaflet world map; bottom buttons centered like a dock}$ |
+| 6.1 | Geotags for nodes; status info moved under the bottom-right buttons |
+| 6.0 | Orbit view built into MINDGRID, with its own button next to the magnifier |
 | 5.9 | Hold menu simply fades in and shrinks out (scan line and ripple removed) |
 | 5.8 | Slower, softer fade when deleting; hold menu appears with a scan-line effect and a ripple |
 | 5.7 | Deleted nodes fade out instead of disappearing at once |
@@ -404,6 +424,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 ---
 
 ## Tech
+
+- $\color{#00FF41}\textsf{Leaflet 1.9.4 (loaded on demand) with OpenStreetMap / CARTO map tiles for the Places view}$
 
 - One self-contained HTML file with plain JavaScript and no build step
 - [sql.js](https://github.com/sql-js/sql.js) (SQLite compiled to WebAssembly) for the database

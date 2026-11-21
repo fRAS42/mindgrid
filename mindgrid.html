@@ -154,17 +154,18 @@ button:active{background:rgba(var(--rgb),.18)}
 button:focus-visible{outline:1px solid var(--g-hi);outline-offset:1px}
 button.on{color:var(--g-hi);text-shadow:var(--glow)}
 
-#statusbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:space-between;gap:12px;
+#statusbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;flex-direction:column-reverse;gap:6px;
   padding:6px 12px calc(env(safe-area-inset-bottom,0px) + 6px);background:var(--panel);
   border-top:1px solid var(--g-dim);font-size:13px;color:var(--g-mid)}
 #status{min-width:0;flex:1;overflow:hidden;line-height:1.45}
 #status span:first-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
 #status span:not(:first-child){white-space:normal}
+#status{text-align:center}
 #sbtns{flex:none}
 #status .focusinfo{color:var(--g-hi)}
 #status span{margin-right:14px;white-space:nowrap;display:inline-block}
 #status .dirty{color:var(--warn)}
-#sbtns{display:flex;gap:6px;flex:none;align-items:flex-start}
+#sbtns{display:flex;gap:6px;flex:none;align-items:flex-start;justify-content:center}
 #modeBtn2{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
 #tableBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
 #tableBtn.on{background:rgba(var(--rgb),.18);color:var(--g-hi);border-color:var(--g-mid)}
@@ -210,7 +211,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 #hint{font-size:18px;line-height:1;color:var(--g);padding:7px 14px;margin:-4px -6px -4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
 #sbtns svg{width:20px;height:20px;vertical-align:-4px}
 #help .close{position:sticky;top:0;float:right;margin:-6px -8px 0 0;font-size:16px}
-#log{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 40px);z-index:9;font-size:13px;
+#log{position:fixed;left:12px;bottom:calc(var(--sbh,60px) + 8px);z-index:9;font-size:13px;
   pointer-events:none;max-width:min(560px,90vw)}
 #log div{opacity:.9;text-shadow:var(--ts);transition:opacity 1.5s}
 #log div.old{opacity:.35}
@@ -235,6 +236,23 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 #rainPanel h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em}
 #rainPanel .sw.def i{background:repeating-linear-gradient(45deg,var(--g) 0 3px,var(--bg) 3px 6px)}
 .chip{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6px;vertical-align:1px;border:1px solid var(--g-dim)}
+#geoPanel{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:25;width:min(340px,calc(100vw - 24px));
+  background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
+#geoPanel.show{display:block}
+#geoPanel h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#geoNow{color:var(--g-mid);margin-bottom:4px;min-height:1.4em}
+#geoNow.err{color:var(--err)}
+#geoPanel .gfield{display:block;margin-top:12px}
+#geoPanel .gfield span{display:block;color:var(--g-mid);margin-bottom:4px}
+#geoPanel input{width:100%;font:inherit;font-size:16px;color:var(--g);background:var(--bg);border:1px solid var(--g-mid);padding:8px 10px;outline:none;border-radius:0}
+#geoPanel input:focus{border-color:var(--g-hi)}
+#geoPanel .gbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+#geoPanel .gbtns button{border:1px solid var(--g-dim);padding:8px 12px}
+#geoHere{width:100%;border:1px solid var(--g-mid)!important;padding:10px 12px!important;margin-top:4px}
+.node .geo{position:absolute;left:-9px;bottom:-11px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);border:1px solid var(--g);border-radius:50% 50% 50% 0;transform:rotate(-45deg);pointer-events:none;box-shadow:0 0 6px rgba(var(--rgb),.5)}
+.node .geo::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--g)}
+#tv td.t small.place{display:block;font-size:12px;margin-top:2px;color:var(--g-mid)}
 #nodeColor{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:25;width:min(320px,calc(100vw - 24px));
   background:var(--panel);border:1px solid var(--g-mid);padding:14px 16px;font-size:13.5px;box-shadow:var(--glow);display:none}
 #nodeColor h2{font-size:15px;font-weight:normal;margin:0 0 10px;color:var(--g-hi);letter-spacing:.1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -265,7 +283,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 #boot.gone{opacity:0;pointer-events:none}
 .cursor{display:inline-block;width:.6em;background:var(--g);animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
-#mini{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 44px);z-index:9;width:220px;height:150px;
+#mini{position:fixed;right:12px;bottom:calc(var(--sbh,60px) + 8px);z-index:9;width:220px;height:150px;
   background:var(--panel);border:1px solid var(--g-mid);box-shadow:var(--glow);cursor:crosshair;touch-action:none}
 #mini[hidden]{display:none}
 #mini canvas{width:100%;height:100%;display:block}
@@ -295,7 +313,7 @@ body.orbitview #oinfo{display:flex}
 #oinfo .soon{color:var(--warn);border-color:var(--warn)}
 #oinfo .over{color:var(--err);border-color:var(--err)}
 body.tableview #orbitCv,body.tableview #otrail,body.tableview #oinfo{visibility:hidden}
-body.orbitview #log div.old{display:none}
+body.orbitview #log div.old,body.geoview #log div.old,body.geoview #mini{display:none}
 #oedit{position:fixed;z-index:16;display:none;width:min(360px,calc(100vw - 24px));background:var(--nodebg);border:1px dashed var(--g);
   box-shadow:var(--glow);padding:10px 12px 12px}
 #oedit.show{display:block}
@@ -303,6 +321,38 @@ body.orbitview #log div.old{display:none}
 #oedit .editbar button{font-size:14px;padding:6px 10px;min-width:38px;border:1px solid var(--g-dim)}
 #oedText{display:block;width:100%;margin:0;padding:0;border:0;outline:none;resize:none;overflow:hidden;background:transparent;color:var(--g);
   font:inherit;font-size:16px;line-height:1.4;text-shadow:var(--ts);min-height:2.8em;tab-size:4;caret-color:var(--g-hi);-webkit-user-select:text;user-select:text}
+/* ---------- places view (Leaflet) ---------- */
+#geoBtn{font-size:16px;color:var(--g);padding:7px 14px;margin:-4px 0;border:1px solid var(--g-dim);min-height:38px;min-width:46px}
+#geoBtn.on{background:rgba(var(--rgb),.18);color:var(--g-hi);border-color:var(--g-mid)}
+#geoView{position:fixed;left:0;right:0;top:50px;bottom:60px;z-index:8;display:none;background:var(--bg)}
+body.geoview #geoView{display:block}
+body.geoview #stage,body.geoview #mini,body.geoview #orbitCv,body.geoview #otrail,body.geoview #oinfo{visibility:hidden}
+#geoMap{position:absolute;inset:0;background:var(--bg);font:inherit}
+#geoMsg,#geoEmpty{position:absolute;inset:0;z-index:500;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;
+  color:var(--g-mid);font-size:15px;line-height:1.6;pointer-events:none}
+#geoEmpty span{background:var(--panel);border:1px solid var(--g-dim);padding:14px 18px;max-width:320px}
+#geoMsg{background:var(--bg);pointer-events:auto}
+.gm-pin{position:absolute;left:-8px;top:-8px;display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer}
+.gm-pin i{width:16px;height:16px;border-radius:50%;background:var(--c);border:2px solid var(--bg);box-shadow:0 0 0 1px var(--c),0 0 14px var(--c);flex:none}
+.gm-pin span{font:12px 'Share Tech Mono',ui-monospace,monospace;background:var(--panel);color:var(--c);border:1px solid var(--c);padding:2px 6px}
+.gm-pin.done span{text-decoration:line-through;opacity:.6}
+.gm-pin.sel i{box-shadow:0 0 0 3px var(--g-hi),0 0 18px var(--c)}
+.gm-pop .leaflet-popup-content-wrapper{background:var(--panel);color:var(--g);border:1px solid var(--g-mid);border-radius:0;box-shadow:var(--glow)}
+.gm-pop .leaflet-popup-tip{background:var(--panel);border:1px solid var(--g-mid)}
+.gm-pop .leaflet-popup-content{margin:12px 14px;font:13.5px 'Share Tech Mono',ui-monospace,monospace;line-height:1.5}
+.gm-pop a.leaflet-popup-close-button{color:var(--g-mid)}
+.gp-t{color:var(--g-hi);font-size:15px;margin-bottom:4px}
+.gp-p{color:var(--g-mid)} .gp-p small{display:block;font-size:11.5px;opacity:.8}
+.gp-b{margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.gp-cat{color:#000;padding:0 6px;font-weight:bold}
+.gp-b .over{color:var(--err)} .gp-b .soon{color:var(--warn)}
+.gp-a{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.gp-a button{font:inherit;font-size:13px;color:var(--g);background:none;border:1px solid var(--g-dim);padding:6px 9px;cursor:pointer}
+.gp-a button:hover{border-color:var(--g)}
+#geoView .leaflet-control-zoom a{background:var(--panel);color:var(--g);border-color:var(--g-dim)}
+#geoView .leaflet-control-attribution{background:rgba(0,0,0,.55);color:#9a9a9a;font-size:10.5px}
+#geoView .leaflet-control-attribution a{color:#cfcfcf}
+#geoView .leaflet-container{background:var(--bg)}
 </style>
 </head>
 <body>
@@ -357,6 +407,7 @@ body.orbitview #log div.old{display:none}
     <tr><td>Matrix-green dot</td><td>The newest leaf node (no children) in the whole map</td></tr>
     <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
     <tr><td>Hold node / right-click</td><td>Menu: color, text size, priority A–D, due date (leaf nodes), done, delete, connect, more</td></tr>
+    <tr><td>Location (hold menu)</td><td>Pin a node to a place: your current location, coordinates or a maps link</td></tr>
     <tr><td>Priority A / B / C / D</td><td>A urgent + important, B important, C urgent, D neither</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
     <tr><td>⇥ ⇤ • in editor</td><td>Indent, outdent, bullet the current lines</td></tr>
@@ -379,6 +430,7 @@ body.orbitview #log div.old{display:none}
     <tr><td>T</td><td>Tidy layout</td></tr>
     <tr><td>Ctrl+F or /</td><td>Search the text of all nodes</td></tr>
     <tr><td>Orbit button (bottom right)</td><td>Switch between the map and the orbit view: tap a node to travel into it</td></tr>
+    <tr><td>Pin button (dock)</td><td>Places: every node with a location on a world map</td></tr>
     <tr><td>Table button (bottom right)</td><td>Switch between the map and a table of the leaf nodes that are not done yet; “show done” at the bottom lists the done ones too</td></tr>
     <tr><td>Ctrl+Z / Ctrl+Y</td><td>Undo / redo</td></tr>
     <tr><td>Ctrl+S / Ctrl+Shift+S</td><td>Save / save as</td></tr>
@@ -419,6 +471,9 @@ body.orbitview #log div.old{display:none}
 <nav id="otrail" aria-label="Path"></nav>
 <div id="oinfo" aria-live="polite"></div>
 <div id="oedit" role="dialog" aria-label="Edit node"><div class="editbar"><button data-ed="outdent" title="Outdent (Shift+Tab)">⇤</button><button data-ed="indent" title="Indent (Tab)">⇥</button><button data-ed="bullet" title="Toggle bullet">•</button><button data-ed="cancel" title="Cancel changes (Esc)">✕</button><button data-ed="done" title="Save (Ctrl/⌘+Enter or tap outside)">✓</button></div><textarea id="oedText" aria-label="Node text"></textarea></div>
+<div id="geoView" aria-label="Places: located nodes on a world map"><div id="geoMap"></div>
+  <div id="geoMsg"></div>
+  <div id="geoEmpty"><span>No located nodes yet. Hold a node, tap Add location… and it shows up here.</span></div></div>
 <div id="search" role="search">
   <div class="srow">
     <input id="q" type="search" placeholder="Search all nodes…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
@@ -428,6 +483,14 @@ body.orbitview #log div.old{display:none}
     <button id="sClose" title="Close search (Esc)" aria-label="Close search">✕</button>
   </div>
   <div id="sres"></div>
+</div>
+<div id="geoPanel" role="dialog" aria-label="Node location">
+  <h2 id="geoTitle">LOCATION</h2>
+  <div id="geoNow">No location yet.</div>
+  <button id="geoHere" type="button">📍 use my current location</button>
+  <label class="gfield"><span>Place name</span><input id="geoPlace" placeholder="e.g. Kyoto station" autocomplete="off"></label>
+  <label class="gfield"><span>Coordinates or a maps link</span><input id="geoCoords" placeholder="35.0116, 135.7681" autocomplete="off" inputmode="text"></label>
+  <div class="gbtns"><button id="geoOpen" type="button">open in maps</button><button id="geoRemove" type="button">remove</button><span style="flex:1"></span><button id="geoDone" type="button">done</button></div>
 </div>
 <div id="ctx" role="menu"></div>
 <div id="nodeColor">
@@ -440,7 +503,7 @@ body.orbitview #log div.old{display:none}
 <div id="linkbar"><span id="linkmsg"></span><button id="linkCancel">cancel</button></div>
 <div id="mini" title="Click or drag to navigate"><canvas></canvas><div class="lbl">radar</div></div>
 <div id="log"></div>
-<div id="statusbar"><div id="status"></div><div id="sbtns"><button id="searchBtn" type="button" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button><button id="orbitBtn" type="button" title="Orbit view: travel through your nodes" aria-label="Orbit view"></button><button id="tableBtn" type="button" title="Table view" aria-label="Table view"></button><button id="modeBtn2" type="button" title="Switch to day theme" aria-label="Switch to day theme"></button><button id="hint" type="button" title="Show all controls" aria-label="Show all controls">?</button></div></div>
+<div id="statusbar"><div id="status"></div><div id="sbtns"><button id="searchBtn" type="button" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button><button id="orbitBtn" type="button" title="Orbit view: travel through your nodes" aria-label="Orbit view"></button><button id="geoBtn" type="button" title="Places: your located nodes on a world map" aria-label="Places"></button><button id="tableBtn" type="button" title="Table view" aria-label="Table view"></button><button id="modeBtn2" type="button" title="Switch to day theme" aria-label="Switch to day theme"></button><button id="hint" type="button" title="Show all controls" aria-label="Show all controls">?</button></div></div>
 <div id="scan"></div>
 <div id="dropzone">DROP .SQLITE FILE TO LOAD</div>
 <div id="boot"><pre id="bootText"></pre></div>
@@ -450,7 +513,7 @@ body.orbitview #log div.old{display:none}
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '6.0';
+const APP_VERSION = '6.2';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -468,6 +531,9 @@ CREATE TABLE IF NOT EXISTS nodes(
   done INTEGER NOT NULL DEFAULT 0,
   due TEXT,
   category TEXT,
+  lat REAL,
+  lon REAL,
+  place TEXT,
   created_at TEXT,
   updated_at TEXT
 );
@@ -491,6 +557,7 @@ function migrate(d) {
   if (!cols.includes('done')) d.run('ALTER TABLE nodes ADD COLUMN done INTEGER NOT NULL DEFAULT 0');
   if (!cols.includes('due')) d.run('ALTER TABLE nodes ADD COLUMN due TEXT');
   if (!cols.includes('category')) d.run('ALTER TABLE nodes ADD COLUMN category TEXT');
+  for (const [c, t] of [['lat', 'REAL'], ['lon', 'REAL'], ['place', 'TEXT']]) if (!cols.includes(c)) d.run(`ALTER TABLE nodes ADD COLUMN ${c} ${t}`);
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -764,6 +831,9 @@ function updateEl(n, el = els.get(n.id), idx) {
   el.classList.toggle('newest', newestSet.has(n.id));
   el.classList.toggle('newest-all', n.id === newestAllId);
   el.classList.toggle('done', !!n.done);
+  { let gp = el.querySelector('.geo');
+    if (n.lat != null) { if (!gp) { gp = document.createElement('div'); gp.className = 'geo'; el.appendChild(gp); } gp.title = n.place || fmtCoords(n); }
+    else gp?.remove(); }
   { let ct = el.querySelector('.cat');
     if (n.cat) { if (!ct) { ct = document.createElement('div'); ct.className = 'cat'; el.appendChild(ct); }
       ct.textContent = n.cat; ct.style.background = catColor(n.cat); ct.title = CATS[n.cat].name; }
@@ -1225,6 +1295,7 @@ function openMenu(id, x, y) {
     ['child', 'Add child node'],
     ['zoom', 'Zoom to node'],
     ['color', 'Change color…'],
+    ['geo', n.lat != null ? `📍 ${short(n.place || fmtCoords(n), 22)}` : 'Add location…'],
     'fs',
     kids && !n.due ? null : 'due',
     'cat',
@@ -1305,6 +1376,7 @@ ctx.addEventListener('click', e => {
     case 'unfoldall': unfoldAll(); break;
     case 'exitfocus': exitFocus(); break;
     case 'color': openNodeColor(id); break;
+    case 'geo': openGeo(id); break;
     case 'fold': toggleFold(id); break;
     case 'link': startLink(id); break;
     case 'detach': detach(id); break;
@@ -1555,6 +1627,7 @@ document.addEventListener('keydown', e => {
   if (mod && kl === 'y') { e.preventDefault(); redo(); return; }
   if (mod || e.altKey) return;
   if (tableOn) { if (k === 'Escape') toggleTable(false); return; }   // map shortcuts are off in the table
+  if (geoOn) { if (k === 'Escape') toggleGeo(false); return; }
   if (orbitOn && orbitKey(e)) return;
   const sel = nodes.has(selectedId) ? selectedId : null;
   switch (k) {
@@ -1569,6 +1642,7 @@ document.addEventListener('keydown', e => {
     case 'Escape':
       if (ctx.classList.contains('show')) closeMenu();
       else if (ncId != null) closeNodeColor();
+      else if (geoId != null) closeGeo();
       else if (linkFrom != null) { endLink(); log('Connect cancelled'); }
       else if ($('#help.show,#theme.show,#rainPanel.show,#about.show')) { ['#help', '#theme', '#rainPanel', '#about'].forEach(q => $(q).classList.remove('show')); }
       else overview();
@@ -1594,9 +1668,9 @@ function writeToDb() {
   db.run('BEGIN');
   try {
     db.run('DELETE FROM nodes');
-    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,done,due,category,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,done,due,category,lat,lon,place,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     for (const n of nodes.values())
-      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.done ? 1 : 0, n.due ?? null, n.cat ?? null, n.created ?? null, n.updated ?? null]);
+      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.done ? 1 : 0, n.due ?? null, n.cat ?? null, n.lat ?? null, n.lon ?? null, n.place ?? null, n.created ?? null, n.updated ?? null]);
     st.free();
     db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?),('file_saved_at',?),('focus',?)",
       [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs), lastSaved ?? '',
@@ -1606,9 +1680,10 @@ function writeToDb() {
 }
 function loadFromDb() {
   nodes = new Map();
-  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size,done,due,category FROM nodes');
+  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size,done,due,category,lat,lon,place FROM nodes');
   if (res.length) for (const r of res[0].values)
-    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null, done: !!r[11], due: /^\d{4}-\d{2}-\d{2}$/.test(r[12] || '') ? r[12] : null, cat: /^[ABCD]$/.test(r[13] || '') ? r[13] : null });
+    nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null, done: !!r[11], due: /^\d{4}-\d{2}-\d{2}$/.test(r[12] || '') ? r[12] : null, cat: /^[ABCD]$/.test(r[13] || '') ? r[13] : null,
+      ...(isFinite(r[14]) && isFinite(r[15]) && r[14] != null && r[15] != null && Math.abs(r[14]) <= 90 && Math.abs(r[15]) <= 180 ? { lat: r[14], lon: r[15] } : {}), place: r[16] || null });
   if (!nodes.size) { const t = now(); nodes.set(1, { id: 1, parent: null, text: 'central idea', x: 0, y: 0, collapsed: false, created: t, updated: t }); }
   nextId = Math.max(0, ...nodes.keys()) + 1;
   const meta = Object.fromEntries((db.exec('SELECT key,value FROM meta')[0]?.values) || []);
@@ -1716,7 +1791,7 @@ $('#fileIn').addEventListener('change', e => {
 });
 
 let cacheTimer = null;
-function markDirty() { scheduleTable(); scheduleOrbit(); if (searchOpen()) { clearTimeout(sTimer); sTimer = setTimeout(() => runSearch(true), 150); } refreshLatest(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
+function markDirty() { scheduleTable(); scheduleOrbit(); scheduleGeo(); if (searchOpen()) { clearTimeout(sTimer); sTimer = setTimeout(() => runSearch(true), 150); } refreshLatest(); dirty = true; updateStatus(); clearTimeout(cacheTimer); cacheTimer = setTimeout(cacheSession, 800); }
 async function cacheSession() {
   if (!db) return;
   try {
@@ -1894,7 +1969,8 @@ function renderTable() {
       const ec = effColor(n), title = n.text.split('\n')[0].trim() || '…';
       return `<tr class="${n.done ? 'done' : ''}${n.id === selectedId ? ' sel' : ''}${parents.has(n.id) ? ' parent' : ''}" style="${ec ? colorVars(ec) : ''}">` +
         `<td class="t"><button data-go="${n.id}" title="${escapeHtml(n.text)}">${escapeHtml(title)}</button>` +
-        (n.due ? `<small class="due ${dueInfo(n.due).cls}">${dueInfo(n.due).text}</small>` : '') + `</td>` +
+        (n.due ? `<small class="due ${dueInfo(n.due).cls}">${dueInfo(n.due).text}</small>` : '') +
+        (n.lat != null ? `<small class="place">📍 ${escapeHtml(short(n.place || fmtCoords(n), 28))}</small>` : '') + `</td>` +
         `<td class="c"><button data-cyc="${n.id}" class="${n.cat ? 'set' : ''}" ${n.cat ? `style="background:${catColor(n.cat)}"` : ''} ` +
         `title="${n.cat ? CATS[n.cat].name : 'No priority'}. Tap to change" aria-label="Priority ${n.cat || 'none'}">${n.cat || '·'}</button></td>` +
         `<td class="u">${fmtShort(n.updated || n.created)}<small>${ago(n.updated || n.created)}</small></td>` +
@@ -1915,6 +1991,7 @@ function resetTouchState() {
 }
 function toggleTable(force) {
   tableOn = force ?? !tableOn;
+  if (tableOn && geoOn) toggleGeo(false);
   try { if (editingId != null) commitEdit(); } catch (err) { editingId = null; console.error(err); }
   try { closeMenu(); closeNodeColor(); } catch (err) { console.error(err); }
   if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
@@ -2177,6 +2254,7 @@ function oDrawChild(it, a, FONT, BG) {
   if (due) { c.font = `12px ${FONT}`; c.fillStyle = due.cls === 'over' ? cssVar('--err') : due.cls === 'soon' ? cssVar('--warn') : theme.mid; c.fillText(due.text, lx, ly + lines.length * lh + 1); }
   c.restore();
   oPri(a.x + a.r * .78, a.y - a.r * .78, n.cat, al, FONT);
+  if (n.lat != null) oPin(a.x - a.r * .78, a.y + a.r * .78, al);
   it.hit = { x: lx - blockW / 2, y: Math.min(ly, a.y - a.r), w: blockW, h: Math.max(ly + blockH, a.y + a.r) - Math.min(ly, a.y - a.r) };
 }
 function oDrawCore(it, a, FONT) {
@@ -2231,6 +2309,7 @@ function oRenderInfo() {
     if (k && st.leaves) pills.push(`${Math.round(100 * st.done / st.leaves)}% done`);
     if (n.due && !n.done) { const d = dueInfo(n.due); pills.push([d.text, d.cls]); }
     if (n.cat) pills.push(`priority ${n.cat}`);
+    if (n.lat != null) pills.push(`📍 ${short(n.place || fmtCoords(n), 24)}`);
     if (n.done) pills.push('done');
     const u = oAgo(n.updated); if (u) pills.push(`updated ${u}`);
   }
@@ -2258,6 +2337,7 @@ function orbitShow(id) {                      // bring a node into view: go insi
   const it = oItems.find(i => i.id === id && i.role === 'child'); if (it) { oHl = it.idx; oKick(); }
 }
 function toggleOrbit(force) {
+  if (geoOn && (force ?? !orbitOn)) toggleGeo(false);
   const on = force ?? !orbitOn;
   if (on === orbitOn && force != null) { if (on) orbitBuild(); return; }
   if (editingId != null) commitEdit();
@@ -2382,6 +2462,188 @@ $('#orbitBtn').innerHTML = ORBIT_ICON;
 $('#orbitBtn').addEventListener('click', () => toggleOrbit());
 addEventListener('resize', () => { if (orbitOn) orbitResize(); });
 
+/* the status bar's height changes with its content; panels above it follow */
+{
+  const sb = $('#statusbar');
+  const sync = () => {
+    document.documentElement.style.setProperty('--sbh', sb.offsetHeight + 'px');
+    if (typeof tableOn !== 'undefined' && tableOn) layoutTable();
+    try { if (geoOn) layoutGeo(); } catch {}   // the places view may not be set up yet on the very first call
+    if (orbitOn) { orbitLayoutChrome(); scheduleOrbit(); }
+  };
+  if (window.ResizeObserver) new ResizeObserver(sync).observe(sb); else addEventListener('resize', sync);
+  sync();
+}
+
+/* ---------- geotags: pin a node to a place ---------- */
+let geoId = null, geoUndo = false, geoTimer = 0;
+const fmtCoords = n => n && n.lat != null ? `${n.lat.toFixed(5)}, ${n.lon.toFixed(5)}` : '';
+function parseCoords(str) {
+  const t = (str || '').trim(); if (!t) return null;
+  const pats = [/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/, /[?&](?:ll|q|query|daddr|sll)=(-?\d+(?:\.\d+)?)(?:,|%2C)\s*(-?\d+(?:\.\d+)?)/i,
+    /^geo:(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/i, /^\s*(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)\s*$/];
+  for (const p of pats) { const m = t.match(p); if (m) { const lat = +m[1], lon = +m[2]; if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) return { lat, lon }; } }
+  return null;
+}
+function mapsUrl(n) {
+  const q = encodeURIComponent(n.place || fmtCoords(n));
+  return /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)
+    ? `https://maps.apple.com/?ll=${n.lat},${n.lon}&q=${q}`
+    : `https://www.google.com/maps/search/?api=1&query=${n.lat},${n.lon}`;
+}
+function setGeo(fn) {
+  const n = nodes.get(geoId); if (!n) return;
+  if (!geoUndo) { pushUndo(); geoUndo = true; }
+  fn(n); n.updated = now();
+  renderAll(); markDirty(); showGeo(n);
+}
+function showGeo(n) {
+  const box = $('#geoNow'); box.classList.remove('err');
+  box.textContent = n.lat != null ? `📍 ${fmtCoords(n)}` : 'No location yet.';
+  $('#geoOpen').disabled = $('#geoRemove').disabled = n.lat == null;
+  $('#geoOpen').style.opacity = $('#geoRemove').style.opacity = n.lat == null ? .4 : 1;
+}
+function openGeo(id) {
+  const n = nodes.get(id); if (!n) return;
+  ['#help', '#theme', '#rainPanel', '#about'].forEach(q => $(q).classList.remove('show')); closeNodeColor();
+  geoId = id; geoUndo = false;
+  $('#geoTitle').textContent = 'LOCATION: ' + short(n.text.split('\n')[0], 26);
+  $('#geoPlace').value = n.place || ''; $('#geoCoords').value = fmtCoords(n);
+  showGeo(n); $('#geoPanel').classList.add('show');
+}
+function closeGeo() { clearTimeout(geoTimer); $('#geoPanel').classList.remove('show'); document.activeElement?.blur?.(); geoId = null; }
+$('#geoHere').addEventListener('click', () => {
+  if (!navigator.geolocation) { $('#geoNow').textContent = 'This browser cannot share your location.'; $('#geoNow').classList.add('err'); return; }
+  $('#geoNow').classList.remove('err'); $('#geoNow').textContent = 'Finding you…';
+  const id = geoId;
+  navigator.geolocation.getCurrentPosition(pos => {
+    if (geoId !== id) return;
+    const lat = +pos.coords.latitude.toFixed(6), lon = +pos.coords.longitude.toFixed(6);
+    setGeo(n => { n.lat = lat; n.lon = lon; });
+    $('#geoCoords').value = fmtCoords(nodes.get(id));
+    $('#geoNow').textContent += ` (within ${Math.round(pos.coords.accuracy)} m)`;
+    log(`Pinned “${short(nodes.get(id).text)}” to your location`);
+  }, err => {
+    $('#geoNow').classList.add('err');
+    $('#geoNow').textContent = err.code === 1 ? 'Location access is off. Allow it for this site in your browser or Settings › Safari › Location.'
+      : 'Could not find your location. Try again, or type coordinates below.';
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+});
+$('#geoPlace').addEventListener('input', e => { clearTimeout(geoTimer); geoTimer = setTimeout(() => setGeo(n => { n.place = e.target.value.trim() || null; }), 400); });
+$('#geoCoords').addEventListener('change', e => {
+  const c = parseCoords(e.target.value);
+  if (!c) { $('#geoNow').textContent = 'Could not read those coordinates. Use “lat, lon” like 35.0116, 135.7681 or paste a maps link.'; $('#geoNow').classList.add('err'); return; }
+  setGeo(n => { n.lat = +c.lat.toFixed(6); n.lon = +c.lon.toFixed(6); });
+  e.target.value = fmtCoords(nodes.get(geoId));
+});
+$('#geoOpen').addEventListener('click', () => { const n = nodes.get(geoId); if (n && n.lat != null) window.open(mapsUrl(n), '_blank', 'noopener'); });
+$('#geoRemove').addEventListener('click', () => { setGeo(n => { delete n.lat; delete n.lon; n.place = null; }); $('#geoPlace').value = ''; $('#geoCoords').value = ''; log('Location removed'); });
+$('#geoDone').addEventListener('click', () => { clearTimeout(geoTimer); const v = $('#geoPlace').value.trim() || null; const n = nodes.get(geoId); if (n && (n.place || null) !== v) setGeo(m => { m.place = v; }); closeGeo(); });
+/* small pin drawn next to geotagged planets in orbit view */
+function oPin(x, y, al) {
+  const c = octx; c.save(); c.globalAlpha = al; c.translate(x, y);
+  c.fillStyle = cssVar('--bg') || '#000'; c.strokeStyle = theme.g; c.lineWidth = 1.4;
+  c.beginPath(); c.moveTo(0, 7); c.bezierCurveTo(-6, 0, -6, -7, 0, -7); c.bezierCurveTo(6, -7, 6, 0, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = theme.g; c.beginPath(); c.arc(0, -2, 2, 0, Math.PI * 2); c.fill(); c.restore();
+}
+
+/* ---------- places view: geotagged nodes on a real map (Leaflet, loaded on first use) ---------- */
+const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/';
+const GLOBE_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
+let geoOn = false, Lmap = null, Llayer = null, Ltiles = null, LtileMode = null, Lloading = null, geoTimer2 = 0;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve();
+  if (Lloading) return Lloading;
+  Lloading = new Promise((res, rej) => {
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = LEAFLET + 'leaflet.css'; document.head.appendChild(css);
+    const sc = document.createElement('script'); sc.src = LEAFLET + 'leaflet.js';
+    sc.onload = res; sc.onerror = () => { Lloading = null; rej(new Error('Leaflet did not load')); };
+    document.head.appendChild(sc);
+  });
+  return Lloading;
+}
+function layoutGeo() {
+  $('#geoView').style.top = $('#bar').getBoundingClientRect().bottom + 'px';
+  $('#geoView').style.bottom = Math.max(0, innerHeight - $('#statusbar').getBoundingClientRect().top) + 'px';
+  Lmap?.invalidateSize();
+}
+function setTiles() {
+  const mode = prefs.mode === 'day' ? 'light_all' : 'dark_all';
+  if (!Lmap || LtileMode === mode) return;
+  Ltiles?.remove();
+  Ltiles = L.tileLayer(`https://{s}.basemaps.cartocdn.com/${mode}/{z}/{x}/{y}{r}.png`, {
+    subdomains: 'abcd', maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  }).addTo(Lmap);
+  LtileMode = mode;
+}
+function geoPopup(n) {
+  const d = n.due && !n.done ? dueInfo(n.due) : null;
+  const bits = [n.cat ? `<b class="gp-cat" style="background:${catColor(n.cat)}">${n.cat}</b>` : '', d ? `<span class="${d.cls}">${d.text}</span>` : '', n.done ? '<span>done</span>' : ''].filter(Boolean).join(' ');
+  return `<div class="gp"><div class="gp-t">${escapeHtml(n.text.split('\n')[0] || '…')}</div>` +
+    `<div class="gp-p">📍 ${escapeHtml(n.place || fmtCoords(n))}${n.place ? `<small>${fmtCoords(n)}</small>` : ''}</div>` +
+    (bits ? `<div class="gp-b">${bits}</div>` : '') +
+    `<div class="gp-a"><button data-gact="mind" data-id="${n.id}">mind map</button><button data-gact="orbit" data-id="${n.id}">orbit</button><button data-gact="maps" data-id="${n.id}">open in maps</button></div></div>`;
+}
+function renderGeo(fit) {
+  if (!geoOn || !Lmap) return;
+  Llayer.clearLayers();
+  const pts = [...nodes.values()].filter(n => n.lat != null);
+  $('#geoEmpty').style.display = pts.length ? 'none' : 'flex';
+  for (const n of pts) {
+    const ec = effColor(n), col = ec ? shades(ec).g : theme.g;
+    const icon = L.divIcon({ className: 'gm', iconSize: [0, 0], iconAnchor: [0, 0],
+      html: `<div class="gm-pin${n.done ? ' done' : ''}${n.id === selectedId ? ' sel' : ''}" style="--c:${col}"><i></i><span>${escapeHtml(short(n.text.split('\n')[0] || '…', 24))}</span></div>` });
+    L.marker([n.lat, n.lon], { icon, title: n.place || fmtCoords(n), riseOnHover: true }).addTo(Llayer)
+      .bindPopup(geoPopup(n), { className: 'gm-pop', maxWidth: 270, autoPanPadding: [30, 30] });
+  }
+  if (fit) {
+    if (!pts.length) Lmap.setView([25, 10], 2);
+    else if (pts.length === 1) Lmap.setView([pts[0].lat, pts[0].lon], 14);
+    else Lmap.fitBounds(L.latLngBounds(pts.map(n => [n.lat, n.lon])), { maxZoom: 15, paddingTopLeft: [40, 50], paddingBottomRight: [170, 50] });   // room for the labels
+  }
+}
+function scheduleGeo() { if (geoOn && Lmap) { clearTimeout(geoTimer2); geoTimer2 = setTimeout(() => renderGeo(false), 120); } }
+async function toggleGeo(force) {
+  const on = force ?? !geoOn;
+  if (on === geoOn) return;
+  if (on) {
+    if (editingId != null) commitEdit();
+    orbitCommit(); closeMenu(); closeGeo();
+    if (tableOn) toggleTable(false);
+    if (searchOpen()) closeSearch();
+  }
+  geoOn = on;
+  document.body.classList.toggle('geoview', on);
+  const b = $('#geoBtn'); b.classList.toggle('on', on);
+  b.title = on ? 'Back to the mind map' : 'Places: your located nodes on a world map'; b.setAttribute('aria-label', b.title);
+  if (!on) { if (orbitOn) scheduleOrbit(); else scheduleMini(); return; }
+  layoutGeo();
+  $('#geoMsg').textContent = 'Loading the world map…'; $('#geoMsg').style.display = 'flex';
+  try { await loadLeaflet(); }
+  catch { $('#geoMsg').textContent = 'The world map needs an internet connection (it loads from cdnjs.cloudflare.com and the map tiles from CARTO). Check your connection and try again.'; return; }
+  if (!geoOn) return;
+  $('#geoMsg').style.display = 'none';
+  if (!Lmap) {
+    Lmap = L.map('geoMap', { worldCopyJump: true, zoomControl: true, attributionControl: true });
+    Llayer = L.layerGroup().addTo(Lmap);
+  }
+  setTiles();
+  setTimeout(() => { Lmap.invalidateSize(); renderGeo(true); }, 0);
+}
+$('#geoBtn').innerHTML = GLOBE_ICON;
+$('#geoBtn').addEventListener('click', () => toggleGeo());
+$('#geoView').addEventListener('click', e => {
+  const b = e.target.closest('[data-gact]'); if (!b) return;
+  const id = +b.dataset.id, n = nodes.get(id); if (!n) return;
+  if (b.dataset.gact === 'maps') { window.open(mapsUrl(n), '_blank', 'noopener'); return; }
+  Lmap?.closePopup();
+  toggleGeo(false);
+  if (b.dataset.gact === 'orbit') { if (!orbitOn) toggleOrbit(true); orbitShow(id); }
+  else { if (orbitOn) toggleOrbit(false); goToNode(id); }
+});
+addEventListener('resize', () => { if (geoOn) layoutGeo(); });
+
 /* ---------- controls panel ---------- */
 function toggleAbout(force) {
   const box = $('#about'), show = force ?? !box.classList.contains('show');
@@ -2473,6 +2735,7 @@ function pal(hex, mode = prefs.mode) {
 }
 const shades = hex => pal(hex);
 function applyTheme() {
+  if (typeof geoOn !== 'undefined' && geoOn && Lmap) setTimeout(() => { setTiles(); renderGeo(false); }, 0);
   if (typeof oKick === 'function' && orbitOn) setTimeout(oKick, 0);
   const day = prefs.mode === 'day', c = hexToRgb(prefs.color), t = prefs.tint / 100;
   const p = pal(prefs.color);
