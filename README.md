@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 5.8
+**Current version:** 5.9
 
-![new in 5.8](https://img.shields.io/badge/new_in-5.8-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 5.9](https://img.shields.io/badge/new_in-5.9-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -196,7 +196,7 @@ Tap the table button in the bottom-right corner, next to the magnifier, to see y
 
 ### Node menu (hold a node or right-click)
 
-$\color{#00FF41}\textsf{The menu materializes with a glowing scan line, its items arriving one by one, and a ripple where you held.}$ The top of the menu shows when the node was created and last updated. The menu opens a little up and to the left of your finger and always stays fully on screen.
+$\color{#00FF41}\textsf{The menu fades in, and shrinks away toward your finger when it closes.}$ The top of the menu shows when the node was created and last updated. The menu opens a little up and to the left of your finger and always stays fully on screen.
 
 | Item | What it does |
 |---|---|
@@ -214,7 +214,7 @@ $\color{#00FF41}\textsf{The menu materializes with a glowing scan line, its item
 | Unfold everything | Open all folded branches again (shown when something is folded and you are not in focus mode) |
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
-| Delete node | Delete the node and everything below it. The node, its branch and their lines fade out $\color{#00FF41}\textsf{over about a second}$ |
+| Delete node | Delete the node and everything below it. The node, its branch and their lines fade out over about a second |
 | done (bottom right) | Tick to mark the node done, untick to undo it. The menu stays open. Done nodes are struck through on the map and in the table |
 
 Every change can be undone with **undo**.
@@ -333,7 +333,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{5.8}$ | $\color{#00FF41}\textsf{Slower, softer fade when deleting; hold menu appears with a scan-line effect and a ripple}$ |
+| $\color{#00FF41}\textsf{5.9}$ | $\color{#00FF41}\textsf{Hold menu simply fades in and shrinks out (scan line and ripple removed)}$ |
+| 5.8 | Slower, softer fade when deleting; hold menu appears with a scan-line effect and a ripple |
 | 5.7 | Deleted nodes fade out instead of disappearing at once |
 | 5.6 | Zoom to node fits whole nodes on narrow screens instead of cutting off the outer ones |
 | 5.5 | Automatic text size based on how many nodes are below; manual sizes still win; default button renamed auto |
