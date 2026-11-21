@@ -27,8 +27,19 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--g);
 #stage{position:fixed;inset:0;z-index:1;cursor:grab;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 #ctx{position:fixed;z-index:30;min-width:220px;max-width:calc(100vw - 20px);box-sizing:border-box;max-height:calc(100% - 110px);overflow-y:auto;background:var(--panel);border:1px solid var(--g);box-shadow:var(--glow);
   padding:4px;display:none;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
-#ctx.show{display:block;animation:ctxIn .14s ease-out}
-@keyframes ctxIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+#ctx.show{display:block;animation:ctxIn .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes ctxIn{0%{opacity:0;clip-path:inset(0 0 100% 0);filter:brightness(2.4)}
+  55%{opacity:1;filter:brightness(1.5)}100%{opacity:1;clip-path:inset(0 0 0 0);filter:none}}
+#ctx::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--g-hi);
+  box-shadow:0 0 12px var(--g),0 0 24px var(--g);opacity:0;pointer-events:none}
+#ctx.show::after{animation:ctxScan .34s ease-out}
+@keyframes ctxScan{0%{top:0;opacity:1}85%{opacity:1}100%{top:calc(100% - 2px);opacity:0}}
+#ctx.show > *{animation:ctxItem .3s both}
+@keyframes ctxItem{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.ripple{position:fixed;z-index:29;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;pointer-events:none;
+  border:2px solid var(--g);box-shadow:0 0 14px rgba(var(--rgb),.8);animation:ripple .6s ease-out forwards}
+@keyframes ripple{0%{transform:scale(.3);opacity:1}100%{transform:scale(4.5);opacity:0}}
+@media (prefers-reduced-motion:reduce){#ctx.show,#ctx.show::after,#ctx.show > *{animation:none}.ripple{display:none}}
 #ctx .ttl{padding:6px 10px 7px;color:var(--g-mid);font-size:12.5px;border-bottom:1px solid var(--g-dim);margin-bottom:3px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px}
 #ctx button{display:block;width:100%;text-align:left;padding:10px 12px;font-size:15px}
@@ -59,9 +70,9 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
 #world{position:absolute;left:0;top:0;transform-origin:0 0}
 #edges,#ghosts{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none}
 /* deleted nodes and their lines fade out */
-.node.fading{transition:opacity .45s ease,transform .45s ease,filter .45s ease;opacity:0;
+.node.fading{transition:opacity .9s ease,transform .9s ease,filter .9s ease;opacity:0;
   transform:translate(-50%,-50%) scale(.82);filter:blur(4px);pointer-events:none}
-#ghosts path{transition:opacity .45s ease}
+#ghosts path{transition:opacity .9s ease}
 #ghosts path.fading{opacity:0}
 @media (prefers-reduced-motion:reduce){.node.fading,#ghosts path{transition:none}}
 .edge{fill:none;stroke:var(--g-dim);stroke-width:2.2}
@@ -411,7 +422,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '5.7';
+const APP_VERSION = '5.8';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -595,7 +606,7 @@ function fadeOut(ids) {
   els2.forEach(el => el.classList.add('fading'));
   lines.forEach(p => p.classList.add('fading'));
   const done = () => { els2.forEach(el => el.remove()); lines.forEach(p => p.remove()); };
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) done(); else setTimeout(done, 480);
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) done(); else setTimeout(done, 950);
 }
 function deleteNode(id) {
   const n = nodes.get(id); if (!n) return;
@@ -1214,7 +1225,11 @@ function openMenu(id, x, y) {
     `<div class="botrow"><button data-m="delete" class="danger" role="menuitem">${delLabel}</button>` +
     `<label class="donebox"><input type="checkbox" data-mdone${n.done ? ' checked' : ''}>done</label></div>` :
     `<button data-m="${it[0]}" class="${it[2] || ''}" role="menuitem">${it[1]}</button>`).join('');
+  [...ctx.children].forEach((c, i) => c.style.animationDelay = (60 + i * 22) + 'ms');
+  ctx.classList.remove('show'); void ctx.offsetWidth;      // restart the animation each time
   ctx.classList.add('show');
+  { const r = document.createElement('div'); r.className = 'ripple'; r.style.left = x + 'px'; r.style.top = y + 'px';
+    document.body.appendChild(r); setTimeout(() => r.remove(), 700); }
   markCatButtons(n);
   // measure without the opening animation's scale, then place it 50px left / 50px up of the old spot
   const w = ctx.offsetWidth, h = ctx.offsetHeight;
