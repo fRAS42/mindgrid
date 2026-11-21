@@ -57,7 +57,13 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
 @keyframes pulse{50%{box-shadow:0 0 0 2px var(--g),0 0 26px rgba(var(--rgb),.6)}}
 #stage.panning{cursor:grabbing}
 #world{position:absolute;left:0;top:0;transform-origin:0 0}
-#edges{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none}
+#edges,#ghosts{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none}
+/* deleted nodes and their lines fade out */
+.node.fading{transition:opacity .45s ease,transform .45s ease,filter .45s ease;opacity:0;
+  transform:translate(-50%,-50%) scale(.82);filter:blur(4px);pointer-events:none}
+#ghosts path{transition:opacity .45s ease}
+#ghosts path.fading{opacity:0}
+@media (prefers-reduced-motion:reduce){.node.fading,#ghosts path{transition:none}}
 .edge{fill:none;stroke:var(--g-dim);stroke-width:2.2}
 .flow{fill:none;stroke:var(--g);stroke-width:1.4;stroke-dasharray:3 15;opacity:.85;animation:flow 1.1s linear infinite}
 @keyframes flow{to{stroke-dashoffset:-18}}
@@ -267,7 +273,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 </head>
 <body>
 <canvas id="rain"></canvas>
-<div id="stage"><div id="world"><svg id="edges"></svg></div></div>
+<div id="stage"><div id="world"><svg id="ghosts" aria-hidden="true"></svg><svg id="edges"></svg></div></div>
 
 <div id="bar">
   <button id="logo" type="button" title="About MINDGRID" aria-label="About MINDGRID">MIND<b>GRID</b></button>
@@ -405,7 +411,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '5.6';
+const APP_VERSION = '5.7';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -576,12 +582,28 @@ function addSibling() {
   const n = nodes.get(selectedId); if (!n) return;
   addAndEdit(n.parent != null && nodes.has(n.parent) ? n.parent : n.id);
 }
+/* the removed nodes are taken off the map right away (so undo works at once) and their look fades out */
+function fadeOut(ids) {
+  const ghosts = document.getElementById('ghosts');
+  const set = new Set(ids.map(String));
+  const lines = [...edgesSvg.querySelectorAll('path[data-c]')].filter(p => set.has(p.dataset.c)).map(p => p.cloneNode());
+  lines.forEach(p => ghosts.appendChild(p));
+  const els2 = ids.map(i => els.get(i)).filter(Boolean);
+  ids.forEach(i => els.delete(i));                       // renderAll will no longer touch these elements
+  els2.forEach(el => { el.classList.remove('sel'); el.querySelector('.stamp')?.remove(); el.style.display = el.style.display; });
+  void document.body.offsetWidth;                         // start the fade from fully visible
+  els2.forEach(el => el.classList.add('fading'));
+  lines.forEach(p => p.classList.add('fading'));
+  const done = () => { els2.forEach(el => el.remove()); lines.forEach(p => p.remove()); };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) done(); else setTimeout(done, 480);
+}
 function deleteNode(id) {
   const n = nodes.get(id); if (!n) return;
   const isRoot = n.parent == null || !nodes.has(n.parent);
   if (isRoot && roots().length === 1) return log('The central node cannot be deleted. Use new for a fresh map.', true);
   pushUndo();
   const ids = [id, ...descendants(id)];
+  fadeOut(ids);
   ids.forEach(i => nodes.delete(i));
   selectedId = nodes.has(n.parent) ? n.parent : roots()[0]?.id ?? null;
   renderAll(); markDirty();
@@ -727,8 +749,8 @@ function drawEdges() {
     const dx = (n.x - p.x) * 0.5;
     const d = `M${p.x},${p.y} C${p.x + dx},${p.y} ${n.x - dx},${n.y} ${n.x},${n.y}`;
     const ec = effColor(n), st = ec ? shades(ec) : null;
-    s += st ? `<path class="edge" d="${d}" style="stroke:${st.dim}"/><path class="flow" d="${d}" style="stroke:${st.g}"/>`
-            : `<path class="edge" d="${d}"/><path class="flow" d="${d}"/>`;
+    s += st ? `<path class="edge" data-c="${n.id}" d="${d}" style="stroke:${st.dim}"/><path class="flow" data-c="${n.id}" d="${d}" style="stroke:${st.g}"/>`
+            : `<path class="edge" data-c="${n.id}" d="${d}"/><path class="flow" data-c="${n.id}" d="${d}"/>`;
   }
   edgesSvg.innerHTML = s;
   scheduleMini();
