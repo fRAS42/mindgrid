@@ -354,6 +354,9 @@ body.geoview #stage,body.geoview #mini,body.geoview #orbitCv,body.geoview #otrai
 #geoView .leaflet-control-attribution a{color:#cfcfcf}
 #geoView .leaflet-container{background:var(--bg)}
 body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.55)}
+/* dock buttons: no borders; the active view is shown by a soft highlight */
+#sbtns button{border-color:transparent!important}
+#sbtns button:hover{background:rgba(var(--rgb),.1)}
 </style>
 </head>
 <body>
@@ -514,7 +517,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '6.3';
+const APP_VERSION = '6.4';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';

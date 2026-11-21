@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 6.3
+**Current version:** 6.4
 
-![new in 6.3](https://img.shields.io/badge/new_in-6.3-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 6.4](https://img.shields.io/badge/new_in-6.4-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -159,7 +159,7 @@ Hold a node and tap Add location… to pin it to a place:
 - Coordinates or a maps link: type 35.0116, 135.7681, or paste a link from Google Maps or Apple Maps
 - open in maps opens the place in Apple Maps on iPhone and Mac, Google Maps elsewhere; remove clears it
 
-Tap the pin button in the dock to open Places: a world map (Leaflet $\color{#00FF41}\textsf{with OpenStreetMap tiles, shown inverted to a dark map at night and normal by day}$) showing every located node as a glowing marker in its color. Tap a marker for its details and jump to it on the mind map, in orbit view, or in your Maps app. The map loads the first time you open Places and needs an internet connection.
+Tap the pin button in the dock to open Places: a world map (Leaflet with OpenStreetMap tiles, shown inverted to a dark map at night and normal by day) showing every located node as a glowing marker in its color. Tap a marker for its details and jump to it on the mind map, in orbit view, or in your Maps app. The map loads the first time you open Places and needs an internet connection.
 
 A geotagged node shows a small pin on its bottom-left corner on the map and on its planet in orbit view, a 📍 line in the table, a 📍 pill in orbit view, and its place name in the node menu. Changing a location counts as an update and can be undone.
 
@@ -376,7 +376,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{6.3}$ | $\color{#00FF41}\textsf{Places view uses OpenStreetMap tiles}$ |
+| $\color{#00FF41}\textsf{6.4}$ | $\color{#00FF41}\textsf{Dock buttons without borders; the active view keeps a soft highlight}$ |
+| 6.3 | Places view uses OpenStreetMap tiles |
 | 6.2 | Places view: located nodes on a Leaflet world map; bottom buttons centered like a dock |
 | 6.1 | Geotags for nodes; status info moved under the bottom-right buttons |
 | 6.0 | Orbit view built into MINDGRID, with its own button next to the magnifier |
@@ -426,7 +427,7 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 ## Tech
 
-- Leaflet 1.9.4 (loaded on demand) with $\color{#00FF41}\textsf{OpenStreetMap}$ map tiles for the Places view
+- Leaflet 1.9.4 (loaded on demand) with OpenStreetMap map tiles for the Places view
 
 - One self-contained HTML file with plain JavaScript and no build step
 - [sql.js](https://github.com/sql-js/sql.js) (SQLite compiled to WebAssembly) for the database
