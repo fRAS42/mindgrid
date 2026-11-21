@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 6.8
+**Current version:** 6.9
 
-![new in 6.8](https://img.shields.io/badge/new_in-6.8-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 6.9](https://img.shields.io/badge/new_in-6.9-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -14,7 +14,9 @@ No install, no account, no server. Everything runs in your browser.
 
 ## Features
 
-- $\color{#00FF41}\textsf{Fast with big maps: smooth panning and dragging and a quiet processor at rest, tested with 3,000 nodes}$ ![new in 6.8](https://img.shields.io/badge/new_in-6.8-00ff41?labelColor=000000)
+- $\color{#00FF41}\textsf{Not every node is a task: untick task in the hold menu to turn a node into a plain note}$ ![new in 6.9](https://img.shields.io/badge/new_in-6.9-00ff41?labelColor=000000)
+
+- Fast with big maps: smooth panning and dragging and a quiet processor at rest, tested with 3,000 nodes
 
 - Free-form mind maps with branches, multi-line nodes, indentation and bullets
 - Orbit view: travel through your map one node at a time, with the nodes inside it orbiting around it
@@ -196,7 +198,7 @@ If a match is inside a folded branch, the branch opens so you can see it. This d
 Tap the orbit button in the bottom-right corner (next to the magnifier) to travel through your map instead of panning around it. Tap it again to go back to the map; the selected node stays selected.
 
 - The node you are in sits in the middle as a glowing core with its text inside. The nodes inside it orbit around it.
-- A ring around the core shows how much of everything inside is done.
+- A ring around the core shows how much of everything inside is done $\color{#00FF41}\textsf{(counting only tasks).}$
 - Small moons around a node show the nodes inside it; the number on it counts everything inside.
 - The node you came from waits as a small ↑ orb above the core. The path at the top shows where you are; tap any part of it to go back up.
 - Pills at the bottom show how many nodes are inside, % done, due date, priority and when it was last updated.
@@ -216,7 +218,7 @@ Search and the table view work in orbit view too: picking a result takes you to 
 
 ### Table view
 
-Tap the table button in the bottom-right corner, next to the magnifier, to see your leaf nodes (the nodes at the ends of branches, with no children) as a list, plus any node that has a due date or a priority even if it has children (marked with ▸). Tap it again (it now shows a small map icon) to go back to the map.
+Tap the table button in the bottom-right corner, next to the magnifier, to see your leaf nodes (the nodes at the ends of branches, with no children) as a list, plus any node that has a due date or a priority even if it has children (marked with ▸). Tap it again (it now shows a small map icon) to go back to the map. $\color{#00FF41}\textsf{Only tasks are listed; a node with task unticked never appears here.}$
 
 | Column | What it shows |
 |---|---|
@@ -257,6 +259,7 @@ The menu fades in, and shrinks away toward your finger when it closes. The top o
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
 | Delete node | Delete the node and everything below it. The node, its branch and their lines fade out over about a second |
+| $\color{#00FF41}\textsf{task (above the bottom row)}$ | $\color{#00FF41}\textsf{Ticked by default: the node is a to-do. Untick it for a plain note: the done box disappears, and the node no longer appears in the table, counts toward % done, or shows as done. Tick it again to make it a task. Can be undone}$ |
 | done (bottom right) | Tick to mark the node done, untick to undo it. The menu stays open. Done nodes are struck through on the map and in the table |
 
 Every change can be undone with **undo**.
@@ -335,6 +338,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | color | The node's own color, such as `#ffb000` (empty = interface color) |
 | font_size | The node's text size in pixels, when you set it yourself (empty = automatic size) |
 | done | 1 if the node is marked done in the table view, otherwise 0 |
+| $\color{#00FF41}\textsf{task}$ | $\color{#00FF41}\textsf{1 if the node is a task (the default), 0 if it is a plain note}$ |
 | due | The node's due date as YYYY-MM-DD (empty = no due date) |
 | category | Priority flag: A, B or C (empty = none) |
 | lat, lon | The node's location in decimal degrees (empty = no location) |
@@ -380,7 +384,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{6.8}$ | $\color{#00FF41}\textsf{Speed for big maps: lines and nodes far off screen are skipped, dashes pause while moving, fewer redundant updates, faster search}$ |
+| $\color{#00FF41}\textsf{6.9}$ | $\color{#00FF41}\textsf{Task switch per node: plain notes have no done box and stay out of the table and % done}$ |
+| 6.8 | Speed for big maps: lines and nodes far off screen are skipped, dashes pause while moving, fewer redundant updates, faster search |
 | 6.7 | iPhone saving through the share sheet with Replace; warning after 2 days unsaved; persistent storage; code clean-up (shared panel and dock styles, merged helpers, leftovers removed, table of contents); fixed: two floating panels could be open on top of each other |
 | 6.6 | Fixed: after rotating an iPhone and switching views, the app could stop responding until rotated again |
 | 6.5 | Priority D removed: A, B, C or no priority; fixed: a new hold or right-click right after closing the menu was ignored |
@@ -435,20 +440,20 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 ## Tech
 
-$\color{#00FF41}\textsf{Speed on big maps (6.8):}$
+Speed on big maps (6.8):
 
-- $\color{#00FF41}\textsf{Connection lines are drawn only near the screen, one combined line per color, instead of two elements per link.}$
-- $\color{#00FF41}\textsf{Nodes far off screen are not painted; they keep their size, so tidy and layout are unaffected.}$
-- $\color{#00FF41}\textsf{The flowing dashes pause while the map moves, and stop when zoomed out below 50% or when another view covers the map.}$
-- $\color{#00FF41}\textsf{A node refresh only writes what changed; search remembers each node's searchable text.}$
+- Connection lines are drawn only near the screen, one combined line per color, instead of two elements per link.
+- Nodes far off screen are not painted; they keep their size, so tidy and layout are unaffected.
+- The flowing dashes pause while the map moves, and stop when zoomed out below 50% or when another view covers the map.
+- A node refresh only writes what changed; search remembers each node's searchable text.
 
-| $\color{#00FF41}\textsf{Measured on 3,000 nodes}$ | $\color{#00FF41}\textsf{6.7}$ | $\color{#00FF41}\textsf{6.8}$ |
+| Measured on 3,000 nodes | 6.7 | 6.8 |
 |---|---|---|
-| $\color{#00FF41}\textsf{Processor busy at rest}$ | $\color{#00FF41}\textsf{100%}$ | $\color{#00FF41}\textsf{6–8%}$ |
-| $\color{#00FF41}\textsf{Panning}$ | $\color{#00FF41}\textsf{6 fps}$ | $\color{#00FF41}\textsf{51–54 fps}$ |
-| $\color{#00FF41}\textsf{Dragging one node}$ | $\color{#00FF41}\textsf{18 fps}$ | $\color{#00FF41}\textsf{38 fps}$ |
-| $\color{#00FF41}\textsf{Adding a node}$ | $\color{#00FF41}\textsf{865 ms}$ | $\color{#00FF41}\textsf{205 ms}$ |
-| $\color{#00FF41}\textsf{Opening the file}$ | $\color{#00FF41}\textsf{1.5 s}$ | $\color{#00FF41}\textsf{0.7 s}$ |
+| Processor busy at rest | 100% | 6–8% |
+| Panning | 6 fps | 51–54 fps |
+| Dragging one node | 18 fps | 38 fps |
+| Adding a node | 865 ms | 205 ms |
+| Opening the file | 1.5 s | 0.7 s |
 
 
 - Leaflet 1.9.4 (loaded on demand) with OpenStreetMap map tiles for the Places view

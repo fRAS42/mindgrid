@@ -39,6 +39,9 @@ html,body{margin:0;height:100%;width:100%;max-width:100vw;overscroll-behavior:no
 #ctx hr{border:0;border-top:1px solid var(--g-dim);margin:3px 0}
 #ctx .botrow{display:flex;align-items:center;gap:6px}
 #ctx .botrow button{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ctx .taskrow{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;font-size:15px}
+#ctx .taskrow span{flex:1;color:var(--g-mid);white-space:nowrap}
+#ctx.notask .mdone{display:none}
 #ctx .donebox{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 10px;border:1px solid var(--g-dim);cursor:pointer;
   white-space:nowrap;font-size:15px;color:var(--g)}
 #ctx .donebox input{width:22px;height:22px;margin:0;accent-color:var(--g);cursor:pointer}
@@ -390,6 +393,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
     <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
     <tr><td>Hold node / right-click</td><td>Menu: color, text size, priority A–C, due date (leaf nodes), done, delete, connect, more</td></tr>
     <tr><td>Location (hold menu)</td><td>Pin a node to a place: your current location, coordinates or a maps link</td></tr>
+    <tr><td>Task (hold menu)</td><td>Untick to make a node a plain note: no done box, not in the table or % done</td></tr>
     <tr><td>Priority A / B / C</td><td>A urgent + important, B important, C urgent</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
     <tr><td>⇥ ⇤ • in editor</td><td>Indent, outdent, bullet the current lines</td></tr>
@@ -531,7 +535,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '6.8';
+const APP_VERSION = '6.9';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -552,6 +556,7 @@ CREATE TABLE IF NOT EXISTS nodes(
   lat REAL,
   lon REAL,
   place TEXT,
+  task INTEGER NOT NULL DEFAULT 1,
   created_at TEXT,
   updated_at TEXT
 );
@@ -576,7 +581,7 @@ function migrate(d) {
   if (!cols.includes('done')) d.run('ALTER TABLE nodes ADD COLUMN done INTEGER NOT NULL DEFAULT 0');
   if (!cols.includes('due')) d.run('ALTER TABLE nodes ADD COLUMN due TEXT');
   if (!cols.includes('category')) d.run('ALTER TABLE nodes ADD COLUMN category TEXT');
-  for (const [c, t] of [['lat', 'REAL'], ['lon', 'REAL'], ['place', 'TEXT']]) if (!cols.includes(c)) d.run(`ALTER TABLE nodes ADD COLUMN ${c} ${t}`);
+  for (const [c, t] of [['lat', 'REAL'], ['lon', 'REAL'], ['place', 'TEXT'], ['task', 'INTEGER NOT NULL DEFAULT 1']]) if (!cols.includes(c)) d.run(`ALTER TABLE nodes ADD COLUMN ${c} ${t}`);
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -855,7 +860,7 @@ function updateEl(n, el = els.get(n.id), idx) {
   el.classList.toggle('sel', n.id === selectedId);
   el.classList.toggle('newest', newestSet.has(n.id));
   el.classList.toggle('newest-all', n.id === newestAllId);
-  el.classList.toggle('done', !!n.done);
+  el.classList.toggle('done', isDone(n));
   { let gp = el.querySelector('.geo');
     if (n.lat != null) { if (!gp) { gp = document.createElement('div'); gp.className = 'geo'; el.appendChild(gp); } setAttr(gp, 'title', n.place || fmtCoords(n)); }
     else gp?.remove(); }
@@ -937,6 +942,10 @@ function ago(iso) {              // short form: "just now", "5 min ago", "3 h ag
   const h = Math.floor(m / 60); if (h < 24) return `${h} h ago`;
   const days = Math.floor(h / 24); return days === 1 ? 'yesterday' : `${days} days ago`;
 }
+/* ---------- tasks: every node is a task unless unticked in the hold menu ---------- */
+const isTask = n => !!n && n.task !== false;
+const isDone = n => isTask(n) && !!n.done;           // a node that is not a task is never shown as done
+
 /* ---------- priority (A urgent + important, B important, C urgent) ---------- */
 const CATS = {
   A: { color: '#ff3b3b', name: 'A: urgent and important' },
@@ -1392,10 +1401,12 @@ function openMenu(id, x, y) {
     `<div class="duerow"><span>Due date</span><input type="date" data-due value="${n.due || ''}" aria-label="Due date">` +
     `<button data-dueclear title="Remove due date" aria-label="Remove due date">✕</button></div>` :
     it === 'bottom' ?
+    `<div class="taskrow"><span>Counts as a to-do</span><label class="donebox"><input type="checkbox" data-mtask${isTask(n) ? ' checked' : ''}>task</label></div>` +
     `<div class="botrow"><button data-m="delete" class="danger" role="menuitem">${delLabel}</button>` +
-    `<label class="donebox"><input type="checkbox" data-mdone${n.done ? ' checked' : ''}>done</label></div>` :
+    `<label class="donebox mdone"><input type="checkbox" data-mdone${n.done ? ' checked' : ''}>done</label></div>` :
     `<button data-m="${it[0]}" class="${it[2] || ''}" role="menuitem">${it[1]}</button>`).join('');
   clearTimeout(ctxCloseTimer);
+  ctx.classList.toggle('notask', !isTask(n));
   ctx.classList.remove('show', 'closing'); void ctx.offsetWidth;   // restart the fade each time
   ctx.classList.add('show');
   markCatButtons(n);
@@ -1421,6 +1432,14 @@ function closeMenu() {
 ctx.addEventListener('change', e => {
   const dIn = e.target.closest('[data-due]');
   if (dIn) { setDue(ctxId, dIn.value || null); return; }
+  const tk = e.target.closest('[data-mtask]');
+  if (tk) {
+    const n = nodes.get(ctxId); if (!n) return;
+    pushUndo(); if (tk.checked) delete n.task; else n.task = false; n.updated = now();
+    ctx.classList.toggle('notask', !isTask(n));
+    renderAll(); markDirty(); refreshMenuTimes(n);
+    return log(isTask(n) ? `“${short(n.text)}” is a task again` : `“${short(n.text)}” is no longer a task`);
+  }
   const c = e.target.closest('[data-mdone]'); if (!c) return;
   const n = nodes.get(ctxId); if (!n) return;
   pushUndo(); n.done = c.checked; n.updated = now();
@@ -1745,9 +1764,9 @@ function writeToDb() {
   db.run('BEGIN');
   try {
     db.run('DELETE FROM nodes');
-    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,done,due,category,lat,lon,place,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,done,due,category,lat,lon,place,task,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     for (const n of nodes.values())
-      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.done ? 1 : 0, n.due ?? null, n.cat ?? null, n.lat ?? null, n.lon ?? null, n.place ?? null, n.created ?? null, n.updated ?? null]);
+      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.done ? 1 : 0, n.due ?? null, n.cat ?? null, n.lat ?? null, n.lon ?? null, n.place ?? null, isTask(n) ? 1 : 0, n.created ?? null, n.updated ?? null]);
     st.free();
     db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?),('file_saved_at',?),('focus',?)",
       [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs), lastSaved ?? '',
@@ -1757,10 +1776,10 @@ function writeToDb() {
 }
 function loadFromDb() {
   nodes = new Map();
-  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size,done,due,category,lat,lon,place FROM nodes');
+  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size,done,due,category,lat,lon,place,task FROM nodes');
   if (res.length) for (const r of res[0].values)
     nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null, done: !!r[11], due: /^\d{4}-\d{2}-\d{2}$/.test(r[12] || '') ? r[12] : null, cat: /^[ABC]$/.test(r[13] || '') ? r[13] : null,   /* old D flags count as no priority */
-      ...(isFinite(r[14]) && isFinite(r[15]) && r[14] != null && r[15] != null && Math.abs(r[14]) <= 90 && Math.abs(r[15]) <= 180 ? { lat: r[14], lon: r[15] } : {}), place: r[16] || null });
+      ...(isFinite(r[14]) && isFinite(r[15]) && r[14] != null && r[15] != null && Math.abs(r[14]) <= 90 && Math.abs(r[15]) <= 180 ? { lat: r[14], lon: r[15] } : {}), place: r[16] || null, ...(r[17] === 0 ? { task: false } : {}) });
   if (!nodes.size) { const t = now(); nodes.set(1, { id: 1, parent: null, text: 'central idea', x: 0, y: 0, collapsed: false, created: t, updated: t }); }
   nextId = Math.max(0, ...nodes.keys()) + 1;
   const meta = Object.fromEntries((db.exec('SELECT key,value FROM meta')[0]?.values) || []);
@@ -2038,7 +2057,7 @@ function renderTable() {
   const parents = new Set([...nodes.values()].map(n => n.parent).filter(p => p != null && nodes.has(p)));
   const near = n => n.due && daysUntil(n.due) <= DUE_TOP ? daysUntil(n.due) : null;
   const dueOf = n => n.due ? daysUntil(n.due) : Infinity;
-  const rows = [...nodes.values()].filter(n => !parents.has(n.id) || n.due || n.cat)   // leaves, plus any node with a due date or priority
+  const rows = [...nodes.values()].filter(n => isTask(n) && (!parents.has(n.id) || n.due || n.cat))   // tasks: leaves, plus any node with a due date or priority
     .sort((a, b) => {
       // 1. due within 3 days (or overdue) first, soonest due first, then by priority
       const da = near(a), db = near(b);
@@ -2168,7 +2187,7 @@ function oDescCount(id) { if (oDesc.has(id)) return oDesc.get(id); let c = 0; fo
 function oLeafStats(id) {
   if (oStats.has(id)) return oStats.get(id);
   const ks = oKids(id); let s;
-  if (!ks.length) { const n = nodes.get(id); s = { leaves: 1, done: n && n.done ? 1 : 0 }; }
+  if (!ks.length) { const n = nodes.get(id); s = isTask(n) ? { leaves: 1, done: isDone(n) ? 1 : 0 } : { leaves: 0, done: 0 }; }
   else { s = { leaves: 0, done: 0 }; for (const k of ks) { const t = oLeafStats(k.id); s.leaves += t.leaves; s.done += t.done; } }
   oStats.set(id, s); return s;
 }
@@ -2276,7 +2295,7 @@ function oDraw() {
     const a = A(it.key); if (!a || a.o < .02) continue;
     if (it.role === 'child') {
       const s = A(it.from); if (!s) continue; const n = nodes.get(it.id), col = oColor(n);
-      const g = c.createLinearGradient(s.x, s.y, a.x, a.y); g.addColorStop(0, rgbaOf(theme.g, .06)); g.addColorStop(1, rgbaOf(col, .6 * a.o * (n.done ? .4 : 1)));
+      const g = c.createLinearGradient(s.x, s.y, a.x, a.y); g.addColorStop(0, rgbaOf(theme.g, .06)); g.addColorStop(1, rgbaOf(col, .6 * a.o * (isDone(n) ? .4 : 1)));
       c.strokeStyle = g; c.lineWidth = 1.4; c.beginPath(); c.moveTo(s.x, s.y);
       c.quadraticCurveTo((s.x + a.x) / 2 + (a.y - s.y) * .12, (s.y + a.y) / 2 - (a.x - s.x) * .12, a.x, a.y); c.stroke();
     } else if (it.role === 'parent') {
@@ -2292,7 +2311,7 @@ function oDraw() {
   const order = { moon: 0, parent: 1, child: 2, center: 3 };
   for (const it of oItems.slice().sort((p, q) => order[p.role] - order[q.role])) {
     const a = A(it.key); if (!a || a.o < .02 || a.r < .5) continue;
-    if (it.role === 'moon') { const n = nodes.get(it.id), col = oColor(n); c.save(); c.globalAlpha = a.o * (n.done ? .45 : .95); c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 6; c.beginPath(); c.arc(a.x, a.y, a.r, 0, Math.PI * 2); c.fill(); c.restore(); }
+    if (it.role === 'moon') { const n = nodes.get(it.id), col = oColor(n); c.save(); c.globalAlpha = a.o * (isDone(n) ? .45 : .95); c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 6; c.beginPath(); c.arc(a.x, a.y, a.r, 0, Math.PI * 2); c.fill(); c.restore(); }
     else if (it.role === 'parent') oDrawParent(it, a, FONT, BG);
     else if (it.role === 'child') oDrawChild(it, a, FONT, BG);
     else oDrawCore(it, a, FONT);
@@ -2323,21 +2342,21 @@ function oDrawParent(it, a, FONT, BG) {
 }
 function oDrawChild(it, a, FONT, BG) {
   const c = octx, n = nodes.get(it.id), col = oColor(n), al = a.o;
-  oOrb(a.x, a.y, a.r, col, al, n.done);
+  oOrb(a.x, a.y, a.r, col, al, isDone(n));
   if (oHl === it.idx) { c.save(); c.globalAlpha = al; c.strokeStyle = theme.hi; c.lineWidth = 2; c.setLineDash([4, 4]); c.beginPath(); c.arc(a.x, a.y, a.r + 6, 0, Math.PI * 2); c.stroke(); c.restore(); }
   c.save(); c.globalAlpha = al; c.textAlign = 'center'; c.textBaseline = 'middle';
-  if (n.done) { c.fillStyle = theme.hi; c.font = `bold ${Math.round(a.r * .8)}px ${FONT}`; c.fillText('✓', a.x, a.y + 1); }
+  if (isDone(n)) { c.fillStyle = theme.hi; c.font = `bold ${Math.round(a.r * .8)}px ${FONT}`; c.fillText('✓', a.x, a.y + 1); }
   else { const k = oDescCount(n.id); if (k) { c.fillStyle = theme.hi; c.font = `${clamp(Math.round(a.r * .62), 10, 16)}px ${FONT}`; c.fillText(String(k), a.x, a.y + .5); } }
   const up = Math.sin(it.a) < -.2, maxW = clamp(oW * .3, 96, 170);
   c.font = `14px ${FONT}`;
-  const lines = oWrap(oTitle(n), maxW, 2), due = !n.done && n.due ? dueInfo(n.due) : null;
+  const lines = oWrap(oTitle(n), maxW, 2), due = !isDone(n) && n.due ? dueInfo(n.due) : null;
   const lh = 17, blockH = lines.length * lh + (due ? 15 : 0), gap = oKids(n.id).length ? 18 : 8;
   let blockW = Math.max(...lines.map(l => c.measureText(l).width));
   if (due) { c.font = `12px ${FONT}`; blockW = Math.max(blockW, c.measureText(due.text).width); c.font = `14px ${FONT}`; }
   const lx = clamp(a.x, blockW / 2 + 8, oW - blockW / 2 - 8), ly = up ? a.y - a.r - gap - blockH : a.y + a.r + gap;
   c.textBaseline = 'top'; c.shadowColor = BG; c.shadowBlur = 6;
-  c.fillStyle = n.done ? rgbaOf(theme.hi, .5) : theme.hi;
-  lines.forEach((l, i) => { c.fillText(l, lx, ly + i * lh); if (n.done) { const w = c.measureText(l).width; c.fillRect(lx - w / 2, ly + i * lh + 8, w, 1.2); } });
+  c.fillStyle = isDone(n) ? rgbaOf(theme.hi, .5) : theme.hi;
+  lines.forEach((l, i) => { c.fillText(l, lx, ly + i * lh); if (isDone(n)) { const w = c.measureText(l).width; c.fillRect(lx - w / 2, ly + i * lh + 8, w, 1.2); } });
   if (due) { c.font = `12px ${FONT}`; c.fillStyle = due.cls === 'over' ? cssVar('--err') : due.cls === 'soon' ? cssVar('--warn') : theme.mid; c.fillText(due.text, lx, ly + lines.length * lh + 1); }
   c.restore();
   oPri(a.x + a.r * .78, a.y - a.r * .78, n.cat, al, FONT);
@@ -2355,7 +2374,7 @@ function oDrawCore(it, a, FONT) {
     c.beginPath(); c.arc(a.x, a.y, a.r + 12, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac); c.stroke();
   }
   c.restore();
-  oOrb(a.x, a.y, a.r, col, a.o, n && n.done, 30);
+  oOrb(a.x, a.y, a.r, col, a.o, isDone(n), 30);
   c.save(); c.globalAlpha = a.o; c.textAlign = 'center'; c.textBaseline = 'middle';
   const text = n ? (n.text.trim() || '…') : oTitle(null), inner = a.r * 1.55;
   const longest = text.split(/\s+/).reduce((m, w) => w.length > m.length ? w : m, '');
@@ -2366,7 +2385,7 @@ function oDrawCore(it, a, FONT) {
     lines = oWrap(text, inner, 4); if (lines.length * size * 1.25 <= a.r * 1.45) break;
   }
   const lh = size * 1.25, y0 = a.y - (lines.length - 1) * lh / 2;
-  c.fillStyle = n && n.done ? rgbaOf(theme.hi, .55) : theme.hi; c.shadowColor = theme.g; c.shadowBlur = 6;
+  c.fillStyle = isDone(n) ? rgbaOf(theme.hi, .55) : theme.hi; c.shadowColor = theme.g; c.shadowBlur = 6;
   lines.forEach((l, i) => c.fillText(l, a.x, y0 + i * lh));
   c.restore();
   if (n) oPri(a.x + a.r * .72, a.y - a.r * .72, n.cat, a.o, FONT);
@@ -2394,10 +2413,10 @@ function oRenderInfo() {
     const k = oDescCount(n.id), st = oLeafStats(n.id);
     if (k) pills.push(`${k} inside`);
     if (k && st.leaves) pills.push(`${Math.round(100 * st.done / st.leaves)}% done`);
-    if (n.due && !n.done) { const d = dueInfo(n.due); pills.push([d.text, d.cls]); }
+    if (n.due && !isDone(n)) { const d = dueInfo(n.due); pills.push([d.text, d.cls]); }
     if (n.cat) pills.push(`priority ${n.cat}`);
     if (n.lat != null) pills.push(`📍 ${short(n.place || fmtCoords(n), 24)}`);
-    if (n.done) pills.push('done');
+    if (isDone(n)) pills.push('done');
     const u = ago(n.updated); if (u) pills.push(`updated ${u}`);
   }
   $('#oinfo').innerHTML = pills.map(p => Array.isArray(p) ? `<span class="${p[1]}">${escapeHtml(p[0])}</span>` : `<span>${escapeHtml(p)}</span>`).join('');
@@ -2663,8 +2682,8 @@ function setTiles() {
   }).addTo(Lmap);
 }
 function geoPopup(n) {
-  const d = n.due && !n.done ? dueInfo(n.due) : null;
-  const bits = [n.cat ? `<b class="gp-cat" style="background:${catColor(n.cat)}">${n.cat}</b>` : '', d ? `<span class="${d.cls}">${d.text}</span>` : '', n.done ? '<span>done</span>' : ''].filter(Boolean).join(' ');
+  const d = n.due && !isDone(n) ? dueInfo(n.due) : null;
+  const bits = [n.cat ? `<b class="gp-cat" style="background:${catColor(n.cat)}">${n.cat}</b>` : '', d ? `<span class="${d.cls}">${d.text}</span>` : '', isDone(n) ? '<span>done</span>' : ''].filter(Boolean).join(' ');
   return `<div class="gp"><div class="gp-t">${escapeHtml(n.text.split('\n')[0] || '…')}</div>` +
     `<div class="gp-p">📍 ${escapeHtml(n.place || fmtCoords(n))}${n.place ? `<small>${fmtCoords(n)}</small>` : ''}</div>` +
     (bits ? `<div class="gp-b">${bits}</div>` : '') +
@@ -2678,7 +2697,7 @@ function renderGeo(fit) {
   for (const n of pts) {
     const ec = effColor(n), col = ec ? shades(ec).g : theme.g;
     const icon = L.divIcon({ className: 'gm', iconSize: [0, 0], iconAnchor: [0, 0],
-      html: `<div class="gm-pin${n.done ? ' done' : ''}${n.id === selectedId ? ' sel' : ''}" style="--c:${col}"><i></i><span>${escapeHtml(short(n.text.split('\n')[0] || '…', 24))}</span></div>` });
+      html: `<div class="gm-pin${isDone(n) ? ' done' : ''}${n.id === selectedId ? ' sel' : ''}" style="--c:${col}"><i></i><span>${escapeHtml(short(n.text.split('\n')[0] || '…', 24))}</span></div>` });
     L.marker([n.lat, n.lon], { icon, title: n.place || fmtCoords(n), riseOnHover: true }).addTo(Llayer)
       .bindPopup(geoPopup(n), { className: 'gm-pop', maxWidth: 270, autoPanPadding: [30, 30] });
   }
@@ -2755,7 +2774,7 @@ function toggleAbout(force) {
   const box = $('#about'), show = force ?? !box.classList.contains('show');
   if (show) {
     closePanels('#about'); closeMenu();
-    const all = [...nodes.values()], done = all.filter(n => n.done).length;
+    const all = [...nodes.values()], done = all.filter(isDone).length;
     const first = all.map(n => n.created).filter(Boolean).sort()[0];
     $('#aboutStats').textContent = `This map: ${fileName}, ${all.length} node${all.length === 1 ? '' : 's'}, ${done} done` +
       (first ? `, started ${fmtTime(first)}` : '') + '.';
