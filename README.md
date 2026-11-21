@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 6.2
+**Current version:** 6.3
 
-![new in 6.2](https://img.shields.io/badge/new_in-6.2-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 6.3](https://img.shields.io/badge/new_in-6.3-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -23,7 +23,7 @@ No install, no account, no server. Everything runs in your browser.
 - Per-node colors, interface color themes, and a night/day theme (toggle in the bottom-right corner)
 - Separate color for the digital rain
 - Adjustable node widths
-- Geotags: pin any node to a place and open it in Maps; $\color{#00FF41}\textsf{see all located nodes on a world map (Places view)}$ ![new in 6.2](https://img.shields.io/badge/new_in-6.2-00ff41?labelColor=000000)
+- Geotags: pin any node to a place and open it in Maps; see all located nodes on a world map (Places view)
 - Due dates for leaf nodes, shown in the table view (not on the map, to keep it tidy) and used to sort the table
 - Priority flags A, B, C, D (urgent / important), shown on the node and as a column in the table
 - Automatic text size: the more nodes a branch holds, the bigger its text, or set your own size per node from the node menu
@@ -94,7 +94,7 @@ The app needs an internet connection when it starts, to load the SQLite engine (
 | Matrix-green dot on the left edge of a node | This is the newest leaf node in the whole map |
 | Tap ? (bottom right) | Show all controls; tap ✕ or the map to close |
 | Tap the orbit button (bottom right, next to the magnifier) | Switch between the map and the orbit view |
-| $\color{#00FF41}\textsf{Tap the pin button (dock)}$ | $\color{#00FF41}\textsf{Places: every located node on a world map}$ |
+| Tap the pin button (dock) | Places: every located node on a world map |
 | Tap the table button (bottom right, next to the magnifier) | Switch to the table view; tap it again to go back to the map |
 | Tap the sun / moon button (bottom right) | Switch between the night and day theme |
 | Tap the magnifier (bottom right or toolbar) | Open search |
@@ -159,7 +159,7 @@ Hold a node and tap Add location… to pin it to a place:
 - Coordinates or a maps link: type 35.0116, 135.7681, or paste a link from Google Maps or Apple Maps
 - open in maps opens the place in Apple Maps on iPhone and Mac, Google Maps elsewhere; remove clears it
 
-$\color{#00FF41}\textsf{Tap the pin button in the dock to open Places: a world map (Leaflet, with OpenStreetMap / CARTO tiles, dark at night and light by day) showing every located node as a glowing marker in its color. Tap a marker for its details and jump to it on the mind map, in orbit view, or in your Maps app. The map loads the first time you open Places and needs an internet connection.}$
+Tap the pin button in the dock to open Places: a world map (Leaflet $\color{#00FF41}\textsf{with OpenStreetMap tiles, shown inverted to a dark map at night and normal by day}$) showing every located node as a glowing marker in its color. Tap a marker for its details and jump to it on the mind map, in orbit view, or in your Maps app. The map loads the first time you open Places and needs an internet connection.
 
 A geotagged node shows a small pin on its bottom-left corner on the map and on its planet in orbit view, a 📍 line in the table, a 📍 pill in orbit view, and its place name in the node menu. Changing a location counts as an update and can be undone.
 
@@ -314,7 +314,7 @@ The status bar shows **(unsaved)** when you have changes that aren't in the file
 
 The status bar also shows how long ago the map was last saved to a file, for example saved 2 hours 5 mins ago, or not saved to a file yet for a new map. The time is stored in the file, so it is still right after you open the file again.
 
-The status bar sits under the $\color{#00FF41}\textsf{dock, the centered row of}$ search, orbit, $\color{#00FF41}\textsf{places}$, table, day/night and ? buttons, and reads: the file name, the number of nodes (including hidden ones), the zoom level (zoom 100% = normal size), and how long ago it was saved.
+The status bar sits under the dock, the centered row of search, orbit, places, table, day/night and ? buttons, and reads: the file name, the number of nodes (including hidden ones), the zoom level (zoom 100% = normal size), and how long ago it was saved.
 
 ### What's inside the file
 
@@ -376,7 +376,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{6.2}$ | $\color{#00FF41}\textsf{Places view: located nodes on a Leaflet world map; bottom buttons centered like a dock}$ |
+| $\color{#00FF41}\textsf{6.3}$ | $\color{#00FF41}\textsf{Places view uses OpenStreetMap tiles}$ |
+| 6.2 | Places view: located nodes on a Leaflet world map; bottom buttons centered like a dock |
 | 6.1 | Geotags for nodes; status info moved under the bottom-right buttons |
 | 6.0 | Orbit view built into MINDGRID, with its own button next to the magnifier |
 | 5.9 | Hold menu simply fades in and shrinks out (scan line and ripple removed) |
@@ -425,7 +426,7 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 ## Tech
 
-- $\color{#00FF41}\textsf{Leaflet 1.9.4 (loaded on demand) with OpenStreetMap / CARTO map tiles for the Places view}$
+- Leaflet 1.9.4 (loaded on demand) with $\color{#00FF41}\textsf{OpenStreetMap}$ map tiles for the Places view
 
 - One self-contained HTML file with plain JavaScript and no build step
 - [sql.js](https://github.com/sql-js/sql.js) (SQLite compiled to WebAssembly) for the database

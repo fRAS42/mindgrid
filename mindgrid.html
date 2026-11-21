@@ -353,6 +353,7 @@ body.geoview #stage,body.geoview #mini,body.geoview #orbitCv,body.geoview #otrai
 #geoView .leaflet-control-attribution{background:rgba(0,0,0,.55);color:#9a9a9a;font-size:10.5px}
 #geoView .leaflet-control-attribution a{color:#cfcfcf}
 #geoView .leaflet-container{background:var(--bg)}
+body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.55)}
 </style>
 </head>
 <body>
@@ -513,7 +514,7 @@ body.geoview #stage,body.geoview #mini,body.geoview #orbitCv,body.geoview #otrai
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '6.2';
+const APP_VERSION = '6.3';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -2568,14 +2569,12 @@ function layoutGeo() {
   Lmap?.invalidateSize();
 }
 function setTiles() {
-  const mode = prefs.mode === 'day' ? 'light_all' : 'dark_all';
-  if (!Lmap || LtileMode === mode) return;
-  Ltiles?.remove();
-  Ltiles = L.tileLayer(`https://{s}.basemaps.cartocdn.com/${mode}/{z}/{x}/{y}{r}.png`, {
-    subdomains: 'abcd', maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  // OpenStreetMap's own tiles; at night they are shown inverted so the map matches the dark interface
+  if (!Lmap || Ltiles) return;
+  Ltiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(Lmap);
-  LtileMode = mode;
 }
 function geoPopup(n) {
   const d = n.due && !n.done ? dueInfo(n.due) : null;
@@ -2621,7 +2620,7 @@ async function toggleGeo(force) {
   layoutGeo();
   $('#geoMsg').textContent = 'Loading the world map…'; $('#geoMsg').style.display = 'flex';
   try { await loadLeaflet(); }
-  catch { $('#geoMsg').textContent = 'The world map needs an internet connection (it loads from cdnjs.cloudflare.com and the map tiles from CARTO). Check your connection and try again.'; return; }
+  catch { $('#geoMsg').textContent = 'The world map needs an internet connection (Leaflet loads from cdnjs.cloudflare.com, the map from openstreetmap.org). Check your connection and try again.'; return; }
   if (!geoOn) return;
   $('#geoMsg').style.display = 'none';
   if (!Lmap) {
@@ -2738,6 +2737,7 @@ function applyTheme() {
   if (typeof geoOn !== 'undefined' && geoOn && Lmap) setTimeout(() => { setTiles(); renderGeo(false); }, 0);
   if (typeof oKick === 'function' && orbitOn) setTimeout(oKick, 0);
   const day = prefs.mode === 'day', c = hexToRgb(prefs.color), t = prefs.tint / 100;
+  document.body.classList.toggle('daymode', day);
   const p = pal(prefs.color);
   Object.assign(theme, { g: p.g, hi: p.hi, mid: p.mid, dim: p.dim, rgb: p.rgb });
   const bg = day ? toHex(mix(W3, c, .025 + t * .25)) : toHex(mix(K3, c, t * .35));
