@@ -258,6 +258,7 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 #geoPanel .gbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
 #geoPanel .gbtns button{border:1px solid var(--g-dim);padding:8px 12px}
 #geoHere{width:100%;border:1px solid var(--g-mid)!important;padding:10px 12px!important;margin-top:4px}
+.node a.nlink{color:inherit;text-decoration:underline;text-decoration-color:rgba(var(--rgb),.6);text-underline-offset:2px;cursor:pointer}
 .node .geo{position:absolute;left:-9px;bottom:-11px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;
   background:var(--bg);border:1px solid var(--g);border-radius:50% 50% 50% 0;transform:rotate(-45deg);pointer-events:none;box-shadow:0 0 6px rgba(var(--rgb),.5)}
 .node .geo::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--g)}
@@ -384,7 +385,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
   <button data-act="more" id="moreBtn" title="More actions" aria-label="More actions" aria-haspopup="true" aria-expanded="false">⋯</button>
 </div>
 <div id="moreMenu" role="menu" aria-label="More actions">
-  <div class="mgroup"><span>file</span><button data-act="open" class="narrow-only" title="Open .sqlite file (Ctrl+O)">open</button><button data-act="new" title="New map">new map</button><button data-act="saveas" title="Save as new file (Ctrl+Shift+S)">save as…</button></div>
+  <div class="mgroup"><span>file</span><button data-act="open" class="narrow-only" title="Open .sqlite file (Ctrl+O)">open</button><button data-act="new" title="New map">new map</button><button data-act="saveas" title="Save as new file (Ctrl+Shift+S)">save as…</button><button data-act="calendar" title="Put the due dates of open tasks in your calendar">calendar 📅</button></div>
   <div class="mgroup"><span>node</span><button data-act="sibling" title="Add sibling (Enter)">+ sibling</button><button data-act="edit" title="Edit text (F2)">edit</button><button data-act="fold" title="Fold / unfold branch (C)">fold</button><button data-act="delete" title="Delete branch (Del)">delete</button><button data-act="narrower" title="Make node narrower ([)">narrower</button><button data-act="wider" title="Make node wider (])">wider</button></div>
   <div class="mgroup"><span>layout &amp; view</span><button data-act="tidy" title="Auto-arrange (T)">tidy</button><button data-act="focus" title="Zoom into selected node and its branch (Z)">zoom to node</button><button data-act="zoomin" title="Zoom in (+)">zoom +</button><button data-act="zoomout" title="Zoom out (−)">zoom −</button><button data-act="radar" id="radarBtn" class="on" title="Show / hide minimap (M)">radar</button></div>
   <div class="mgroup"><span>look</span><button data-act="mode" id="modeBtn" title="Switch between night and day theme">☀ day</button><button data-act="theme" title="Change interface colors">colors</button><button data-act="rain" id="rainBtn" class="on" title="Toggle digital rain">rain</button><button data-act="raincolor" id="rainColorBtn" title="Change the color of the rain">rain color<i class="chip" id="rainChip"></i></button></div>
@@ -408,6 +409,8 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
     <tr><td>More… (hold menu)</td><td>Zoom to node, text size, fold, tidy, focus, connect, task</td></tr>
     <tr><td>Hold node / right-click</td><td>Menu: color, text size, priority A–C, due date (leaf nodes), done, delete, connect, more</td></tr>
     <tr><td>Location (hold menu)</td><td>Pin a node to a place: your current location, coordinates or a maps link</td></tr>
+    <tr><td>Links in nodes</td><td>Tap a web address to open it; the hold menu lists them too</td></tr>
+    <tr><td>📅 (due date row) / ⋯ › calendar</td><td>Put one task, or all open tasks with a due date, in your calendar</td></tr>
     <tr><td>Task (hold menu)</td><td>Untick to make a node a plain note: no done box, not in the table or % done</td></tr>
     <tr><td>Priority A / B / C</td><td>A urgent + important, B important, C urgent</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
@@ -550,7 +553,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '7.0';
+const APP_VERSION = '7.1';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -886,7 +889,7 @@ function updateEl(n, el = els.get(n.id), idx) {
   if (idx) updateStamp(n.id);
   setStyle(el, 'display', isHidden(n) ? 'none' : '');
   const t = el.firstChild;
-  if (editingId !== n.id && t.textContent !== n.text) t.textContent = n.text;
+  if (editingId !== n.id && t._src !== n.text) setNodeText(t, n.text);
   if (idx) {
     let b = el.querySelector('.badge');
     if (n.collapsed && idx.has(n.id)) {
@@ -957,6 +960,69 @@ function ago(iso) {              // short form: "just now", "5 min ago", "3 h ag
   const h = Math.floor(m / 60); if (h < 24) return `${h} h ago`;
   const days = Math.floor(h / 24); return days === 1 ? 'yesterday' : `${days} days ago`;
 }
+/* ---------- links in node text: shown shortened, a tap opens them ---------- */
+const URL_RE = /\b(?:https?:\/\/|www\.)[^\s<>"']+/gi;
+function findLinks(text) {                 // [{ href, label }] for every web address in the text
+  return [...(text || '').matchAll(URL_RE)].map(m => {
+    const raw = m[0].replace(/[.,;:!?)\]]+$/, '');
+    const href = /^www\./i.test(raw) ? 'https://' + raw : raw;
+    let label = raw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/$/, '');
+    if (label.length > 30) label = label.slice(0, 29) + '…';
+    return { href, label, raw, index: m.index };
+  });
+}
+function linkHtml(text) {                  // node text as HTML, web addresses turned into short links
+  let html = '', at = 0;
+  for (const l of findLinks(text)) {
+    html += escapeHtml(text.slice(at, l.index)) + `<a class="nlink" href="${escapeHtml(l.href)}" title="${escapeHtml(l.href)}" target="_blank" rel="noopener">${escapeHtml(l.label)}</a>`;
+    at = l.index + l.raw.length;
+  }
+  return html + escapeHtml(text.slice(at));
+}
+function setNodeText(t, text) { t._src = text; if (URL_RE.test(text)) { URL_RE.lastIndex = 0; t.innerHTML = linkHtml(text); } else t.textContent = text; URL_RE.lastIndex = 0; }
+
+/* ---------- due dates to your calendar: an .ics file with one all-day event per open task ---------- */
+function icsText(t) { return String(t).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+function icsFold(line) {                   // lines longer than 75 bytes continue on the next line, starting with a space
+  const out = []; let cur = '', bytes = 0;
+  for (const ch of line) {
+    const b = new TextEncoder().encode(ch).length;
+    if (bytes + b > (out.length ? 74 : 75)) { out.push(cur); cur = ''; bytes = 0; }
+    cur += ch; bytes += b;
+  }
+  out.push(cur); return out.join('\r\n ');
+}
+function exportCalendar(list) {
+  const tasks = (list || [...nodes.values()]).filter(n => isTask(n) && !n.done && n.due);
+  if (!tasks.length) return log(list ? 'This node has no due date' : 'No open tasks with a due date to add');
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+  const ymd = d => d.replace(/-/g, '');
+  const next = d => { const [y, m, dd] = d.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1, dd + 1)); return t.toISOString().slice(0, 10).replace(/-/g, ''); };
+  const map = fileName.replace(/\.(sqlite3?|db)$/i, '');
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//fras42//MINDGRID//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', `X-WR-CALNAME:${icsText('MINDGRID: ' + map)}`];
+  for (const n of tasks) {
+    const title = n.text.split('\n')[0].trim() || '…';
+    const path = oPath(n.id).slice(0, -1).map(p => p.text.split('\n')[0].trim()).join(' / ');
+    const desc = [path && `In ${path}`, n.cat && `Priority ${n.cat}: ${CATS[n.cat].name.slice(3)}`, n.text.includes('\n') && n.text, `From MINDGRID, map ${map}`].filter(Boolean).join('\n');
+    lines.push('BEGIN:VEVENT', `UID:mindgrid-${icsText(map)}-${n.id}@fras42.github.io`, `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${ymd(n.due)}`, `DTEND;VALUE=DATE:${next(n.due)}`,
+      `SUMMARY:${icsText((n.cat ? `[${n.cat}] ` : '') + title)}`, `DESCRIPTION:${icsText(desc)}`, 'TRANSP:TRANSPARENT',
+      'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(title)}`, 'TRIGGER;RELATED=START:PT9H', 'END:VALARM', 'END:VEVENT');
+  }
+  lines.push('END:VCALENDAR');
+  const ics = lines.map(icsFold).join('\r\n') + '\r\n';
+  const name = (tasks.length === 1 ? tasks[0].text.split('\n')[0].trim().replace(/[^\w\- ]+/g, '').slice(0, 40) || 'task' : `${map} due dates`) + '.ics';
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+    // iPhone and iPad: Safari opens a calendar file directly and offers "Add All"
+    location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+  } else {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  }
+  log(`${tasks.length} due date${tasks.length > 1 ? 's' : ''} sent to your calendar`);
+}
+
 /* ---------- tasks: every node is a task unless unticked in the hold menu ---------- */
 const isTask = n => !!n && n.task !== false;
 const isDone = n => isTask(n) && !!n.done;           // a node that is not a task is never shown as done
@@ -1318,9 +1384,9 @@ function commitEdit(cancel = false) {
   requestAnimationFrame(() => { if (scrollX || scrollY) scrollTo(0, 0); });
   // keep indentation: only drop blank lines at the start and whitespace at the end
   let txt = raw.replace(/\u00a0/g, ' ').replace(/^(\s*\n)+/, '').replace(/\s+$/, '').replace(/\n{3,}/g, '\n\n');
-  if (cancel || txt === n.text) { t.textContent = n.text; return; }
+  if (cancel || txt === n.text) { setNodeText(t, n.text); return; }
   if (!txt.trim()) txt = '…';
-  pushUndo(); n.text = txt; n.updated = now(); t.textContent = txt; markDirty(); updateStamp(id);
+  pushUndo(); n.text = txt; n.updated = now(); setNodeText(t, txt); markDirty(); updateStamp(id);
 }
 world.addEventListener('focusout', e => {
   if (editingId == null || !e.target.classList?.contains('ed')) return;
@@ -1390,7 +1456,8 @@ function openMenu(id, x, y) {
     'cat',
     kids && !n.due ? null : 'due',
     ['color', 'Change color…'],
-    ['geo', n.lat != null ? `📍 ${short(n.place || fmtCoords(n), 22)}` : 'Add location…']
+    ['geo', n.lat != null ? `📍 ${short(n.place || fmtCoords(n), 22)}` : 'Add location…'],
+    ...findLinks(n.text).slice(0, 3).map((l, i) => ['link' + i, `🔗 ${escapeHtml(l.label)}`])
   ]);
   const more = tidyList([
     ['zoom', 'Zoom to node'],
@@ -1422,7 +1489,8 @@ function openMenu(id, x, y) {
     `<button data-cat="" class="clr" title="No priority" aria-label="No priority">✕</button></div>` :
     it === 'due' ?
     `<div class="duerow"><span>Due date</span><input type="date" data-due value="${n.due || ''}" aria-label="Due date">` +
-    `<button data-dueclear title="Remove due date" aria-label="Remove due date">✕</button></div>` :
+    `<button data-dueclear title="Remove due date" aria-label="Remove due date">✕</button>` +
+    (n.due ? `<button data-duecal title="Add to Calendar" aria-label="Add to Calendar">📅</button>` : '') + `</div>` :
     it === 'task' ?
     `<div class="taskrow"><span>Counts as a to-do</span><label class="donebox"><input type="checkbox" data-mtask${isTask(n) ? ' checked' : ''}>task</label></div>` :
     it === 'bottom' ?
@@ -1485,6 +1553,7 @@ ctx.addEventListener('click', e => {
   }
   if (b.dataset.fs != null) { changeFontSize(ctxId, +b.dataset.fs); return; }   // menu stays open
   if (b.dataset.cat != null) { const n = nodes.get(ctxId); setCat(ctxId, b.dataset.cat && n && n.cat === b.dataset.cat ? null : b.dataset.cat); return; }
+  if (b.dataset.duecal != null) { const n = nodes.get(ctxId); closeMenu(); exportCalendar(n ? [n] : []); return; }
   if (b.dataset.dueclear != null) { const i = ctx.querySelector('[data-due]'); if (i) i.value = ''; setDue(ctxId, null); return; }
   const id = ctxId; closeMenu();
   switch (b.dataset.m) {
@@ -1497,6 +1566,7 @@ ctx.addEventListener('click', e => {
     case 'exitfocus': exitFocus(); break;
     case 'color': openNodeColor(id); break;
     case 'geo': openGeo(id); break;
+    case 'link0': case 'link1': case 'link2': { const l = findLinks(nodes.get(id)?.text)[+b.dataset.m.slice(4)]; if (l) window.open(l.href, '_blank', 'noopener'); break; }
     case 'fold': toggleFold(id); break;
     case 'link': startLink(id); break;
     case 'detach': detach(id); break;
@@ -1634,7 +1704,7 @@ stage.addEventListener('pointerdown', e => {
   if (nodeEl) {
     const id = +nodeEl.dataset.id; select(id);
     const ids = e.shiftKey ? [id] : [id, ...descendants(id)];
-    drag = { type: 'node', id, sx: e.clientX, sy: e.clientY, orig: ids.map(i => [i, nodes.get(i).x, nodes.get(i).y]), moved: false };
+    drag = { type: 'node', id, sx: e.clientX, sy: e.clientY, orig: ids.map(i => [i, nodes.get(i).x, nodes.get(i).y]), moved: false, href: e.target.closest('a.nlink')?.href || null };
     clearTimeout(lpTimer);
     const lx = e.clientX, ly = e.clientY;
     lpTimer = setTimeout(() => {
@@ -1699,6 +1769,7 @@ function endPointer(e) {
     else lastTap = { t, id: 'grip' + d.id, x: e.clientX, y: e.clientY };
     return;
   }
+  if (d.type === 'node' && d.href) { window.open(d.href, '_blank', 'noopener'); lastTap.t = 0; return; }   // tapped a link
   const id = d.type === 'node' ? d.id : null;
   if (t - lastTap.t < DBL && lastTap.id === id && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 30) {
     lastTap.t = 0;
@@ -1998,7 +2069,7 @@ function markHtml(text, ranges, from = 0, to = text.length) {
 let markedIds = new Set();            // nodes whose text currently shows <mark> highlights
 function clearMarks() {
   if (document.body.classList.contains('searching')) for (const el of els.values()) el.classList.remove('hit', 'miss', 'cur');
-  for (const id of markedIds) { const n = nodes.get(id), el = els.get(id); if (n && el) el.firstChild.textContent = n.text; }
+  for (const id of markedIds) { const n = nodes.get(id), el = els.get(id); if (n && el) setNodeText(el.firstChild, n.text); }
   markedIds = new Set();
 }
 function runSearch(keepIdx = false) {
@@ -2872,6 +2943,7 @@ function doAct(act, b) {
     case 'theme': closePanels('#theme'); $('#theme').classList.toggle('show'); break;
     case 'raincolor': toggleRainPanel(); break;
     case 'about': toggleAbout(true); break;
+    case 'calendar': exportCalendar(); break;
     case 'search': searchOpen() ? closeSearch() : openSearch(); break;
   }
 }

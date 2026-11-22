@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 7.0
+**Current version:** 7.1
 
-![new in 7.0](https://img.shields.io/badge/new_in-7.0-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 7.1](https://img.shields.io/badge/new_in-7.1-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -14,7 +14,10 @@ No install, no account, no server. Everything runs in your browser.
 
 ## Features
 
-- $\color{#00FF41}\textsf{A simpler screen: 7 everyday buttons in the toolbar, everything else one tap away under ⋯; a shorter hold menu with the rest under More…}$ ![new in 7.0](https://img.shields.io/badge/new_in-7.0-00ff41?labelColor=000000)
+- $\color{#00FF41}\textsf{Put due dates in your iPhone Calendar, with a reminder on the day}$ ![new in 7.1](https://img.shields.io/badge/new_in-7.1-00ff41?labelColor=000000)
+- $\color{#00FF41}\textsf{Web addresses in nodes become tappable links}$
+
+- A simpler screen: 7 everyday buttons in the toolbar, everything else one tap away under ⋯; a shorter hold menu with the rest under More…
 
 - Not every node is a task: untick task in the hold menu to turn a node into a plain note
 
@@ -169,6 +172,19 @@ Tap the pin button in the dock to open Places: a world map (Leaflet with OpenStr
 
 A geotagged node shows a small pin on its bottom-left corner on the map and on its planet in orbit view, a 📍 line in the table, a 📍 pill in orbit view, and its place name in the node menu. Changing a location counts as an update and can be undone.
 
+### Calendar
+
+$\color{#00FF41}\textsf{Send due dates to your calendar so your phone reminds you:}$
+
+- $\color{#00FF41}\textsf{All open tasks: ⋯ › calendar 📅. On iPhone, Safari shows the events; tap Add All. On a computer, a .ics file downloads; open it with your calendar app.}$
+- $\color{#00FF41}\textsf{One task: hold it and tap 📅 in the Due date row.}$
+- $\color{#00FF41}\textsf{Each task becomes an all-day event on its due date with a reminder at 9:00, its priority in the title ([A] Dentist) and, in the notes, where it sits in the map and its full text. Done tasks and plain notes are left out.}$
+- $\color{#00FF41}\textsf{The calendar gets a copy: changing a due date in MINDGRID later does not move the event, so send it again (your calendar may then show both).}$
+
+### Links
+
+$\color{#00FF41}\textsf{Type or paste a web address into a node (https://… or www.…) and it becomes a link, shown shortened, for example figma.com/file/abc123/landing…. A single tap opens it; a double-tap anywhere else on the node still edits it. The hold menu lists the node's links too (up to 3), which is also how you open them in orbit view. While a search is open, highlighted words take the place of links until you close it.}$
+
 ### Priority
 
 Any node can be flagged with a priority letter from the node menu. It shows as a small colored letter on the node's bottom-right corner and in the table's PRI column.
@@ -241,7 +257,7 @@ Tap the table button in the bottom-right corner, next to the magnifier, to see y
 
 ### Node menu (hold a node or right-click)
 
-$\color{#00FF41}\textsf{The menu shows the everyday actions first: Edit text, Add child node, Priority, Due date, Change color, Location, and at the bottom Delete and done. Tap More… for the rest: Zoom to node, Text size, Fold, Tidy children, Focus, Connect, Disconnect and the task switch. More… opens inside the menu and stays open next time if you leave it open.}$
+The menu shows the everyday actions first: Edit text, Add child node, Priority, Due date, Change color, Location, and at the bottom Delete and done. Tap More… for the rest: Zoom to node, Text size, Fold, Tidy children, Focus, Connect, Disconnect and the task switch. More… opens inside the menu and stays open next time if you leave it open.
 
 The menu fades in, and shrinks away toward your finger when it closes. The top of the menu shows when the node was created and last updated. The menu opens a little up and to the left of your finger and always stays fully on screen.
 
@@ -270,29 +286,29 @@ Every change can be undone with **undo**.
 
 ### Toolbar
 
-$\color{#00FF41}\textsf{The toolbar keeps only what you use all the time. On a phone, undo, redo and overview are icons, and open moves into the ⋯ menu.}$
+The toolbar keeps only what you use all the time. On a phone, undo, redo and overview are icons, and open moves into the ⋯ menu.
 
 | Button | What it does |
 |---|---|
 | MINDGRID (logo) | About: version, where your data lives, link to this page, and a short summary of the open map |
-| open | Load a map from a `.sqlite` file $\color{#00FF41}\textsf{(on a phone: in the ⋯ menu)}$ |
+| open | Load a map from a `.sqlite` file (on a phone: in the ⋯ menu) |
 | save | Save the map to a `.sqlite` file |
 | + child | Add a node to the selected one |
 | undo / redo | Step back or forward |
 | overview | See the whole map |
-| $\color{#00FF41}\textsf{⋯}$ | $\color{#00FF41}\textsf{Everything else, in groups (below)}$ |
+| ⋯ | Everything else, in groups (below) |
 
-$\color{#00FF41}\textsf{The ⋯ menu}$
+The ⋯ menu
 
-| $\color{#00FF41}\textsf{Group}$ | $\color{#00FF41}\textsf{Buttons}$ |
+| Group | Buttons |
 |---|---|
-| $\color{#00FF41}\textsf{file}$ | $\color{#00FF41}\textsf{open (phones), new map, save as…}$ |
-| $\color{#00FF41}\textsf{node}$ | $\color{#00FF41}\textsf{+ sibling, edit, fold, delete, narrower, wider}$ |
-| $\color{#00FF41}\textsf{layout & view}$ | $\color{#00FF41}\textsf{tidy, zoom to node, zoom +, zoom −, radar}$ |
-| $\color{#00FF41}\textsf{look}$ | $\color{#00FF41}\textsf{☀ day / ☾ night, colors, rain, rain color}$ |
-| | $\color{#00FF41}\textsf{about MINDGRID}$ |
+| file | open (phones), new map, save as…, $\color{#00FF41}\textsf{calendar 📅}$ |
+| node | + sibling, edit, fold, delete, narrower, wider |
+| layout & view | tidy, zoom to node, zoom +, zoom −, radar |
+| look | ☀ day / ☾ night, colors, rain, rain color |
+| | about MINDGRID |
 
-$\color{#00FF41}\textsf{Search, the orbit, places and table views, day/night and ? are in the dock at the bottom.}$
+Search, the orbit, places and table views, day/night and ? are in the dock at the bottom.
 
 ---
 
@@ -391,7 +407,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{7.0}$ | $\color{#00FF41}\textsf{Simpler screen: toolbar down to 7 buttons plus a ⋯ menu (icons on phones, no sideways scrolling); hold menu shows everyday actions first, the rest under More…}$ |
+| $\color{#00FF41}\textsf{7.1}$ | $\color{#00FF41}\textsf{Due dates to your calendar (.ics, all tasks or one); tappable links in nodes}$ |
+| 7.0 | Simpler screen: toolbar down to 7 buttons plus a ⋯ menu (icons on phones, no sideways scrolling); hold menu shows everyday actions first, the rest under More… |
 | 6.9 | Task switch per node: plain notes have no done box and stay out of the table and % done |
 | 6.8 | Speed for big maps: lines and nodes far off screen are skipped, dashes pause while moving, fewer redundant updates, faster search |
 | 6.7 | iPhone saving through the share sheet with Replace; warning after 2 days unsaved; persistent storage; code clean-up (shared panel and dock styles, merged helpers, leftovers removed, table of contents); fixed: two floating panels could be open on top of each other |
