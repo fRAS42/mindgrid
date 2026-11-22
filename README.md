@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 6.9
+**Current version:** 7.0
 
-![new in 6.9](https://img.shields.io/badge/new_in-6.9-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 7.0](https://img.shields.io/badge/new_in-7.0-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -14,7 +14,9 @@ No install, no account, no server. Everything runs in your browser.
 
 ## Features
 
-- $\color{#00FF41}\textsf{Not every node is a task: untick task in the hold menu to turn a node into a plain note}$ ![new in 6.9](https://img.shields.io/badge/new_in-6.9-00ff41?labelColor=000000)
+- $\color{#00FF41}\textsf{A simpler screen: 7 everyday buttons in the toolbar, everything else one tap away under ⋯; a shorter hold menu with the rest under More…}$ ![new in 7.0](https://img.shields.io/badge/new_in-7.0-00ff41?labelColor=000000)
+
+- Not every node is a task: untick task in the hold menu to turn a node into a plain note
 
 - Fast with big maps: smooth panning and dragging and a quiet processor at rest, tested with 3,000 nodes
 
@@ -198,7 +200,7 @@ If a match is inside a folded branch, the branch opens so you can see it. This d
 Tap the orbit button in the bottom-right corner (next to the magnifier) to travel through your map instead of panning around it. Tap it again to go back to the map; the selected node stays selected.
 
 - The node you are in sits in the middle as a glowing core with its text inside. The nodes inside it orbit around it.
-- A ring around the core shows how much of everything inside is done $\color{#00FF41}\textsf{(counting only tasks).}$
+- A ring around the core shows how much of everything inside is done (counting only tasks).
 - Small moons around a node show the nodes inside it; the number on it counts everything inside.
 - The node you came from waits as a small ↑ orb above the core. The path at the top shows where you are; tap any part of it to go back up.
 - Pills at the bottom show how many nodes are inside, % done, due date, priority and when it was last updated.
@@ -218,7 +220,7 @@ Search and the table view work in orbit view too: picking a result takes you to 
 
 ### Table view
 
-Tap the table button in the bottom-right corner, next to the magnifier, to see your leaf nodes (the nodes at the ends of branches, with no children) as a list, plus any node that has a due date or a priority even if it has children (marked with ▸). Tap it again (it now shows a small map icon) to go back to the map. $\color{#00FF41}\textsf{Only tasks are listed; a node with task unticked never appears here.}$
+Tap the table button in the bottom-right corner, next to the magnifier, to see your leaf nodes (the nodes at the ends of branches, with no children) as a list, plus any node that has a due date or a priority even if it has children (marked with ▸). Tap it again (it now shows a small map icon) to go back to the map. Only tasks are listed; a node with task unticked never appears here.
 
 | Column | What it shows |
 |---|---|
@@ -238,6 +240,8 @@ Tap the table button in the bottom-right corner, next to the magnifier, to see y
 - Esc also goes back to the map. Map shortcuts (like Delete) are switched off while the table is open.
 
 ### Node menu (hold a node or right-click)
+
+$\color{#00FF41}\textsf{The menu shows the everyday actions first: Edit text, Add child node, Priority, Due date, Change color, Location, and at the bottom Delete and done. Tap More… for the rest: Zoom to node, Text size, Fold, Tidy children, Focus, Connect, Disconnect and the task switch. More… opens inside the menu and stays open next time if you leave it open.}$
 
 The menu fades in, and shrinks away toward your finger when it closes. The top of the menu shows when the node was created and last updated. The menu opens a little up and to the left of your finger and always stays fully on screen.
 
@@ -259,33 +263,36 @@ The menu fades in, and shrinks away toward your finger when it closes. The top o
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
 | Delete node | Delete the node and everything below it. The node, its branch and their lines fade out over about a second |
-| $\color{#00FF41}\textsf{task (above the bottom row)}$ | $\color{#00FF41}\textsf{Ticked by default: the node is a to-do. Untick it for a plain note: the done box disappears, and the node no longer appears in the table, counts toward % done, or shows as done. Tick it again to make it a task. Can be undone}$ |
+| task (above the bottom row) | Ticked by default: the node is a to-do. Untick it for a plain note: the done box disappears, and the node no longer appears in the table, counts toward % done, or shows as done. Tick it again to make it a task. Can be undone |
 | done (bottom right) | Tick to mark the node done, untick to undo it. The menu stays open. Done nodes are struck through on the map and in the table |
 
 Every change can be undone with **undo**.
 
 ### Toolbar
 
+$\color{#00FF41}\textsf{The toolbar keeps only what you use all the time. On a phone, undo, redo and overview are icons, and open moves into the ⋯ menu.}$
+
 | Button | What it does |
 |---|---|
 | MINDGRID (logo) | About: version, where your data lives, link to this page, and a short summary of the open map |
-| new | Start a new empty map |
-| open | Load a map from a `.sqlite` file |
-| save / save as | Save the map to a `.sqlite` file |
-| + child / + sibling | Add a node |
-| edit / fold / delete | Act on the selected node |
-| narrower / wider | Change the selected node's width |
+| open | Load a map from a `.sqlite` file $\color{#00FF41}\textsf{(on a phone: in the ⋯ menu)}$ |
+| save | Save the map to a `.sqlite` file |
+| + child | Add a node to the selected one |
 | undo / redo | Step back or forward |
-| tidy | Auto-arrange the layout |
-| zoom to node / overview | Zoom in on the selection / see everything |
-| + / − | Zoom in / out |
-| radar | Show or hide the minimap |
-| ☀ day / ☾ night | Switch between the day and night theme |
-| colors | Interface color, night/day, matrix-green highlight for the latest update, rain brightness, background tint |
-| rain | Turn the digital rain on or off |
-| rain color | Pick the rain color and brightness, separately from the interface |
-| magnifier | Search the text of all nodes (also in the bottom-right corner) |
-| ? | Controls panel (also ? in the bottom-right corner) |
+| overview | See the whole map |
+| $\color{#00FF41}\textsf{⋯}$ | $\color{#00FF41}\textsf{Everything else, in groups (below)}$ |
+
+$\color{#00FF41}\textsf{The ⋯ menu}$
+
+| $\color{#00FF41}\textsf{Group}$ | $\color{#00FF41}\textsf{Buttons}$ |
+|---|---|
+| $\color{#00FF41}\textsf{file}$ | $\color{#00FF41}\textsf{open (phones), new map, save as…}$ |
+| $\color{#00FF41}\textsf{node}$ | $\color{#00FF41}\textsf{+ sibling, edit, fold, delete, narrower, wider}$ |
+| $\color{#00FF41}\textsf{layout & view}$ | $\color{#00FF41}\textsf{tidy, zoom to node, zoom +, zoom −, radar}$ |
+| $\color{#00FF41}\textsf{look}$ | $\color{#00FF41}\textsf{☀ day / ☾ night, colors, rain, rain color}$ |
+| | $\color{#00FF41}\textsf{about MINDGRID}$ |
+
+$\color{#00FF41}\textsf{Search, the orbit, places and table views, day/night and ? are in the dock at the bottom.}$
 
 ---
 
@@ -338,7 +345,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | color | The node's own color, such as `#ffb000` (empty = interface color) |
 | font_size | The node's text size in pixels, when you set it yourself (empty = automatic size) |
 | done | 1 if the node is marked done in the table view, otherwise 0 |
-| $\color{#00FF41}\textsf{task}$ | $\color{#00FF41}\textsf{1 if the node is a task (the default), 0 if it is a plain note}$ |
+| task | 1 if the node is a task (the default), 0 if it is a plain note |
 | due | The node's due date as YYYY-MM-DD (empty = no due date) |
 | category | Priority flag: A, B or C (empty = none) |
 | lat, lon | The node's location in decimal degrees (empty = no location) |
@@ -384,7 +391,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{6.9}$ | $\color{#00FF41}\textsf{Task switch per node: plain notes have no done box and stay out of the table and % done}$ |
+| $\color{#00FF41}\textsf{7.0}$ | $\color{#00FF41}\textsf{Simpler screen: toolbar down to 7 buttons plus a ⋯ menu (icons on phones, no sideways scrolling); hold menu shows everyday actions first, the rest under More…}$ |
+| 6.9 | Task switch per node: plain notes have no done box and stay out of the table and % done |
 | 6.8 | Speed for big maps: lines and nodes far off screen are skipped, dashes pause while moving, fewer redundant updates, faster search |
 | 6.7 | iPhone saving through the share sheet with Replace; warning after 2 days unsaved; persistent storage; code clean-up (shared panel and dock styles, merged helpers, leftovers removed, table of contents); fixed: two floating panels could be open on top of each other |
 | 6.6 | Fixed: after rotating an iPhone and switching views, the app could stop responding until rotated again |

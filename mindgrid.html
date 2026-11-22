@@ -39,6 +39,9 @@ html,body{margin:0;height:100%;width:100%;max-width:100vw;overscroll-behavior:no
 #ctx hr{border:0;border-top:1px solid var(--g-dim);margin:3px 0}
 #ctx .botrow{display:flex;align-items:center;gap:6px}
 #ctx .botrow button{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.morebtn{display:block;width:100%;text-align:left;padding:10px 12px;font-size:14px;color:var(--g-mid)!important}
+#ctx .moreitems{border-top:1px dashed var(--g-dim);border-bottom:1px dashed var(--g-dim);margin:2px 0;background:rgba(var(--rgb),.04)}
+#ctx .moreitems[hidden]{display:none}
 #ctx .taskrow{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;font-size:15px}
 #ctx .taskrow span{flex:1;color:var(--g-mid);white-space:nowrap}
 #ctx.notask .mdone{display:none}
@@ -137,6 +140,19 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
 .node.new{animation:materialize .55s ease-out}
 @keyframes materialize{0%{opacity:0;filter:blur(5px);letter-spacing:.6em}100%{opacity:1;filter:none}}
 
+#moreMenu{position:fixed;right:8px;z-index:30;width:min(340px,calc(100vw - 16px));background:var(--panel);border:1px solid var(--g-mid);
+  box-shadow:var(--glow);padding:8px 10px 10px;display:none}
+#moreMenu.show{display:block;animation:ctxFadeIn .18s ease-out}
+#moreMenu .mgroup{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:6px 0;border-bottom:1px solid var(--g-dim)}
+#moreMenu .mgroup:last-child{border-bottom:0}
+#moreMenu .mgroup span{flex-basis:100%;font-size:12px;color:var(--g-mid);letter-spacing:.08em}
+#moreMenu button{border:1px solid var(--g-dim);padding:7px 10px}
+#bar .grow{flex:1}
+#bar .ico{display:none;vertical-align:-4px}
+#moreMenu .narrow-only{display:none}
+
+#moreBtn{font-size:20px;line-height:1;padding:2px 12px}
+#moreBtn[aria-expanded="true"]{background:rgba(var(--rgb),.18);color:var(--g-hi)}
 #bar{position:fixed;left:0;right:0;top:0;z-index:10;display:flex;gap:4px;align-items:center;
   padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 8px;background:var(--panel);
   border-bottom:1px solid var(--g-dim);overflow-x:auto;white-space:nowrap;scrollbar-width:none}
@@ -338,6 +354,16 @@ body.geoview #stage,body.geoview #mini,body.geoview #orbitCv,body.geoview #otrai
 body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.55)}
 /* dock buttons: no borders; the active view is shown by a soft highlight */
 #status .stale{color:var(--warn)}
+/* phones: the toolbar fits without scrolling (icons for undo, redo, overview; open moves into the ⋯ menu) */
+@media (max-width:520px){
+  #bar{gap:2px;padding-left:8px;padding-right:6px}
+  #bar button{padding:5px 6px}
+  #bar .lbl,#bar [data-act=open]{display:none}
+  #bar .ico{display:inline-block}
+  #bar .sep{margin:0 3px}
+  #logo{font-size:14px;letter-spacing:.06em;margin-right:2px;padding:4px 2px}
+  #moreMenu .narrow-only{display:inline-block}
+}
 </style>
 </head>
 <body>
@@ -347,35 +373,22 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 
 <div id="bar">
   <button id="logo" type="button" title="About MINDGRID" aria-label="About MINDGRID">MIND<b>GRID</b></button>
-  <button data-act="new" title="New map">new</button>
   <button data-act="open" title="Open .sqlite file (Ctrl+O)">open</button>
   <button data-act="save" title="Save to .sqlite file (Ctrl+S)">save</button>
-  <button data-act="saveas" title="Save as new file (Ctrl+Shift+S)">save as</button>
   <div class="sep"></div>
   <button data-act="child" title="Add child (Tab)">+ child</button>
-  <button data-act="sibling" title="Add sibling (Enter)">+ sibling</button>
-  <button data-act="edit" title="Edit text (F2)">edit</button>
-  <button data-act="fold" title="Fold / unfold branch (C)">fold</button>
-  <button data-act="delete" title="Delete branch (Del)">delete</button>
-  <button data-act="narrower" title="Make node narrower ([)">narrower</button>
-  <button data-act="wider" title="Make node wider (])">wider</button>
-  <div class="sep"></div>
-  <button data-act="undo" title="Undo (Ctrl+Z)">undo</button>
-  <button data-act="redo" title="Redo (Ctrl+Y)">redo</button>
-  <button data-act="tidy" title="Auto-arrange (T)">tidy</button>
-  <div class="sep"></div>
-  <button data-act="focus" title="Zoom into selected node and its branch (Z)">zoom to node</button>
-  <button data-act="overview" title="Zoom out to see the whole map (O)">overview</button>
-  <button data-act="zoomin" title="Zoom in (+)">+</button>
-  <button data-act="zoomout" title="Zoom out (−)">−</button>
-  <button data-act="radar" id="radarBtn" class="on" title="Show / hide minimap (M)">radar</button>
-  <div class="sep"></div>
-  <button data-act="mode" id="modeBtn" title="Switch between night and day theme">☀ day</button>
-  <button data-act="theme" title="Change interface colors">colors</button>
-  <button data-act="rain" id="rainBtn" class="on" title="Toggle digital rain">rain</button>
-  <button data-act="raincolor" id="rainColorBtn" title="Change the color of the rain">rain color<i class="chip" id="rainChip"></i></button>
-  <button data-act="search" title="Search nodes (Ctrl+F or /)" aria-label="Search nodes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="vertical-align:-2px"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button>
-  <button data-act="help" title="Controls (?)">?</button>
+  <button data-act="undo" title="Undo (Ctrl+Z)" aria-label="Undo"><span class="lbl">undo</span><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+  <button data-act="redo" title="Redo (Ctrl+Y)" aria-label="Redo"><span class="lbl">redo</span><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+  <button data-act="overview" title="Zoom out to see the whole map (O)" aria-label="Overview"><span class="lbl">overview</span><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/><rect x="8" y="8" width="8" height="8"/></svg></button>
+  <span class="grow"></span>
+  <button data-act="more" id="moreBtn" title="More actions" aria-label="More actions" aria-haspopup="true" aria-expanded="false">⋯</button>
+</div>
+<div id="moreMenu" role="menu" aria-label="More actions">
+  <div class="mgroup"><span>file</span><button data-act="open" class="narrow-only" title="Open .sqlite file (Ctrl+O)">open</button><button data-act="new" title="New map">new map</button><button data-act="saveas" title="Save as new file (Ctrl+Shift+S)">save as…</button></div>
+  <div class="mgroup"><span>node</span><button data-act="sibling" title="Add sibling (Enter)">+ sibling</button><button data-act="edit" title="Edit text (F2)">edit</button><button data-act="fold" title="Fold / unfold branch (C)">fold</button><button data-act="delete" title="Delete branch (Del)">delete</button><button data-act="narrower" title="Make node narrower ([)">narrower</button><button data-act="wider" title="Make node wider (])">wider</button></div>
+  <div class="mgroup"><span>layout &amp; view</span><button data-act="tidy" title="Auto-arrange (T)">tidy</button><button data-act="focus" title="Zoom into selected node and its branch (Z)">zoom to node</button><button data-act="zoomin" title="Zoom in (+)">zoom +</button><button data-act="zoomout" title="Zoom out (−)">zoom −</button><button data-act="radar" id="radarBtn" class="on" title="Show / hide minimap (M)">radar</button></div>
+  <div class="mgroup"><span>look</span><button data-act="mode" id="modeBtn" title="Switch between night and day theme">☀ day</button><button data-act="theme" title="Change interface colors">colors</button><button data-act="rain" id="rainBtn" class="on" title="Toggle digital rain">rain</button><button data-act="raincolor" id="rainColorBtn" title="Change the color of the rain">rain color<i class="chip" id="rainChip"></i></button></div>
+  <div class="mgroup"><button data-act="about" title="About MINDGRID">about MINDGRID</button></div>
 </div>
 
 <div id="help">
@@ -391,6 +404,8 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
     <tr><td>Dot on a node’s left</td><td>Newest child of its parent, if it has no children (in the node’s color)</td></tr>
     <tr><td>Matrix-green dot</td><td>The newest leaf node (no children) in the whole map</td></tr>
     <tr><td>Triple-tap node</td><td>Add a child node</td></tr>
+    <tr><td>⋯ (toolbar)</td><td>Everything else: new map, save as, node and layout tools, colors, rain, about</td></tr>
+    <tr><td>More… (hold menu)</td><td>Zoom to node, text size, fold, tidy, focus, connect, task</td></tr>
     <tr><td>Hold node / right-click</td><td>Menu: color, text size, priority A–C, due date (leaf nodes), done, delete, connect, more</td></tr>
     <tr><td>Location (hold menu)</td><td>Pin a node to a place: your current location, coordinates or a maps link</td></tr>
     <tr><td>Task (hold menu)</td><td>Untick to make a node a plain note: no done box, not in the table or % done</td></tr>
@@ -535,7 +550,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '6.9';
+const APP_VERSION = '7.0';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -1364,15 +1379,22 @@ function openMenu(id, x, y) {
   select(id); ctxId = id;
   const hasParent = n.parent != null && nodes.has(n.parent);
   const kids = children(id).length, count = 1 + descendants(id).length;
-  const items = [
+  // what you need most is shown first; the rest waits under "More…"
+  const tidyList = list => list.filter(Boolean)
+    .filter(it => !orbitOn || !['fs', 'fold', 'tidybranch', 'focus', 'unfoldall', 'exitfocus', 'link'].includes(Array.isArray(it) ? it[0] : it))
+    .map(it => orbitOn && Array.isArray(it) && it[0] === 'zoom' ? ['zoom', 'Go inside'] : it)
+    .filter((it, i, arr) => !(it === '-' && (i === 0 || arr[i - 1] === '-' || i === arr.length - 1)));
+  const main = tidyList([
     ['edit', 'Edit text'],
     ['child', 'Add child node'],
-    ['zoom', 'Zoom to node'],
-    ['color', 'Change color…'],
-    ['geo', n.lat != null ? `📍 ${short(n.place || fmtCoords(n), 22)}` : 'Add location…'],
-    'fs',
-    kids && !n.due ? null : 'due',
     'cat',
+    kids && !n.due ? null : 'due',
+    ['color', 'Change color…'],
+    ['geo', n.lat != null ? `📍 ${short(n.place || fmtCoords(n), 22)}` : 'Add location…']
+  ]);
+  const more = tidyList([
+    ['zoom', 'Zoom to node'],
+    'fs',
     kids ? ['fold', n.collapsed ? 'Unfold branch' : 'Fold branch'] : null,
     kids && !n.collapsed ? ['tidybranch', 'Tidy children'] : null,
     ['focus', 'Focus: fold everything else'],
@@ -1382,14 +1404,15 @@ function openMenu(id, x, y) {
     ['link', 'Connect to another node…'],
     hasParent ? ['detach', 'Disconnect from parent'] : null,
     '-',
-    'bottom'
-  ].filter(Boolean).filter(it => !orbitOn || !['fs', 'fold', 'tidybranch', 'focus', 'unfoldall', 'exitfocus', 'link'].includes(Array.isArray(it) ? it[0] : it))
-   .map(it => orbitOn && Array.isArray(it) && it[0] === 'zoom' ? ['zoom', 'Go inside'] : it)
-   .filter((it, i, arr) => !(it === '-' && (i === 0 || arr[i - 1] === '-')));
+    'task'
+  ]);
   const delLabel = count > 1 ? `Delete node + ${count - 1} below` : 'Delete node';
   const cr = fmtTime(n.created), up = fmtTime(n.updated);
   ctx.innerHTML = `<div class="ttl">${escapeHtml(short(n.text))}` +
-    (cr ? `<small>created ${cr}</small>` : '') + (up ? `<small>updated ${up}</small>` : '') + `</div>` + items.map(it => it === '-' ? '<hr>' : it === 'fs' ?
+    (cr ? `<small>created ${cr}</small>` : '') + (up ? `<small>updated ${up}</small>` : '') + `</div>` + main.map(menuItem).join('') +
+    `<button class="morebtn" data-more aria-expanded="${ctxMoreOpen}">${ctxMoreOpen ? 'Less ▴' : 'More… ▾'}</button>` +
+    `<div class="moreitems"${ctxMoreOpen ? '' : ' hidden'}>${more.map(menuItem).join('')}</div>` + menuItem('bottom');
+  function menuItem(it) { return it === '-' ? '<hr>' : it === 'fs' ?
     `<div class="fsrow"><span>Text size</span><button data-fs="-1" title="Smaller" aria-label="Smaller text">A−</button>` +
     `<span class="fsval">${fontSizeOf(n)}</span><button data-fs="1" title="Bigger" aria-label="Bigger text">A+</button>` +
     `<button data-fs="0" class="def${n.fs ? '' : ' on'}" title="Automatic size (grows with the number of nodes below)">auto</button></div>` :
@@ -1400,24 +1423,30 @@ function openMenu(id, x, y) {
     it === 'due' ?
     `<div class="duerow"><span>Due date</span><input type="date" data-due value="${n.due || ''}" aria-label="Due date">` +
     `<button data-dueclear title="Remove due date" aria-label="Remove due date">✕</button></div>` :
+    it === 'task' ?
+    `<div class="taskrow"><span>Counts as a to-do</span><label class="donebox"><input type="checkbox" data-mtask${isTask(n) ? ' checked' : ''}>task</label></div>` :
     it === 'bottom' ?
-    `<div class="taskrow"><span>Counts as a to-do</span><label class="donebox"><input type="checkbox" data-mtask${isTask(n) ? ' checked' : ''}>task</label></div>` +
-    `<div class="botrow"><button data-m="delete" class="danger" role="menuitem">${delLabel}</button>` +
+    `<hr><div class="botrow"><button data-m="delete" class="danger" role="menuitem">${delLabel}</button>` +
     `<label class="donebox mdone"><input type="checkbox" data-mdone${n.done ? ' checked' : ''}>done</label></div>` :
-    `<button data-m="${it[0]}" class="${it[2] || ''}" role="menuitem">${it[1]}</button>`).join('');
+    `<button data-m="${it[0]}" class="${it[2] || ''}" role="menuitem">${it[1]}</button>`; }
   clearTimeout(ctxCloseTimer);
   ctx.classList.toggle('notask', !isTask(n));
   ctx.classList.remove('show', 'closing'); void ctx.offsetWidth;   // restart the fade each time
   ctx.classList.add('show');
   markCatButtons(n);
-  // measure without the opening animation's scale, then place it 50px left / 50px up of the old spot
+  ctxAt = [x, y]; placeMenu();
+  navigator.vibrate?.(12);
+}
+let ctxMoreOpen = false, ctxAt = [0, 0];     // the More… part stays open next time if you left it open
+function placeMenu() {
+  const [x, y] = ctxAt;
+  // measure without the opening animation's scale, then place it 50px left / 50px up of the finger
   const w = ctx.offsetWidth, h = ctx.offsetHeight;
   const topLimit = $('#bar').getBoundingClientRect().bottom + 6;
   const bottomLimit = $('#statusbar').getBoundingClientRect().top - 6;
   const left = Math.max(10, Math.min(x - 70, innerWidth - w - 10)), top = Math.max(topLimit, Math.min(y - 38, bottomLimit - h));
   ctx.style.left = left + 'px'; ctx.style.top = top + 'px';
   ctx.style.transformOrigin = `${clamp(x - left, 0, w)}px ${clamp(y - top, 0, h)}px`;   // shrinks back toward your finger
-  navigator.vibrate?.(12);
 }
 let ctxCloseTimer = 0;
 const menuOpen = () => ctx.classList.contains('show') && !ctx.classList.contains('closing');   // a closing menu counts as closed
@@ -1448,6 +1477,12 @@ ctx.addEventListener('change', e => {
 });
 ctx.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.more != null) {                     // open or close the More… part, menu stays open
+    ctxMoreOpen = !ctxMoreOpen;
+    ctx.querySelector('.moreitems').hidden = !ctxMoreOpen;
+    b.textContent = ctxMoreOpen ? 'Less ▴' : 'More… ▾'; b.setAttribute('aria-expanded', ctxMoreOpen);
+    placeMenu(); return;
+  }
   if (b.dataset.fs != null) { changeFontSize(ctxId, +b.dataset.fs); return; }   // menu stays open
   if (b.dataset.cat != null) { const n = nodes.get(ctxId); setCat(ctxId, b.dataset.cat && n && n.cat === b.dataset.cat ? null : b.dataset.cat); return; }
   if (b.dataset.dueclear != null) { const i = ctx.querySelector('[data-due]'); if (i) i.value = ''; setDue(ctxId, null); return; }
@@ -1736,7 +1771,8 @@ document.addEventListener('keydown', e => {
     case 'ArrowUp': e.preventDefault(); navigate(0, -1); break;
     case 'ArrowDown': e.preventDefault(); navigate(0, 1); break;
     case 'Escape':
-      if (menuOpen()) closeMenu();
+      if ($('#moreMenu.show')) toggleMoreMenu(false);
+      else if (menuOpen()) closeMenu();
       else if (ncId != null) closeNodeColor();
       else if (geoId != null) closeGeo();
       else if (linkFrom != null) { endLink(); log('Connect cancelled'); }
@@ -2795,10 +2831,22 @@ $('#help .close').addEventListener('click', () => toggleHelp(false));
 stage.addEventListener('pointerdown', () => { if ($('#help').classList.contains('show')) toggleHelp(false); }, true);
 
 /* ---------- toolbar ---------- */
+/* ⋯ menu: everything that is not needed every day */
+function toggleMoreMenu(force) {
+  const m = $('#moreMenu'), show = force ?? !m.classList.contains('show');
+  if (show) { closePanels(); m.style.top = $('#bar').getBoundingClientRect().bottom + 4 + 'px'; }
+  m.classList.toggle('show', show); $('#moreBtn').setAttribute('aria-expanded', show ? 'true' : 'false');
+}
+document.addEventListener('pointerdown', e => { if ($('#moreMenu.show') && !e.target.closest('#moreMenu,#moreBtn')) toggleMoreMenu(false); }, true);
+$('#moreMenu').addEventListener('click', e => { const b = e.target.closest('button[data-act]'); if (!b) return; toggleMoreMenu(false); doAct(b.dataset.act, b); });
 $('#bar').addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return;
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  if (b.dataset.act === 'more') return toggleMoreMenu();
+  doAct(b.dataset.act, b);
+});
+function doAct(act, b) {
   const sel = nodes.has(selectedId) ? selectedId : null;
-  switch (b.dataset.act) {
+  switch (act) {
     case 'new': newMap(); break;
     case 'open': openFile(); break;
     case 'save': saveFile(false); break;
@@ -2823,9 +2871,10 @@ $('#bar').addEventListener('click', e => {
     case 'mode': setMode(prefs.mode === 'day' ? 'night' : 'day'); break;
     case 'theme': closePanels('#theme'); $('#theme').classList.toggle('show'); break;
     case 'raincolor': toggleRainPanel(); break;
+    case 'about': toggleAbout(true); break;
     case 'search': searchOpen() ? closeSearch() : openSearch(); break;
   }
-});
+}
 
 /* ---------- interface colors ---------- */
 const PRESETS = [
