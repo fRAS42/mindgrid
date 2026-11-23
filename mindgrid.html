@@ -44,7 +44,8 @@ html,body{margin:0;height:100%;width:100%;max-width:100vw;overscroll-behavior:no
 #ctx .moreitems[hidden]{display:none}
 #ctx .taskrow{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;font-size:15px}
 #ctx .taskrow span{flex:1;color:var(--g-mid);white-space:nowrap}
-#ctx.notask .mdone{display:none}
+#ctx.notask .mdone,#ctx.notask .mwait{display:none}
+#ctx .botrow .donebox{padding:8px 10px 8px 8px;gap:6px}
 #ctx .donebox{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 10px;border:1px solid var(--g-dim);cursor:pointer;
   white-space:nowrap;font-size:15px;color:var(--g)}
 #ctx .donebox input{width:22px;height:22px;margin:0;accent-color:var(--g);cursor:pointer}
@@ -202,6 +203,10 @@ body.tableview #stage,body.tableview #mini,body.tableview #log{visibility:hidden
 #tv input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--g);cursor:pointer}
 #tv tr.done td.t button{text-decoration:line-through;opacity:.55}
 #tv tr.sel td{background:rgba(var(--rgb),.1)}
+#tv tr.tvgroup td{padding:16px 10px 6px;border-left:0;border-bottom:1px solid var(--g-mid);color:var(--g-hi);font-size:12.5px;letter-spacing:.1em}
+#tv tr.tvgroup small{color:var(--g-mid);margin-left:6px;letter-spacing:0}
+#tv tr.waiting td.t button{opacity:.8}
+#tv td.t small.wait{display:block;font-size:12px;margin-top:2px;color:var(--g-mid)}
 #tv tr.parent td.t button::before{content:"▸ ";opacity:.8}
 #tv tr.leaving{transition:opacity .6s .3s;opacity:0}
 #tv td.empty{text-align:center;color:var(--g-mid);padding:24px 8px;border-left:0}
@@ -259,6 +264,9 @@ body.searching .node.hit.cur{outline:2px solid var(--g-hi);outline-offset:4px}
 #geoPanel .gbtns button{border:1px solid var(--g-dim);padding:8px 12px}
 #geoHere{width:100%;border:1px solid var(--g-mid)!important;padding:10px 12px!important;margin-top:4px}
 .node a.nlink{color:inherit;text-decoration:underline;text-decoration-color:rgba(var(--rgb),.6);text-underline-offset:2px;cursor:pointer}
+.node .wtag{position:absolute;left:-10px;top:-11px;width:20px;height:20px;pointer-events:none;border:1px solid var(--g);
+  background:linear-gradient(90deg,transparent 6px,var(--g) 6px 8px,transparent 8px 11px,var(--g) 11px 13px,transparent 13px) center/100% 10px no-repeat,var(--bg);
+  box-shadow:0 0 6px rgba(var(--rgb),.5)}
 .node .geo{position:absolute;left:-9px;bottom:-11px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;
   background:var(--bg);border:1px solid var(--g);border-radius:50% 50% 50% 0;transform:rotate(-45deg);pointer-events:none;box-shadow:0 0 6px rgba(var(--rgb),.5)}
 .node .geo::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--g)}
@@ -411,6 +419,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
     <tr><td>Location (hold menu)</td><td>Pin a node to a place: your current location, coordinates or a maps link</td></tr>
     <tr><td>Links in nodes</td><td>Tap a web address to open it; the hold menu lists them too</td></tr>
     <tr><td>📅 (due date row) / ⋯ › calendar</td><td>Put one task, or all open tasks with a due date, in your calendar</td></tr>
+    <tr><td>Waiting (hold menu)</td><td>A task you are waiting on: listed at the bottom of the table, not ranked by due date or priority</td></tr>
     <tr><td>Task (hold menu)</td><td>Untick to make a node a plain note: no done box, not in the table or % done</td></tr>
     <tr><td>Priority A / B / C</td><td>A urgent + important, B important, C urgent</td></tr>
     <tr><td>Enter</td><td>Add sibling (while editing: new line)</td></tr>
@@ -553,7 +562,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '7.1';
+const APP_VERSION = '7.2';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -575,6 +584,7 @@ CREATE TABLE IF NOT EXISTS nodes(
   lon REAL,
   place TEXT,
   task INTEGER NOT NULL DEFAULT 1,
+  waiting INTEGER NOT NULL DEFAULT 0,
   created_at TEXT,
   updated_at TEXT
 );
@@ -599,7 +609,7 @@ function migrate(d) {
   if (!cols.includes('done')) d.run('ALTER TABLE nodes ADD COLUMN done INTEGER NOT NULL DEFAULT 0');
   if (!cols.includes('due')) d.run('ALTER TABLE nodes ADD COLUMN due TEXT');
   if (!cols.includes('category')) d.run('ALTER TABLE nodes ADD COLUMN category TEXT');
-  for (const [c, t] of [['lat', 'REAL'], ['lon', 'REAL'], ['place', 'TEXT'], ['task', 'INTEGER NOT NULL DEFAULT 1']]) if (!cols.includes(c)) d.run(`ALTER TABLE nodes ADD COLUMN ${c} ${t}`);
+  for (const [c, t] of [['lat', 'REAL'], ['lon', 'REAL'], ['place', 'TEXT'], ['task', 'INTEGER NOT NULL DEFAULT 1'], ['waiting', 'INTEGER NOT NULL DEFAULT 0']]) if (!cols.includes(c)) d.run(`ALTER TABLE nodes ADD COLUMN ${c} ${t}`);
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -879,6 +889,9 @@ function updateEl(n, el = els.get(n.id), idx) {
   el.classList.toggle('newest', newestSet.has(n.id));
   el.classList.toggle('newest-all', n.id === newestAllId);
   el.classList.toggle('done', isDone(n));
+  { let wt = el.querySelector('.wtag');
+    if (isWaiting(n)) { if (!wt) { wt = document.createElement('div'); wt.className = 'wtag'; wt.title = 'Waiting'; el.appendChild(wt); } }
+    else wt?.remove(); }
   { let gp = el.querySelector('.geo');
     if (n.lat != null) { if (!gp) { gp = document.createElement('div'); gp.className = 'geo'; el.appendChild(gp); } setAttr(gp, 'title', n.place || fmtCoords(n)); }
     else gp?.remove(); }
@@ -993,8 +1006,8 @@ function icsFold(line) {                   // lines longer than 75 bytes continu
   out.push(cur); return out.join('\r\n ');
 }
 function exportCalendar(list) {
-  const tasks = (list || [...nodes.values()]).filter(n => isTask(n) && !n.done && n.due);
-  if (!tasks.length) return log(list ? 'This node has no due date' : 'No open tasks with a due date to add');
+  const tasks = (list || [...nodes.values()]).filter(n => isTask(n) && !n.done && !isWaiting(n) && n.due);
+  if (!tasks.length) return log(list ? (list[0] && isWaiting(list[0]) ? 'Waiting tasks are not sent to the calendar' : 'This node has no due date') : 'No open tasks with a due date to add');
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
   const ymd = d => d.replace(/-/g, '');
   const next = d => { const [y, m, dd] = d.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1, dd + 1)); return t.toISOString().slice(0, 10).replace(/-/g, ''); };
@@ -1026,6 +1039,7 @@ function exportCalendar(list) {
 /* ---------- tasks: every node is a task unless unticked in the hold menu ---------- */
 const isTask = n => !!n && n.task !== false;
 const isDone = n => isTask(n) && !!n.done;           // a node that is not a task is never shown as done
+const isWaiting = n => isTask(n) && !n.done && !!n.waiting;   // waiting on something: listed, but not ranked by due date or priority
 
 /* ---------- priority (A urgent + important, B important, C urgent) ---------- */
 const CATS = {
@@ -1495,6 +1509,7 @@ function openMenu(id, x, y) {
     `<div class="taskrow"><span>Counts as a to-do</span><label class="donebox"><input type="checkbox" data-mtask${isTask(n) ? ' checked' : ''}>task</label></div>` :
     it === 'bottom' ?
     `<hr><div class="botrow"><button data-m="delete" class="danger" role="menuitem">${delLabel}</button>` +
+    `<label class="donebox mwait"><input type="checkbox" data-mwait${isWaiting(n) ? ' checked' : ''}>waiting</label>` +
     `<label class="donebox mdone"><input type="checkbox" data-mdone${n.done ? ' checked' : ''}>done</label></div>` :
     `<button data-m="${it[0]}" class="${it[2] || ''}" role="menuitem">${it[1]}</button>`; }
   clearTimeout(ctxCloseTimer);
@@ -1537,9 +1552,18 @@ ctx.addEventListener('change', e => {
     renderAll(); markDirty(); refreshMenuTimes(n);
     return log(isTask(n) ? `“${short(n.text)}” is a task again` : `“${short(n.text)}” is no longer a task`);
   }
+  const w = e.target.closest('[data-mwait]');
+  if (w) {
+    const n = nodes.get(ctxId); if (!n) return;
+    pushUndo(); if (w.checked) { n.waiting = true; n.done = false; } else delete n.waiting; n.updated = now();
+    const dn = ctx.querySelector('[data-mdone]'); if (dn) dn.checked = !!n.done;
+    renderAll(); markDirty(); refreshMenuTimes(n);
+    return log(w.checked ? `Waiting: “${short(n.text)}”` : `No longer waiting: “${short(n.text)}”`);
+  }
   const c = e.target.closest('[data-mdone]'); if (!c) return;
   const n = nodes.get(ctxId); if (!n) return;
-  pushUndo(); n.done = c.checked; n.updated = now();
+  pushUndo(); n.done = c.checked; if (c.checked) delete n.waiting; n.updated = now();
+  { const wt = ctx.querySelector('[data-mwait]'); if (wt) wt.checked = isWaiting(n); }
   renderAll(); markDirty(); refreshMenuTimes(n);
   log(c.checked ? `Done: “${short(n.text)}”` : `Not done: “${short(n.text)}”`);
 });
@@ -1871,9 +1895,9 @@ function writeToDb() {
   db.run('BEGIN');
   try {
     db.run('DELETE FROM nodes');
-    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,done,due,category,lat,lon,place,task,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    const st = db.prepare('INSERT INTO nodes(id,parent_id,text,x,y,collapsed,width,color,font_size,done,due,category,lat,lon,place,task,waiting,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     for (const n of nodes.values())
-      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.done ? 1 : 0, n.due ?? null, n.cat ?? null, n.lat ?? null, n.lon ?? null, n.place ?? null, isTask(n) ? 1 : 0, n.created ?? null, n.updated ?? null]);
+      st.run([n.id, n.parent ?? null, n.text, n.x, n.y, n.collapsed ? 1 : 0, n.w ?? null, n.color ?? null, n.fs ?? null, n.done ? 1 : 0, n.due ?? null, n.cat ?? null, n.lat ?? null, n.lon ?? null, n.place ?? null, isTask(n) ? 1 : 0, n.waiting ? 1 : 0, n.created ?? null, n.updated ?? null]);
     st.free();
     db.run("INSERT OR REPLACE INTO meta(key,value) VALUES ('view',?),('selected',?),('saved_at',?),('app','mindgrid 1'),('theme',?),('file_saved_at',?),('focus',?)",
       [JSON.stringify(view), String(selectedId ?? ''), now(), JSON.stringify(prefs), lastSaved ?? '',
@@ -1883,10 +1907,10 @@ function writeToDb() {
 }
 function loadFromDb() {
   nodes = new Map();
-  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size,done,due,category,lat,lon,place,task FROM nodes');
+  const res = db.exec('SELECT id,parent_id,text,x,y,collapsed,created_at,updated_at,width,color,font_size,done,due,category,lat,lon,place,task,waiting FROM nodes');
   if (res.length) for (const r of res[0].values)
     nodes.set(r[0], { id: r[0], parent: r[1], text: r[2] ?? '', x: r[3] ?? 0, y: r[4] ?? 0, collapsed: !!r[5], created: r[6], updated: r[7], w: r[8] ?? null, color: /^#[0-9a-f]{6}$/i.test(r[9] || '') ? r[9] : null, fs: r[10] > 0 ? clamp(r[10], FS_MIN, FS_MAX) : null, done: !!r[11], due: /^\d{4}-\d{2}-\d{2}$/.test(r[12] || '') ? r[12] : null, cat: /^[ABC]$/.test(r[13] || '') ? r[13] : null,   /* old D flags count as no priority */
-      ...(isFinite(r[14]) && isFinite(r[15]) && r[14] != null && r[15] != null && Math.abs(r[14]) <= 90 && Math.abs(r[15]) <= 180 ? { lat: r[14], lon: r[15] } : {}), place: r[16] || null, ...(r[17] === 0 ? { task: false } : {}) });
+      ...(isFinite(r[14]) && isFinite(r[15]) && r[14] != null && r[15] != null && Math.abs(r[14]) <= 90 && Math.abs(r[15]) <= 180 ? { lat: r[14], lon: r[15] } : {}), place: r[16] || null, ...(r[17] === 0 ? { task: false } : {}), ...(r[18] ? { waiting: true } : {}) });
   if (!nodes.size) { const t = now(); nodes.set(1, { id: 1, parent: null, text: 'central idea', x: 0, y: 0, collapsed: false, created: t, updated: t }); }
   nextId = Math.max(0, ...nodes.keys()) + 1;
   const meta = Object.fromEntries((db.exec('SELECT key,value FROM meta')[0]?.values) || []);
@@ -2174,7 +2198,7 @@ function renderTable() {
         if (da !== db) return da - db;
         return catRank(a.cat) - catRank(b.cat) || (b.created || '').localeCompare(a.created || '');
       }
-      // 2. then by priority A, B, C, D, none
+      // 2. then by priority A, B, C, none
       const ca = catRank(a.cat) - catRank(b.cat); if (ca) return ca;
       // 3. same priority: earlier due date first, then newest first
       const dd = dueOf(a) - dueOf(b); if (dd && isFinite(dd)) return dd;
@@ -2182,23 +2206,28 @@ function renderTable() {
       return (b.created || '').localeCompare(a.created || '') || b.id - a.id;
     });
   const doneCount = rows.filter(n => n.done).length;
-  const shown = tvShowDone ? rows : rows.filter(n => !n.done);   // done nodes are hidden unless asked for
+  const byNewest = (a, b) => (b.created || '').localeCompare(a.created || '') || b.id - a.id;
+  const waitingRows = rows.filter(isWaiting).sort(byNewest);          // not ranked by due date or priority
+  const shown = (tvShowDone ? rows : rows.filter(n => !n.done)).filter(n => !isWaiting(n));   // done nodes are hidden unless asked for
   tvBox.innerHTML = `<table id="tv"><thead><tr><th class="t">NODE</th><th class="c" title="Priority A–C">PRI</th><th class="u">UPDATED</th>` +
     `<th class="d">DONE<small>${doneCount}/${rows.length}</small></th></tr></thead><tbody>` +
-    (shown.length ? '' : `<tr><td colspan="4" class="empty">${rows.length ? 'Everything is done.' : 'No leaf nodes yet.'}</td></tr>`) +
-    shown.map(n => {
-      const ec = effColor(n), title = n.text.split('\n')[0].trim() || '…';
-      return `<tr class="${n.done ? 'done' : ''}${n.id === selectedId ? ' sel' : ''}${parents.has(n.id) ? ' parent' : ''}" style="${ec ? colorVars(ec) : ''}">` +
+    (shown.length || waitingRows.length ? '' : `<tr><td colspan="4" class="empty">${rows.length ? 'Everything is done.' : 'No leaf nodes yet.'}</td></tr>`) +
+    shown.map(tvRow).join('') +
+    (waitingRows.length ? `<tr class="tvgroup"><td colspan="4">WAITING <small>${waitingRows.length}</small></td></tr>` + waitingRows.map(tvRow).join('') : '') +
+    '</tbody></table>' +
+    (doneCount ? `<button class="tvdone" data-showdone>${tvShowDone ? `hide ${doneCount} done` : `show ${doneCount} done`}</button>` : '');
+  tvBox.scrollTop = keep;
+  function tvRow(n) {
+      const ec = effColor(n), title = n.text.split('\n')[0].trim() || '…', wt = isWaiting(n);
+      return `<tr class="${n.done ? 'done' : ''}${wt ? ' waiting' : ''}${n.id === selectedId ? ' sel' : ''}${parents.has(n.id) ? ' parent' : ''}" style="${ec ? colorVars(ec) : ''}">` +
         `<td class="t"><button data-go="${n.id}" title="${escapeHtml(n.text)}">${escapeHtml(title)}</button>` +
-        (n.due ? `<small class="due ${dueInfo(n.due).cls}">${dueInfo(n.due).text}</small>` : '') +
+        (wt ? `<small class="wait">⏸ waiting${n.due ? ' · ' + dueInfo(n.due).text : ''}</small>` : n.due ? `<small class="due ${dueInfo(n.due).cls}">${dueInfo(n.due).text}</small>` : '') +
         (n.lat != null ? `<small class="place">📍 ${escapeHtml(short(n.place || fmtCoords(n), 28))}</small>` : '') + `</td>` +
         `<td class="c"><button data-cyc="${n.id}" class="${n.cat ? 'set' : ''}" ${n.cat ? `style="background:${catColor(n.cat)}"` : ''} ` +
         `title="${n.cat ? CATS[n.cat].name : 'No priority'}. Tap to change" aria-label="Priority ${n.cat || 'none'}">${n.cat || '·'}</button></td>` +
         `<td class="u">${fmtShort(n.updated || n.created)}<small>${ago(n.updated || n.created)}</small></td>` +
         `<td class="d"><input type="checkbox" data-done="${n.id}"${n.done ? ' checked' : ''} aria-label="Mark done"></td></tr>`;
-    }).join('') + '</tbody></table>' +
-    (doneCount ? `<button class="tvdone" data-showdone>${tvShowDone ? `hide ${doneCount} done` : `show ${doneCount} done`}</button>` : '');
-  tvBox.scrollTop = keep;
+  }
 }
 let tvShowDone = false, tvHoldUntil = 0;
 function scheduleTable() { if (tableOn) { clearTimeout(tvTimer); tvTimer = setTimeout(renderTable, Math.max(80, tvHoldUntil - performance.now())); } }
@@ -2261,7 +2290,7 @@ tvBox.addEventListener('click', e => {
 tvBox.addEventListener('change', e => {
   const c = e.target.closest('[data-done]'); if (!c) return;
   const n = nodes.get(+c.dataset.done); if (!n) return;
-  pushUndo(); n.done = c.checked; n.updated = now();
+  pushUndo(); n.done = c.checked; if (c.checked) delete n.waiting; n.updated = now();
   const tr = c.closest('tr');
   tr.classList.toggle('done', c.checked);
   if (c.checked && !tvShowDone) { tr.classList.add('leaving'); tvHoldUntil = performance.now() + 900; }   // let you see the tick, then hide it
@@ -2468,6 +2497,12 @@ function oDrawChild(it, a, FONT, BG) {
   c.restore();
   oPri(a.x + a.r * .78, a.y - a.r * .78, n.cat, al, FONT);
   if (n.lat != null) oPin(a.x - a.r * .78, a.y + a.r * .78, al);
+  if (isWaiting(n)) {                                   // pause mark top-left
+    const c2 = octx, px = a.x - a.r * .8, py = a.y - a.r * .8;
+    c2.save(); c2.globalAlpha = al; c2.fillStyle = cssVar('--bg') || '#000'; c2.strokeStyle = theme.g; c2.lineWidth = 1.2;
+    c2.fillRect(px - 8, py - 8, 16, 16); c2.strokeRect(px - 8, py - 8, 16, 16); c2.fillStyle = theme.g;
+    c2.fillRect(px - 4, py - 4, 2.5, 8); c2.fillRect(px + 1.5, py - 4, 2.5, 8); c2.restore();
+  }
   it.hit = { x: lx - blockW / 2, y: Math.min(ly, a.y - a.r), w: blockW, h: Math.max(ly + blockH, a.y + a.r) - Math.min(ly, a.y - a.r) };
 }
 function oDrawCore(it, a, FONT) {
@@ -2524,6 +2559,7 @@ function oRenderInfo() {
     if (n.cat) pills.push(`priority ${n.cat}`);
     if (n.lat != null) pills.push(`📍 ${short(n.place || fmtCoords(n), 24)}`);
     if (isDone(n)) pills.push('done');
+    if (isWaiting(n)) pills.push('⏸ waiting');
     const u = ago(n.updated); if (u) pills.push(`updated ${u}`);
   }
   $('#oinfo').innerHTML = pills.map(p => Array.isArray(p) ? `<span class="${p[1]}">${escapeHtml(p[0])}</span>` : `<span>${escapeHtml(p)}</span>`).join('');
@@ -2790,7 +2826,7 @@ function setTiles() {
 }
 function geoPopup(n) {
   const d = n.due && !isDone(n) ? dueInfo(n.due) : null;
-  const bits = [n.cat ? `<b class="gp-cat" style="background:${catColor(n.cat)}">${n.cat}</b>` : '', d ? `<span class="${d.cls}">${d.text}</span>` : '', isDone(n) ? '<span>done</span>' : ''].filter(Boolean).join(' ');
+  const bits = [n.cat ? `<b class="gp-cat" style="background:${catColor(n.cat)}">${n.cat}</b>` : '', d ? `<span class="${d.cls}">${d.text}</span>` : '', isWaiting(n) ? '<span>⏸ waiting</span>' : isDone(n) ? '<span>done</span>' : ''].filter(Boolean).join(' ');
   return `<div class="gp"><div class="gp-t">${escapeHtml(n.text.split('\n')[0] || '…')}</div>` +
     `<div class="gp-p">📍 ${escapeHtml(n.place || fmtCoords(n))}${n.place ? `<small>${fmtCoords(n)}</small>` : ''}</div>` +
     (bits ? `<div class="gp-b">${bits}</div>` : '') +

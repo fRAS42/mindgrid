@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 7.1
+**Current version:** 7.2
 
-![new in 7.1](https://img.shields.io/badge/new_in-7.1-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 7.2](https://img.shields.io/badge/new_in-7.2-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -14,8 +14,10 @@ No install, no account, no server. Everything runs in your browser.
 
 ## Features
 
-- $\color{#00FF41}\textsf{Put due dates in your iPhone Calendar, with a reminder on the day}$ ![new in 7.1](https://img.shields.io/badge/new_in-7.1-00ff41?labelColor=000000)
-- $\color{#00FF41}\textsf{Web addresses in nodes become tappable links}$
+- $\color{#00FF41}\textsf{Waiting: a task status for things you are waiting on, kept in its own section of the table}$ ![new in 7.2](https://img.shields.io/badge/new_in-7.2-00ff41?labelColor=000000)
+
+- Put due dates in your iPhone Calendar, with a reminder on the day
+- Web addresses in nodes become tappable links
 
 - A simpler screen: 7 everyday buttons in the toolbar, everything else one tap away under ⋯; a shorter hold menu with the rest under More…
 
@@ -174,16 +176,16 @@ A geotagged node shows a small pin on its bottom-left corner on the map and on i
 
 ### Calendar
 
-$\color{#00FF41}\textsf{Send due dates to your calendar so your phone reminds you:}$
+Send due dates to your calendar so your phone reminds you:
 
-- $\color{#00FF41}\textsf{All open tasks: ⋯ › calendar 📅. On iPhone, Safari shows the events; tap Add All. On a computer, a .ics file downloads; open it with your calendar app.}$
-- $\color{#00FF41}\textsf{One task: hold it and tap 📅 in the Due date row.}$
-- $\color{#00FF41}\textsf{Each task becomes an all-day event on its due date with a reminder at 9:00, its priority in the title ([A] Dentist) and, in the notes, where it sits in the map and its full text. Done tasks and plain notes are left out.}$
-- $\color{#00FF41}\textsf{The calendar gets a copy: changing a due date in MINDGRID later does not move the event, so send it again (your calendar may then show both).}$
+- All open tasks: ⋯ › calendar 📅. On iPhone, Safari shows the events; tap Add All. On a computer, a .ics file downloads; open it with your calendar app.
+- One task: hold it and tap 📅 in the Due date row.
+- Each task becomes an all-day event on its due date with a reminder at 9:00, its priority in the title ([A] Dentist) and, in the notes, where it sits in the map and its full text. Done tasks, $\color{#00FF41}\textsf{waiting tasks}$ and plain notes are left out.
+- The calendar gets a copy: changing a due date in MINDGRID later does not move the event, so send it again (your calendar may then show both).
 
 ### Links
 
-$\color{#00FF41}\textsf{Type or paste a web address into a node (https://… or www.…) and it becomes a link, shown shortened, for example figma.com/file/abc123/landing…. A single tap opens it; a double-tap anywhere else on the node still edits it. The hold menu lists the node's links too (up to 3), which is also how you open them in orbit view. While a search is open, highlighted words take the place of links until you close it.}$
+Type or paste a web address into a node (https://… or www.…) and it becomes a link, shown shortened, for example figma.com/file/abc123/landing…. A single tap opens it; a double-tap anywhere else on the node still edits it. The hold menu lists the node's links too (up to 3), which is also how you open them in orbit view. While a search is open, highlighted words take the place of links until you close it.
 
 ### Priority
 
@@ -245,6 +247,7 @@ Tap the table button in the bottom-right corner, next to the magnifier, to see y
 | UPDATED | When the node was last updated, and how long ago |
 | DONE | A checkbox to mark the node as done. The header counts how many leaf nodes are done, for example 3/12 |
 
+- $\color{#00FF41}\textsf{Waiting tasks are listed in their own WAITING section at the bottom, newest first. Their due date and priority do not move them up, and their due date is shown muted.}$
 - Sorting, from top to bottom:
   1. Overdue or due within 3 days, soonest due first (same day: by priority).
   2. Then by priority: A, B, C, then no priority.
@@ -279,6 +282,7 @@ The menu fades in, and shrinks away toward your finger when it closes. The top o
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
 | Delete node | Delete the node and everything below it. The node, its branch and their lines fade out over about a second |
+| $\color{#00FF41}\textsf{waiting (bottom row)}$ | $\color{#00FF41}\textsf{Mark a task as waiting on something. Waiting and done exclude each other: ticking one unticks the other. A waiting task gets a small ⏸ mark on the map and in orbit view}$ |
 | task (above the bottom row) | Ticked by default: the node is a to-do. Untick it for a plain note: the done box disappears, and the node no longer appears in the table, counts toward % done, or shows as done. Tick it again to make it a task. Can be undone |
 | done (bottom right) | Tick to mark the node done, untick to undo it. The menu stays open. Done nodes are struck through on the map and in the table |
 
@@ -302,7 +306,7 @@ The ⋯ menu
 
 | Group | Buttons |
 |---|---|
-| file | open (phones), new map, save as…, $\color{#00FF41}\textsf{calendar 📅}$ |
+| file | open (phones), new map, save as…, calendar 📅 |
 | node | + sibling, edit, fold, delete, narrower, wider |
 | layout & view | tidy, zoom to node, zoom +, zoom −, radar |
 | look | ☀ day / ☾ night, colors, rain, rain color |
@@ -362,6 +366,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | font_size | The node's text size in pixels, when you set it yourself (empty = automatic size) |
 | done | 1 if the node is marked done in the table view, otherwise 0 |
 | task | 1 if the node is a task (the default), 0 if it is a plain note |
+| $\color{#00FF41}\textsf{waiting}$ | $\color{#00FF41}\textsf{1 if the task is waiting on something, otherwise 0}$ |
 | due | The node's due date as YYYY-MM-DD (empty = no due date) |
 | category | Priority flag: A, B or C (empty = none) |
 | lat, lon | The node's location in decimal degrees (empty = no location) |
@@ -407,7 +412,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{7.1}$ | $\color{#00FF41}\textsf{Due dates to your calendar (.ics, all tasks or one); tappable links in nodes}$ |
+| $\color{#00FF41}\textsf{7.2}$ | $\color{#00FF41}\textsf{Waiting status for tasks: own section at the bottom of the table, ⏸ mark, left out of the calendar}$ |
+| 7.1 | Due dates to your calendar (.ics, all tasks or one); tappable links in nodes |
 | 7.0 | Simpler screen: toolbar down to 7 buttons plus a ⋯ menu (icons on phones, no sideways scrolling); hold menu shows everyday actions first, the rest under More… |
 | 6.9 | Task switch per node: plain notes have no done box and stay out of the table and % done |
 | 6.8 | Speed for big maps: lines and nodes far off screen are skipped, dashes pause while moving, fewer redundant updates, faster search |
