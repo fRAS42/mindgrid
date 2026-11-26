@@ -562,7 +562,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '7.2';
+const APP_VERSION = '7.3';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -1007,7 +1007,11 @@ function icsFold(line) {                   // lines longer than 75 bytes continu
 }
 function exportCalendar(list) {
   const tasks = (list || [...nodes.values()]).filter(n => isTask(n) && !n.done && !isWaiting(n) && n.due);
-  if (!tasks.length) return log(list ? (list[0] && isWaiting(list[0]) ? 'Waiting tasks are not sent to the calendar' : 'This node has no due date') : 'No open tasks with a due date to add');
+  if (!tasks.length) {
+    const n = list && list[0];
+    return log(!list ? 'No open tasks with a due date to add' : !isTask(n) ? 'Plain notes are not sent to the calendar'
+      : n.done ? 'Done tasks are not sent to the calendar' : isWaiting(n) ? 'Waiting tasks are not sent to the calendar' : 'This node has no due date');
+  }
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
   const ymd = d => d.replace(/-/g, '');
   const next = d => { const [y, m, dd] = d.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1, dd + 1)); return t.toISOString().slice(0, 10).replace(/-/g, ''); };
@@ -1025,15 +1029,14 @@ function exportCalendar(list) {
   lines.push('END:VCALENDAR');
   const ics = lines.map(icsFold).join('\r\n') + '\r\n';
   const name = (tasks.length === 1 ? tasks[0].text.split('\n')[0].trim().replace(/[^\w\- ]+/g, '').slice(0, 40) || 'task' : `${map} due dates`) + '.ics';
-  if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-    // iPhone and iPad: Safari opens a calendar file directly and offers "Add All"
-    location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
-  } else {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })); a.download = name;
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-  }
-  log(`${tasks.length} due date${tasks.length > 1 ? 's' : ''} sent to your calendar`);
+  // a real file download on every device: iPhone Safari blocks the data: link used before, and it treats a
+  // downloaded calendar file specially (it offers to add the events)
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  log(`${tasks.length} due date${tasks.length > 1 ? 's' : ''} ready for your calendar` +
+      (ios ? '. If Calendar does not open, tap ↓ in Safari’s address bar, then the file, then Add All.' : '. Open the .ics file to add it.'));
 }
 
 /* ---------- tasks: every node is a task unless unticked in the hold menu ---------- */
@@ -1430,8 +1433,14 @@ function setDue(id, due) {
   due = due && /^\d{4}-\d{2}-\d{2}$/.test(due) ? due : null;
   if ((n.due || null) === due) return;
   pushUndo(); n.due = due; n.updated = now();
-  renderAll(); markDirty(); refreshMenuTimes(n);
+  renderAll(); markDirty(); refreshMenuTimes(n); syncDueCal(n);
   log(due ? `“${short(n.text)}” ${dueInfo(due).text}` : `Due date removed from “${short(n.text)}”`);
+}
+function syncDueCal(n) {             // show the 📅 button as soon as a due date is picked in the open menu
+  const row = ctx.querySelector('.duerow'); if (!row) return;
+  const want = !!(n.due && isTask(n) && !n.done && !isWaiting(n)), btn = row.querySelector('[data-duecal]');
+  if (want && !btn) row.insertAdjacentHTML('beforeend', '<button data-duecal title="Add to Calendar" aria-label="Add to Calendar">📅</button>');
+  if (!want && btn) btn.remove();
 }
 function refreshMenuTimes(n) {
   const t = ctx.querySelector('.ttl'); if (!t) return;
@@ -1504,7 +1513,7 @@ function openMenu(id, x, y) {
     it === 'due' ?
     `<div class="duerow"><span>Due date</span><input type="date" data-due value="${n.due || ''}" aria-label="Due date">` +
     `<button data-dueclear title="Remove due date" aria-label="Remove due date">✕</button>` +
-    (n.due ? `<button data-duecal title="Add to Calendar" aria-label="Add to Calendar">📅</button>` : '') + `</div>` :
+    (n.due && isTask(n) && !n.done && !isWaiting(n) ? `<button data-duecal title="Add to Calendar" aria-label="Add to Calendar">📅</button>` : '') + `</div>` :
     it === 'task' ?
     `<div class="taskrow"><span>Counts as a to-do</span><label class="donebox"><input type="checkbox" data-mtask${isTask(n) ? ' checked' : ''}>task</label></div>` :
     it === 'bottom' ?
@@ -1556,14 +1565,14 @@ ctx.addEventListener('change', e => {
   if (w) {
     const n = nodes.get(ctxId); if (!n) return;
     pushUndo(); if (w.checked) { n.waiting = true; n.done = false; } else delete n.waiting; n.updated = now();
-    const dn = ctx.querySelector('[data-mdone]'); if (dn) dn.checked = !!n.done;
+    const dn = ctx.querySelector('[data-mdone]'); if (dn) dn.checked = !!n.done; syncDueCal(n);
     renderAll(); markDirty(); refreshMenuTimes(n);
     return log(w.checked ? `Waiting: “${short(n.text)}”` : `No longer waiting: “${short(n.text)}”`);
   }
   const c = e.target.closest('[data-mdone]'); if (!c) return;
   const n = nodes.get(ctxId); if (!n) return;
   pushUndo(); n.done = c.checked; if (c.checked) delete n.waiting; n.updated = now();
-  { const wt = ctx.querySelector('[data-mwait]'); if (wt) wt.checked = isWaiting(n); }
+  { const wt = ctx.querySelector('[data-mwait]'); if (wt) wt.checked = isWaiting(n); } syncDueCal(n);
   renderAll(); markDirty(); refreshMenuTimes(n);
   log(c.checked ? `Done: “${short(n.text)}”` : `Not done: “${short(n.text)}”`);
 });

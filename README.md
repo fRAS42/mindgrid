@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 7.2
+**Current version:** 7.3
 
-![new in 7.2](https://img.shields.io/badge/new_in-7.2-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 7.3](https://img.shields.io/badge/new_in-7.3-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -14,7 +14,7 @@ No install, no account, no server. Everything runs in your browser.
 
 ## Features
 
-- $\color{#00FF41}\textsf{Waiting: a task status for things you are waiting on, kept in its own section of the table}$ ![new in 7.2](https://img.shields.io/badge/new_in-7.2-00ff41?labelColor=000000)
+- Waiting: a task status for things you are waiting on, kept in its own section of the table
 
 - Put due dates in your iPhone Calendar, with a reminder on the day
 - Web addresses in nodes become tappable links
@@ -178,9 +178,9 @@ A geotagged node shows a small pin on its bottom-left corner on the map and on i
 
 Send due dates to your calendar so your phone reminds you:
 
-- All open tasks: ⋯ › calendar 📅. On iPhone, Safari shows the events; tap Add All. On a computer, a .ics file downloads; open it with your calendar app.
-- One task: hold it and tap 📅 in the Due date row.
-- Each task becomes an all-day event on its due date with a reminder at 9:00, its priority in the title ([A] Dentist) and, in the notes, where it sits in the map and its full text. Done tasks, $\color{#00FF41}\textsf{waiting tasks}$ and plain notes are left out.
+- All open tasks: ⋯ › calendar 📅. A calendar file (.ics) downloads. $\color{#00FF41}\textsf{On iPhone, Safari offers to add the events; if it does not, tap ↓ in Safari's address bar, tap the file, then Add All.}$ On a computer, open the .ics file with your calendar app. ![new in 7.3](https://img.shields.io/badge/new_in-7.3-00ff41?labelColor=000000)
+- One task: hold it and tap 📅 in the Due date row. $\color{#00FF41}\textsf{The 📅 button appears only for open tasks with a due date (not done, not waiting), and as soon as you pick a date.}$
+- Each task becomes an all-day event on its due date with a reminder at 9:00, its priority in the title ([A] Dentist) and, in the notes, where it sits in the map and its full text. Done tasks, waiting tasks and plain notes are left out.
 - The calendar gets a copy: changing a due date in MINDGRID later does not move the event, so send it again (your calendar may then show both).
 
 ### Links
@@ -247,7 +247,7 @@ Tap the table button in the bottom-right corner, next to the magnifier, to see y
 | UPDATED | When the node was last updated, and how long ago |
 | DONE | A checkbox to mark the node as done. The header counts how many leaf nodes are done, for example 3/12 |
 
-- $\color{#00FF41}\textsf{Waiting tasks are listed in their own WAITING section at the bottom, newest first. Their due date and priority do not move them up, and their due date is shown muted.}$
+- Waiting tasks are listed in their own WAITING section at the bottom, newest first. Their due date and priority do not move them up, and their due date is shown muted.
 - Sorting, from top to bottom:
   1. Overdue or due within 3 days, soonest due first (same day: by priority).
   2. Then by priority: A, B, C, then no priority.
@@ -282,7 +282,7 @@ The menu fades in, and shrinks away toward your finger when it closes. The top o
 | Connect to another node… | Tap a new parent, and the node moves there with its branch |
 | Disconnect from parent | Turn the node and its branch into a separate floating map |
 | Delete node | Delete the node and everything below it. The node, its branch and their lines fade out over about a second |
-| $\color{#00FF41}\textsf{waiting (bottom row)}$ | $\color{#00FF41}\textsf{Mark a task as waiting on something. Waiting and done exclude each other: ticking one unticks the other. A waiting task gets a small ⏸ mark on the map and in orbit view}$ |
+| waiting (bottom row) | Mark a task as waiting on something. Waiting and done exclude each other: ticking one unticks the other. A waiting task gets a small ⏸ mark on the map and in orbit view |
 | task (above the bottom row) | Ticked by default: the node is a to-do. Untick it for a plain note: the done box disappears, and the node no longer appears in the table, counts toward % done, or shows as done. Tick it again to make it a task. Can be undone |
 | done (bottom right) | Tick to mark the node done, untick to undo it. The menu stays open. Done nodes are struck through on the map and in the table |
 
@@ -366,7 +366,7 @@ The file is a standard SQLite database, so you can open it with tools like [DB B
 | font_size | The node's text size in pixels, when you set it yourself (empty = automatic size) |
 | done | 1 if the node is marked done in the table view, otherwise 0 |
 | task | 1 if the node is a task (the default), 0 if it is a plain note |
-| $\color{#00FF41}\textsf{waiting}$ | $\color{#00FF41}\textsf{1 if the task is waiting on something, otherwise 0}$ |
+| waiting | 1 if the task is waiting on something, otherwise 0 |
 | due | The node's due date as YYYY-MM-DD (empty = no due date) |
 | category | Priority flag: A, B or C (empty = none) |
 | lat, lon | The node's location in decimal degrees (empty = no location) |
@@ -412,7 +412,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{7.2}$ | $\color{#00FF41}\textsf{Waiting status for tasks: own section at the bottom of the table, ⏸ mark, left out of the calendar}$ |
+| $\color{#00FF41}\textsf{7.3}$ | $\color{#00FF41}\textsf{Fixed: 📅 did nothing on iPhone; the calendar file now downloads on every device, and 📅 only shows when it can be used}$ |
+| 7.2 | Waiting status for tasks: own section at the bottom of the table, ⏸ mark, left out of the calendar |
 | 7.1 | Due dates to your calendar (.ics, all tasks or one); tappable links in nodes |
 | 7.0 | Simpler screen: toolbar down to 7 buttons plus a ⋯ menu (icons on phones, no sideways scrolling); hold menu shows everyday actions first, the rest under More… |
 | 6.9 | Task switch per node: plain notes have no done box and stay out of the table and % done |
