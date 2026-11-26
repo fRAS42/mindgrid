@@ -46,7 +46,7 @@ html,body{margin:0;height:100%;width:100%;max-width:100vw;overscroll-behavior:no
 #ctx .taskrow span{flex:1;color:var(--g-mid);white-space:nowrap}
 #ctx.notask .mdone,#ctx.notask .mwait{display:none}
 #ctx .botrow .donebox{padding:8px 10px 8px 8px;gap:6px}
-#ctx .donebox{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 10px;border:1px solid var(--g-dim);cursor:pointer;
+#ctx .donebox{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 10px;cursor:pointer;
   white-space:nowrap;font-size:15px;color:var(--g)}
 #ctx .donebox input{width:22px;height:22px;margin:0;accent-color:var(--g);cursor:pointer}
 #ctx .fsrow{display:flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;font-size:15px}
@@ -562,7 +562,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '7.3';
+const APP_VERSION = '7.4';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';

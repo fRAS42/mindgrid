@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 7.3
+**Current version:** 7.4
 
-![new in 7.3](https://img.shields.io/badge/new_in-7.3-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 7.4](https://img.shields.io/badge/new_in-7.4-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -178,8 +178,8 @@ A geotagged node shows a small pin on its bottom-left corner on the map and on i
 
 Send due dates to your calendar so your phone reminds you:
 
-- All open tasks: ⋯ › calendar 📅. A calendar file (.ics) downloads. $\color{#00FF41}\textsf{On iPhone, Safari offers to add the events; if it does not, tap ↓ in Safari's address bar, tap the file, then Add All.}$ On a computer, open the .ics file with your calendar app. ![new in 7.3](https://img.shields.io/badge/new_in-7.3-00ff41?labelColor=000000)
-- One task: hold it and tap 📅 in the Due date row. $\color{#00FF41}\textsf{The 📅 button appears only for open tasks with a due date (not done, not waiting), and as soon as you pick a date.}$
+- All open tasks: ⋯ › calendar 📅. A calendar file (.ics) downloads. On iPhone, Safari offers to add the events; if it does not, tap ↓ in Safari's address bar, tap the file, then Add All. On a computer, open the .ics file with your calendar app.
+- One task: hold it and tap 📅 in the Due date row. The 📅 button appears only for open tasks with a due date (not done, not waiting), and as soon as you pick a date.
 - Each task becomes an all-day event on its due date with a reminder at 9:00, its priority in the title ([A] Dentist) and, in the notes, where it sits in the map and its full text. Done tasks, waiting tasks and plain notes are left out.
 - The calendar gets a copy: changing a due date in MINDGRID later does not move the event, so send it again (your calendar may then show both).
 
@@ -412,7 +412,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{7.3}$ | $\color{#00FF41}\textsf{Fixed: 📅 did nothing on iPhone; the calendar file now downloads on every device, and 📅 only shows when it can be used}$ |
+| $\color{#00FF41}\textsf{7.4}$ | $\color{#00FF41}\textsf{Cleaner hold menu: no borders around the task, waiting and done checkboxes}$ |
+| 7.3 | Fixed: 📅 did nothing on iPhone; the calendar file now downloads on every device, and 📅 only shows when it can be used |
 | 7.2 | Waiting status for tasks: own section at the bottom of the table, ⏸ mark, left out of the calendar |
 | 7.1 | Due dates to your calendar (.ics, all tasks or one); tappable links in nodes |
 | 7.0 | Simpler screen: toolbar down to 7 buttons plus a ⋯ menu (icons on phones, no sideways scrolling); hold menu shows everyday actions first, the rest under More… |
