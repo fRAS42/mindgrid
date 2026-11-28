@@ -358,8 +358,8 @@ body.geoview #stage,body.geoview #mini,body.geoview #orbitCv,body.geoview #otrai
 .gp-cat{color:#000;padding:0 6px;font-weight:bold}
 .gp-b .over{color:var(--err)} .gp-b .soon{color:var(--warn)}
 .gp-a{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.gp-a button{font:inherit;font-size:13px;color:var(--g);background:none;border:1px solid var(--g-dim);padding:6px 9px;cursor:pointer}
-.gp-a button:hover{border-color:var(--g)}
+.gp-a button{font:inherit;font-size:13px;color:var(--g);background:none;border:0;padding:6px 9px;cursor:pointer}
+.gp-a button:hover{background:rgba(var(--rgb),.12)}
 #geoView .leaflet-control-zoom a{background:var(--panel);color:var(--g);border-color:var(--g-dim)}
 #geoView .leaflet-control-attribution{background:rgba(0,0,0,.55);color:#9a9a9a;font-size:10.5px}
 #geoView .leaflet-control-attribution a{color:#cfcfcf}
@@ -572,7 +572,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '7.6';
+const APP_VERSION = '7.7';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';

@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 7.6
+**Current version:** 7.7
 
-![new in 7.6](https://img.shields.io/badge/new_in-7.6-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 7.7](https://img.shields.io/badge/new_in-7.7-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -429,7 +429,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{7.6}$ | $\color{#00FF41}\textsf{Cleaner popups: no borders on the buttons in the hold menu, the ⋯ menu and the panels (color swatches keep theirs)}$ |
+| $\color{#00FF41}\textsf{7.7}$ | $\color{#00FF41}\textsf{No borders on the buttons in the Places marker popup either}$ |
+| 7.6 | Cleaner popups: no borders on the buttons in the hold menu, the ⋯ menu and the panels (color swatches keep theirs) |
 | 7.5 | Branches untouched for 2–3 weeks fade (map and orbit), with a switch in colors |
 | 7.4 | Cleaner hold menu: no borders around the task, waiting and done checkboxes |
 | 7.3 | Fixed: 📅 did nothing on iPhone; the calendar file now downloads on every device, and 📅 only shows when it can be used |
