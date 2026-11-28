@@ -377,6 +377,10 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
   #logo{font-size:14px;letter-spacing:.06em;margin-right:2px;padding:4px 2px}
   #moreMenu .narrow-only{display:inline-block}
 }
+/* popup menus and panels: buttons without borders (color swatches keep theirs: it shows which one is chosen) */
+#ctx button,#moreMenu button,#geoPanel button,#about button,#help button,
+#theme button:not(.sw),#rainPanel button:not(.sw),#nodeColor button:not(.sw){border-color:transparent!important}
+#ctx button:hover,#moreMenu button:hover,#geoPanel button:hover,#theme button:not(.sw):hover,#rainPanel button:not(.sw):hover,#nodeColor button:not(.sw):hover{background:rgba(var(--rgb),.1)}
 </style>
 </head>
 <body>
@@ -568,7 +572,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '7.5';
+const APP_VERSION = '7.6';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';

@@ -4,9 +4,9 @@ A mind mapping app in a single HTML file, styled like a green-on-black hacker te
 
 **Open the app:** https://fras42.github.io/mindgrid/mindgrid.html
 
-**Current version:** 7.5
+**Current version:** 7.6
 
-![new in 7.5](https://img.shields.io/badge/new_in-7.5-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
+![new in 7.6](https://img.shields.io/badge/new_in-7.6-00ff41?labelColor=000000) Features in $\color{#00FF41}\textsf{matrix green}$ are new in this version.
 
 No install, no account, no server. Everything runs in your browser.
 
@@ -14,7 +14,7 @@ No install, no account, no server. Everything runs in your browser.
 
 ## Features
 
-- $\color{#00FF41}\textsf{Branches nobody touched for 2–3 weeks fade, so you see at a glance what is active}$ ![new in 7.5](https://img.shields.io/badge/new_in-7.5-00ff41?labelColor=000000)
+- Branches nobody touched for 2–3 weeks fade, so you see at a glance what is active
 
 - Waiting: a task status for things you are waiting on, kept in its own section of the table
 
@@ -191,18 +191,18 @@ Type or paste a web address into a node (https://… or www.…) and it becomes 
 
 ### Faded branches
 
-$\color{#00FF41}\textsf{A branch where nothing was updated for a while fades back, so the parts of your map you are working on stand out:}$
+A branch where nothing was updated for a while fades back, so the parts of your map you are working on stand out:
 
-| $\color{#00FF41}\textsf{Last touched}$ | $\color{#00FF41}\textsf{Look}$ |
+| Last touched | Look |
 |---|---|
-| $\color{#00FF41}\textsf{up to 14 days ago}$ | $\color{#00FF41}\textsf{full strength}$ |
-| $\color{#00FF41}\textsf{15–21 days ago}$ | $\color{#00FF41}\textsf{fading a little more each day}$ |
-| $\color{#00FF41}\textsf{more than 21 days ago}$ | $\color{#00FF41}\textsf{faded (42%), still readable}$ |
+| up to 14 days ago | full strength |
+| 15–21 days ago | fading a little more each day |
+| more than 21 days ago | faded (42%), still readable |
 
-- $\color{#00FF41}\textsf{A branch counts as touched when anything in it is updated: text, color, priority, due date, done, waiting and so on (moving or folding does not count). One fresh node keeps the path above it bright.}$
-- $\color{#00FF41}\textsf{Central nodes never fade. The selected node and search matches are always shown in full, and on a computer so is the node under your mouse.}$
-- $\color{#00FF41}\textsf{Lines fade with their branch, and so do planets and moons in orbit view.}$
-- $\color{#00FF41}\textsf{Switch it off in colors: Fade branches untouched for 2–3 weeks. The setting is saved with the map.}$
+- A branch counts as touched when anything in it is updated: text, color, priority, due date, done, waiting and so on (moving or folding does not count). One fresh node keeps the path above it bright.
+- Central nodes never fade. The selected node and search matches are always shown in full, and on a computer so is the node under your mouse.
+- Lines fade with their branch, and so do planets and moons in orbit view.
+- Switch it off in colors: Fade branches untouched for 2–3 weeks. The setting is saved with the map.
 
 ### Priority
 
@@ -429,7 +429,8 @@ The matrix-green highlight is not stored on the node itself. The app picks the n
 
 | Version | Changes |
 |---|---|
-| $\color{#00FF41}\textsf{7.5}$ | $\color{#00FF41}\textsf{Branches untouched for 2–3 weeks fade (map and orbit), with a switch in colors}$ |
+| $\color{#00FF41}\textsf{7.6}$ | $\color{#00FF41}\textsf{Cleaner popups: no borders on the buttons in the hold menu, the ⋯ menu and the panels (color swatches keep theirs)}$ |
+| 7.5 | Branches untouched for 2–3 weeks fade (map and orbit), with a switch in colors |
 | 7.4 | Cleaner hold menu: no borders around the task, waiting and done checkboxes |
 | 7.3 | Fixed: 📅 did nothing on iPhone; the calendar file now downloads on every device, and 📅 only shows when it can be used |
 | 7.2 | Waiting status for tasks: own section at the bottom of the table, ⏸ mark, left out of the calendar |
