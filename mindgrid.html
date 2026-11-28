@@ -94,6 +94,10 @@ body.linking .node:not(.src):not(.bad):hover{border-color:var(--g-hi);box-shadow
 .node.sel .grip{display:block}
 @media (hover:hover){.node:hover .grip{display:block}}
 .node{--stack:0 0 #0000;box-shadow:var(--stack)}
+.node.aged{opacity:var(--age,1)}
+.node.aged.sel,.node.aged.hit,.node.aged.editing{opacity:1}
+@media (hover:hover){.node.aged:hover{opacity:1}}
+.node.aged.fading{opacity:0}
 .node.folded{--stack:5px 5px 0 -1px var(--nodebg),5px 5px 0 0 var(--g-mid),10px 10px 0 -1px var(--nodebg),10px 10px 0 0 var(--g-dim)}
 .node.root{font-size:19px;padding:12px 22px;border:2px solid var(--g);box-shadow:var(--glow),var(--stack);letter-spacing:.05em}
 .node.sel{border-color:var(--g-hi);color:var(--g-hi);box-shadow:0 0 0 1px var(--g),var(--glow),var(--stack)}
@@ -419,6 +423,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
     <tr><td>Location (hold menu)</td><td>Pin a node to a place: your current location, coordinates or a maps link</td></tr>
     <tr><td>Links in nodes</td><td>Tap a web address to open it; the hold menu lists them too</td></tr>
     <tr><td>📅 (due date row) / ⋯ › calendar</td><td>Put one task, or all open tasks with a due date, in your calendar</td></tr>
+    <tr><td>Faded branch</td><td>Nothing in it was updated for 2–3 weeks (switch off in colors)</td></tr>
     <tr><td>Waiting (hold menu)</td><td>A task you are waiting on: listed at the bottom of the table, not ranked by due date or priority</td></tr>
     <tr><td>Task (hold menu)</td><td>Untick to make a node a plain note: no done box, not in the table or % done</td></tr>
     <tr><td>Priority A / B / C</td><td>A urgent + important, B important, C urgent</td></tr>
@@ -460,6 +465,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
   <div class="trow"><label for="customColor">Custom color</label><input type="color" id="customColor" value="#00ff41"></div>
   <div class="trow"><label for="rainLevel">Rain brightness</label><input type="range" id="rainLevel" min="5" max="80" value="32"></div>
   <div class="trow"><label for="latestOn">Most recent update in matrix green</label><input type="checkbox" id="latestOn" checked></div>
+  <div class="trow"><label for="fadeOn">Fade branches untouched for 2–3 weeks</label><input type="checkbox" id="fadeOn" checked></div>
   <div class="trow"><label for="bgTint">Background tint</label><input type="range" id="bgTint" min="0" max="30" value="0"></div>
   <div class="trow"><span></span><button data-theme-reset>reset to green</button></div>
 </div>
@@ -562,7 +568,7 @@ body:not(.daymode) #geoView .leaflet-tile-pane{filter:invert(1) hue-rotate(180de
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const APP_VERSION = '7.4';
+const APP_VERSION = '7.5';
 document.querySelectorAll('.appver').forEach(e => e.textContent = APP_VERSION);
 const stage = $('#stage'), world = $('#world'), edgesSvg = $('#edges');
 const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
@@ -839,7 +845,19 @@ function newestChildren(idx) {
   }
   return out;
 }
-let newestSet = new Set(), newestAllId = null;   // newest child of each parent / newest node in the whole map
+let newestSet = new Set(), newestAllId = null;
+/* Branches nobody touched for a while fade: full strength for 14 days, fading over the third week, then 42%.
+   "Touched" = the newest update anywhere in the branch. Central nodes never fade. */
+const FADE_START = 14, FADE_END = 21, FADE_MIN = 0.42;
+let ageAlpha = new Map();
+function fadeFor(n, lastMs) {
+  if (prefs.fadeOld === false || !lastMs || n.parent == null || !nodes.has(n.parent)) return 1;
+  const days = (Date.now() - lastMs) / 86400000;
+  if (days <= FADE_START) return 1;
+  const a = days >= FADE_END ? FADE_MIN : 1 - (1 - FADE_MIN) * (days - FADE_START) / (FADE_END - FADE_START);
+  return Math.round(a * 20) / 20;                       // steps of 5%: fewer distinct line groups
+}
+const ageOf = n => ageAlpha.get(n.id) ?? 1;   // newest child of each parent / newest node in the whole map
 function renderAll() {
   latestId = findLatest();
   for (const [id, el] of els) if (!nodes.has(id)) { el.remove(); els.delete(id); }
@@ -849,6 +867,10 @@ function renderAll() {
     const below = new Map();
     const cnt = id => { if (below.has(id)) return below.get(id); let c = 0; for (const k of idx.get(id) || []) c += 1 + cnt(k.id); below.set(id, c); return c; };
     autoFS = new Map(); for (const m of nodes.values()) autoFS.set(m.id, autoFontSize(m, cnt(m.id)));
+    const touch = new Map();
+    const last = id => { if (touch.has(id)) return touch.get(id); const m = nodes.get(id);
+      let t = Date.parse(m?.updated || m?.created) || 0; for (const k of idx.get(id) || []) t = Math.max(t, last(k.id)); touch.set(id, t); return t; };
+    ageAlpha = new Map(); for (const m of nodes.values()) ageAlpha.set(m.id, fadeFor(m, last(m.id)));
   }
   newestAllId = null;
   { let best = null; for (const m of nodes.values()) if (idx.has(m.id)) continue; else if (!best || (m.created || '') > (best.created || '') || ((m.created || '') === (best.created || '') && m.id > best.id)) best = m;
@@ -901,6 +923,7 @@ function updateEl(n, el = els.get(n.id), idx) {
     else ct?.remove(); }
   if (idx) updateStamp(n.id);
   setStyle(el, 'display', isHidden(n) ? 'none' : '');
+  { const a = ageOf(n); el.classList.toggle('aged', a < 1); if (el.style.getPropertyValue('--age') !== String(a)) el.style.setProperty('--age', a); }
   const t = el.firstChild;
   if (editingId !== n.id && t._src !== n.text) setNodeText(t, n.text);
   if (idx) {
@@ -914,10 +937,10 @@ function updateEl(n, el = els.get(n.id), idx) {
   }
 }
 function edgePath(p, n) { const dx = (n.x - p.x) * 0.5; return `M${p.x},${p.y}C${p.x + dx},${p.y} ${n.x - dx},${n.y} ${n.x},${n.y}`; }
-function edgeSvg(d, color) {          // a base line and its flowing dashes, in a node's color or the interface color
-  const st = color ? shades(color) : null;
-  return st ? `<path class="edge" d="${d}" style="stroke:${st.dim}"/><path class="flow" d="${d}" style="stroke:${st.g}"/>`
-            : `<path class="edge" d="${d}"/><path class="flow" d="${d}"/>`;
+function edgeSvg(d, color, alpha = 1) {   // a base line and its flowing dashes, in a node's color or the interface color
+  const st = color ? shades(color) : null, op = alpha < 1 ? `opacity:${alpha};` : '';
+  return st ? `<path class="edge" d="${d}" style="${op}stroke:${st.dim}"/><path class="flow" d="${d}" style="${op ? `opacity:${(alpha * .85).toFixed(2)};` : ''}stroke:${st.g}"/>`
+            : `<path class="edge" d="${d}"${op ? ` style="${op}"` : ''}/><path class="flow" d="${d}"${op ? ` style="opacity:${(alpha * .85).toFixed(2)}"` : ''}/>`;
 }
 /* Links are drawn only near the screen (the visible area plus one screen on every side), one combined path per
    color. Panning redraws them once the view leaves that area. Zoomed out below 50% the dashes stop flowing:
@@ -934,11 +957,11 @@ function drawEdges() {
     if (!p) continue;
     if (Math.max(p.x, n.x) < r.x0 || Math.min(p.x, n.x) > r.x1 || Math.max(p.y, n.y) < r.y0 || Math.min(p.y, n.y) > r.y1) continue;
     if (isHidden(n)) continue;
-    const key = effColor(n) || '';
+    const key = (effColor(n) || '') + '|' + ageOf(n);
     groups.set(key, (groups.get(key) || '') + edgePath(p, n));
   }
   let s = '';
-  for (const [color, d] of groups) s += edgeSvg(d, color);
+  for (const [key, d] of groups) { const [color, a] = key.split('|'); s += edgeSvg(d, color, +a); }
   edgesSvg.innerHTML = s;
   cullNodes(r);
   scheduleMini();
@@ -2456,7 +2479,7 @@ function oDraw() {
   const order = { moon: 0, parent: 1, child: 2, center: 3 };
   for (const it of oItems.slice().sort((p, q) => order[p.role] - order[q.role])) {
     const a = A(it.key); if (!a || a.o < .02 || a.r < .5) continue;
-    if (it.role === 'moon') { const n = nodes.get(it.id), col = oColor(n); c.save(); c.globalAlpha = a.o * (isDone(n) ? .45 : .95); c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 6; c.beginPath(); c.arc(a.x, a.y, a.r, 0, Math.PI * 2); c.fill(); c.restore(); }
+    if (it.role === 'moon') { const n = nodes.get(it.id), col = oColor(n); c.save(); c.globalAlpha = a.o * ageOf(n) * (isDone(n) ? .45 : .95); c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 6; c.beginPath(); c.arc(a.x, a.y, a.r, 0, Math.PI * 2); c.fill(); c.restore(); }
     else if (it.role === 'parent') oDrawParent(it, a, FONT, BG);
     else if (it.role === 'child') oDrawChild(it, a, FONT, BG);
     else oDrawCore(it, a, FONT);
@@ -2486,7 +2509,7 @@ function oDrawParent(it, a, FONT, BG) {
   c.restore();
 }
 function oDrawChild(it, a, FONT, BG) {
-  const c = octx, n = nodes.get(it.id), col = oColor(n), al = a.o;
+  const c = octx, n = nodes.get(it.id), col = oColor(n), al = a.o * (oHl === it.idx ? 1 : ageOf(n));
   oOrb(a.x, a.y, a.r, col, al, isDone(n));
   if (oHl === it.idx) { c.save(); c.globalAlpha = al; c.strokeStyle = theme.hi; c.lineWidth = 2; c.setLineDash([4, 4]); c.beginPath(); c.arc(a.x, a.y, a.r + 6, 0, Math.PI * 2); c.stroke(); c.restore(); }
   c.save(); c.globalAlpha = al; c.textAlign = 'center'; c.textBaseline = 'middle';
@@ -2999,7 +3022,7 @@ const PRESETS = [
   ['magenta', '#ff2bd6'], ['red', '#ff3b3b'], ['violet', '#a77bff'], ['gold', '#ffe14d']
 ];
 const theme = { g: '#00ff41', hi: '#c8ffd6', mid: '#00b82e', dim: '#0a5c1c', rgb: '0,255,65' };
-const prefs = { color: '#00ff41', rain: 32, tint: 0, mode: 'night', latest: true, rainColor: null, view: 'map' };
+const prefs = { color: '#00ff41', rain: 32, tint: 0, mode: 'night', latest: true, rainColor: null, view: 'map', fadeOld: true };
 const hexToRgb = h => { const v = parseInt(h.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; };
 const toHex = a => '#' + a.map(v => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0')).join('');
 const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
@@ -3048,7 +3071,7 @@ function applyTheme() {
   $('#rain').style.opacity = (prefs.rain / 100) * (day ? .55 : 1);
   $('#boot').style.background = bg; $('#boot').style.color = p.g;
   $('#customColor').value = prefs.color;
-  $('#rainLevel').value = prefs.rain; $('#bgTint').value = prefs.tint; $('#latestOn').checked = prefs.latest !== false;
+  $('#rainLevel').value = prefs.rain; $('#bgTint').value = prefs.tint; $('#latestOn').checked = prefs.latest !== false; $('#fadeOn').checked = prefs.fadeOld !== false;
   document.querySelectorAll('#swatches .sw').forEach(b => b.classList.toggle('on', b.dataset.color === prefs.color));
   document.querySelectorAll('.seg [data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === prefs.mode));
   $('#modeBtn').textContent = day ? '☾ night' : '☀ day';
@@ -3101,6 +3124,7 @@ function loadThemeFrom(json) {
   if (isFinite(t.tint)) prefs.tint = clamp(+t.tint, 0, 30);
   if (t.mode === 'day' || t.mode === 'night') prefs.mode = t.mode;
   if (typeof t.latest === 'boolean') prefs.latest = t.latest;
+  if (typeof t.fadeOld === 'boolean') prefs.fadeOld = t.fadeOld;
   if (t.view === 'orbit' || t.view === 'map') prefs.view = t.view;
   prefs.rainColor = /^#[0-9a-f]{6}$/i.test(t.rainColor || '') ? t.rainColor.toLowerCase() : null;
   applyTheme(); savePrefs(false);
@@ -3130,6 +3154,7 @@ $('#rainCustom').addEventListener('change', () => savePrefs());
 $('#rainLevel2').addEventListener('input', e => { prefs.rain = +e.target.value; applyTheme(); savePrefs(); });
 $('#rainDone').addEventListener('click', () => toggleRainPanel(false));
 $('#latestOn').addEventListener('change', e => { prefs.latest = e.target.checked; savePrefs(); renderAll(); });
+$('#fadeOn').addEventListener('change', e => { prefs.fadeOld = e.target.checked; savePrefs(); renderAll(); if (orbitOn) orbitBuild(); });
 $('#bgTint').addEventListener('input', e => { prefs.tint = +e.target.value; applyTheme(); savePrefs(); });
 applyTheme();
 
